@@ -1,0 +1,6 @@
+[init]
+	defaultBranch = main
+[gpg]
+	format = ssh
+[user]
+	signingkey = /home/jay/.ssh/id_rsa.pub
