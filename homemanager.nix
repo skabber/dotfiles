@@ -17,6 +17,7 @@ in
       pkgs.git
       unstable.deno
       pkgs.rustup
+      pkgs.cmake
       pkgs.slack
       pkgs.discord
       unstable.vscode
@@ -24,6 +25,9 @@ in
       pkgs.starship
       pkgs.mesa-demos
       pkgs.steam
+      pkgs.cider
+      pkgs.google-chrome
+      pkgs.vim
     ];
     programs.bash.enable = true;
     programs.bash.initExtra = ''
