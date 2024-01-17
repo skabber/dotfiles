@@ -3,3 +3,5 @@ eval "$(direnv hook bash)"
 
 export PATH=$PATH:$HOME/.cargo/bin
 export PATH=$PATH:$HOME/bin
+
+alias yuzu="appimage-run $HOME/Applications/yuzu.AppImage"

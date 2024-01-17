@@ -11,11 +11,12 @@
       ./homemanager.nix
     ];
 
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = "nixos-framework"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -24,7 +25,6 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
-  services.tailscale.enable = true;
 
   # Set your time zone.
   time.timeZone = "America/Denver";
@@ -50,6 +50,7 @@
   # Enable the GNOME Desktop Environment.
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
+  services.tailscale.enable = true;
 
   # Configure keymap in X11
   services.xserver = {
@@ -98,67 +99,48 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #  wget
-  helix
-  nil
-  mosh
-  openrazer-daemon
-  polychromatic
-  google-chrome
-  gcc
-  cmake
-  docker-compose
-  lshw
+    wget
+    xwayland
+    mosh
+    helix
+    docker-compose
+    jq
+    meson
+    wayland-protocols
+    wayland-utils
+    wl-clipboard
+    wlroots
+    pavucontrol
+    pipewire
+    networkmanagerapplet
+    rofi-wayland
+    wofi
+    tailscale
+    gcc
+    cmake
+    openssl.dev
+    lshw
+    file
+    fprintd
+    usbutils
+    gnome.gnome-tweaks
   ];
 
-  virtualisation.docker.enable = true;
-  # Enable OpenGL
-  hardware.opengl = {
+  services.fprintd.enable = true;
+  services.fprintd.tod.enable = true;
+  services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix; #(On my device it only worked with this driver)
+  # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix-550a;
+
+  programs.steam = {
     enable = true;
-    driSupport = true;
-    driSupport32Bit = true;
+    remotePlay.openFirewall = true;
+    dedicatedServer.openFirewall = true;
   };
-  
-  hardware.nvidia.prime = {
-    offload = {
-			enable = true;
-			enableOffloadCmd = true;
-		};
-		# Make sure to use the correct Bus ID values for your system!
-		intelBusId = "PCI:0:2:0";
-		nvidiaBusId = "PCI:87:0:0";
-	};
 
-  # Load nvidia driver for Xorg and Wayland
-  services.xserver.videoDrivers = ["nvidia"];
-
-  hardware.nvidia = {
-
-    # Modesetting is required.
-    modesetting.enable = true;
-
-    # Nvidia power management. Experimental, and can cause sleep/suspend to fail.
-    powerManagement.enable = false;
-    # Fine-grained power management. Turns off GPU when not in use.
-    # Experimental and only works on modern Nvidia GPUs (Turing or newer).
-    powerManagement.finegrained = false;
-
-    # Use the NVidia open source kernel module (not to be confused with the
-    # independent third-party "nouveau" open source driver).
-    # Support is limited to the Turing and later architectures. Full list of 
-    # supported GPUs is at: 
-    # https://github.com/NVIDIA/open-gpu-kernel-modules#compatible-gpus 
-    # Only available from driver 515.43.04+
-    # Currently alpha-quality/buggy, so false is currently the recommended setting.
-    open = false;
-
-    # Enable the Nvidia settings menu,
-	# accessible via `nvidia-settings`.
-    nvidiaSettings = true;
-
-    # Optionally, you may need to select the appropriate driver version for your specific GPU.
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
-  };
+  services.openssh.enable = true;
+  services.dbus.enable = true;
+  programs.zsh.enable = true;
+  virtualisation.docker.enable = true;
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
@@ -187,4 +169,3 @@
   system.stateVersion = "23.11"; # Did you read the comment?
 
 }
-      
