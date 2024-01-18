@@ -18,8 +18,10 @@ in
     home.packages = [
       pkgs.htop
       pkgs.git
+      pkgs.tig
       pkgs.deno
       pkgs.rustup
+      pkgs.opentofu
       pkgs.vscode
       pkgs.direnv
       pkgs.starship
@@ -29,8 +31,11 @@ in
       pkgs.vim
       pkgs.appimage-run
       pkgs.alacritty
+      pkgs.remmina
       pkgs.rpi-imager
       pkgs.go
+      pkgs.zig
+      pkgs.zig-shell-completions
       pkgs.system76-keyboard-configurator
       pkgs.gopls
       pkgs.taplo
@@ -49,6 +54,7 @@ in
       pkgs.appimage-run
       pkgs.trayscale
       pkgs.obsidian
+      pkgs.fermyon-spin
       # Cosmic DE Stuff
       pkgs.cosmic-term
       pkgs.cosmic-edit
