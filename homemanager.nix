@@ -55,6 +55,8 @@ in
       pkgs.trayscale
       pkgs.obsidian
       pkgs.fermyon-spin
+      pkgs.gjs
+      pkgs.vte
       # Cosmic DE Stuff
       pkgs.cosmic-term
       pkgs.cosmic-edit
