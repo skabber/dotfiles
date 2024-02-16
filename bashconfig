@@ -2,6 +2,7 @@ eval "$(starship init bash)"
 eval "$(direnv hook bash)"
 
 export PATH=$PATH:$HOME/.cargo/bin
-export PATH=$PATH:$HOME/bin
+export PATH=$HOME/bin:$PATH
+export PATH="/home/jay/.deno/bin:$PATH"
 
 alias yuzu="appimage-run $HOME/Applications/yuzu.AppImage"
