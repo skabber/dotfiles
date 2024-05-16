@@ -2,7 +2,15 @@ eval "$(starship init bash)"
 eval "$(direnv hook bash)"
 
 export PATH=$PATH:$HOME/.cargo/bin
-export PATH=$HOME/bin:$PATH
-export PATH="/home/jay/.deno/bin:$PATH"
+export PATH=$PATH:$HOME/go/bin
+export PATH=$PATH:$HOME/bin
+export PATH=$PATH:$HOME/.deno/bin
 
+export EDITOR=hx
+export HSA_OVERRIDE_GFX_VERSION=10.3.0
 alias yuzu="appimage-run $HOME/Applications/yuzu.AppImage"
+
+export FLYCTL_INSTALL="/home/jay/.fly"
+export PATH="$FLYCTL_INSTALL/bin:$PATH"
+
+source $HOME/export-esp.sh

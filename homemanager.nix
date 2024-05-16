@@ -23,6 +23,8 @@ in
       pkgs.rustup
       pkgs.opentofu
       pkgs.vscode
+      pkgs.openvscode-server
+      pkgs.jetbrains.rust-rover
       pkgs.direnv
       pkgs.starship
       pkgs.zip
@@ -57,7 +59,26 @@ in
       pkgs.fermyon-spin
       pkgs.gjs
       pkgs.vte
-      # Cosmic DE Stuff
+      pkgs.heroic
+      pkgs.gnomeExtensions.tailscale-qs
+      pkgs.zoom-us
+      pkgs.teams-for-linux
+      pkgs.gnumake
+      pkgs.android-studio
+      pkgs.ryujinx
+      pkgs.neofetch
+      pkgs.awscli2
+      pkgs.cargo-espflash
+      # pkgs.yuzu-early-access
+      # ROCM
+      # pkgs.rocmPackages.rocminfo
+      # pkgs.rocmPackages.rocm-smi
+      # pkgs.python311Packages.torchWithRocm
+      # pkgs.python311Packages.torchvision
+      # pkgs.virtualenv
+      # pkgs.rocmPackages.clr
+      # pkgs.gpu-viewer
+    # Cosmic DE Stuff
       pkgs.cosmic-term
       pkgs.cosmic-edit
       pkgs.cosmic-bg
