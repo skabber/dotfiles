@@ -1,5 +1,5 @@
-eval "$(starship init bash)"
-eval "$(direnv hook bash)"
+eval "$(starship init zsh)"
+eval "$(direnv hook zsh)"
 
 export PATH=$PATH:$HOME/.cargo/bin
 export PATH=$PATH:$HOME/go/bin

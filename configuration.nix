@@ -16,7 +16,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "nixos-ripper"; # Define your hostname.
+  networking.hostName = "nixos-framework-16"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -99,6 +99,7 @@
       firefox
     #  thunderbird
     ];
+    shell = pkgs.zsh;
   };
 
   # Allow unfree packages
@@ -108,6 +109,7 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    zsh
     wget
     xwayland
     mosh
@@ -130,7 +132,7 @@
     openssl.dev
     lshw
     file
-    # fprintd
+    fprintd
     usbutils
     gnome.gnome-tweaks
     gnumake
@@ -138,7 +140,7 @@
     kubectl
   ];
 
-  # services.fprintd.enable = true;
+  services.fprintd.enable = true;
   # services.fprintd.tod.enable = true;
   # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix; #(On my device it only worked with this driver)
   # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix-550a;
