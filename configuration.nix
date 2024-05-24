@@ -52,6 +52,10 @@
   systemd.services.ollama.environment = {
     OLLAMA_HOST =  lib.mkForce "0.0.0.0:11434";
   };
+  services.udev.extraRules = ''
+    # Framework Laptop 16 - LED Matrix
+    SUBSYSTEMS=="usb", ATTRS{idVendor}=="32ac", ATTRS{idProduct}=="0020", MODE="0660", TAG+="uaccess"
+  '';
   hardware.opengl.extraPackages = [ pkgs.amdvlk pkgs.rocm-opencl-icd ];
   # hardware.opengl.extraPackages = [
   # rocm-opencl-icd
@@ -140,6 +144,7 @@
     kubectl
   ];
 
+  services.fwupd.enable = true;
   services.fprintd.enable = true;
   # services.fprintd.tod.enable = true;
   # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix; #(On my device it only worked with this driver)

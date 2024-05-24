@@ -74,6 +74,7 @@ in
       pkgs.nushell
       pkgs.bottles
       pkgs.dualsensectl
+      pkgs.elf2uf2-rs
       # Cosmic DE Stuff
       pkgs.cosmic-term
       pkgs.cosmic-edit
