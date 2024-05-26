@@ -1,6 +1,7 @@
 eval "$(starship init bash)"
 eval "$(direnv hook bash)"
 
+export EDITOR=hx
 export PATH=$PATH:$HOME/.cargo/bin
 export PATH=$HOME/bin:$PATH
 export PATH="/home/jay/.deno/bin:$PATH"
