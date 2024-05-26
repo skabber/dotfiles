@@ -23,6 +23,8 @@ in
       pkgs.rustup
       pkgs.opentofu
       pkgs.vscode
+      pkgs.openvscode-server
+      pkgs.jetbrains.rust-rover
       pkgs.direnv
       pkgs.starship
       pkgs.zip
@@ -57,6 +59,22 @@ in
       pkgs.fermyon-spin
       pkgs.gjs
       pkgs.vte
+      pkgs.heroic
+      pkgs.gnomeExtensions.tailscale-qs
+      pkgs.zoom-us
+      pkgs.teams-for-linux
+      pkgs.gnumake
+      pkgs.android-studio
+      pkgs.ryujinx
+      pkgs.neofetch
+      pkgs.awscli2
+      pkgs.cargo-espflash
+      pkgs.espup
+      pkgs.zed-editor
+      pkgs.nushell
+      pkgs.bottles
+      pkgs.dualsensectl
+      pkgs.elf2uf2-rs
       # Cosmic DE Stuff
       pkgs.cosmic-term
       pkgs.cosmic-edit
@@ -85,20 +103,25 @@ in
       # require enabling PolKit integration on some desktop environments (e.g. Plasma).
       # polkitPolicyOwners = [ "jay" ];
     # };
-    programs.bash.enable = true;
-    programs.bash.initExtra = ''
-     source /home/jay/.bash_profile.local     
+    # programs.bash.enable = true;
+    # programs.bash.initExtra = ''
+     # source /home/jay/.bash_profile.local     
+    # '';
+    # programs.zsh.enable = true;
+    programs.zsh.initExtra = ''
+      source /home/jay/dotfiles/zshconfig
     '';
-    programs.git = {
-      enable = true;
-      userName = "Jay Graves";
-      userEmail = "jay@skabber.com";
-      iniContent.commit.gpgSign = true;
-      includes = [
-        { path = "~/.gitconfig"; }
-      ];
-    };
-    home.file.".gitconfig".source = /home/jay/dotfiles/gitconfig;
-    home.file.".bash_profile.local".source = /home/jay/dotfiles/bashconfig;
+    # programs.git = {
+    #   enable = true;
+    #   userName = "Jay Graves";
+    #   userEmail = "jay@skabber.com";
+    #   iniContent.commit.gpgSign = true;
+    #   includes = [
+    #     { path = "~/.gitconfig"; }
+    #   ];
+    # };
+    # home.file.".gitconfig".source = /home/jay/dotfiles/gitconfig;
+    # home.file.".bash_profile.local".source = /home/jay/dotfiles/bashconfig;
+    # home.file.".zsh_profile.local".source = /home/jay/dotfiles/zshconfig;
   };
 }

@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports =
@@ -16,7 +16,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "nixos-framework"; # Define your hostname.
+  networking.hostName = "nixos-framework-16"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -46,7 +46,20 @@
 
   # Enable the X11 windowing system.
   services.xserver.enable = true;
-
+  services.xserver.videoDrivers = [ "amdgpu" ];
+  services.ollama.enable = true;
+  services.ollama.acceleration = "rocm";
+  systemd.services.ollama.environment = {
+    OLLAMA_HOST =  lib.mkForce "0.0.0.0:11434";
+  };
+  services.udev.extraRules = ''
+    # Framework Laptop 16 - LED Matrix
+    SUBSYSTEMS=="usb", ATTRS{idVendor}=="32ac", ATTRS{idProduct}=="0020", MODE="0660", TAG+="uaccess"
+  '';
+  hardware.opengl.extraPackages = [ pkgs.amdvlk pkgs.rocm-opencl-icd ];
+  # hardware.opengl.extraPackages = [
+  # rocm-opencl-icd
+# ];
   # Enable the GNOME Desktop Environment.
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
@@ -54,8 +67,8 @@
 
   # Configure keymap in X11
   services.xserver = {
-    layout = "us";
-    xkbVariant = "";
+    xkb.layout = "us";
+    xkb.variant = "";
   };
 
   # Enable CUPS to print documents.
@@ -85,11 +98,12 @@
   users.users.jay = {
     isNormalUser = true;
     description = "Jay Graves";
-    extraGroups = [ "networkmanager" "wheel" "docker" ];
+    extraGroups = [ "networkmanager" "wheel" "docker" "video" "render" "tty" "dialout" ];
     packages = with pkgs; [
       firefox
     #  thunderbird
     ];
+    shell = pkgs.zsh;
   };
 
   # Allow unfree packages
@@ -99,6 +113,7 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    zsh
     wget
     xwayland
     mosh
@@ -124,11 +139,15 @@
     fprintd
     usbutils
     gnome.gnome-tweaks
+    gnumake
+    minikube
+    kubectl
   ];
 
+  services.fwupd.enable = true;
   services.fprintd.enable = true;
-  services.fprintd.tod.enable = true;
-  services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix; #(On my device it only worked with this driver)
+  # services.fprintd.tod.enable = true;
+  # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix; #(On my device it only worked with this driver)
   # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix-550a;
 
   programs.steam = {
