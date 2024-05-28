@@ -75,6 +75,7 @@ in
       pkgs.bottles
       pkgs.dualsensectl
       pkgs.elf2uf2-rs
+      pkgs.gnomeExtensions.pano
       # Cosmic DE Stuff
       pkgs.cosmic-term
       pkgs.cosmic-edit

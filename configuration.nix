@@ -9,14 +9,15 @@
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
       ./homemanager.nix
+      (fetchTarball "https://github.com/nix-community/nixos-vscode-server/tarball/master")
     ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-
-  networking.hostName = "nixos-framework-16"; # Define your hostname.
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+  networking.hostName = "nixos-ripper"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -47,6 +48,7 @@
   # Enable the X11 windowing system.
   services.xserver.enable = true;
   services.xserver.videoDrivers = [ "amdgpu" ];
+  services.vscode-server.enable = true;
   services.ollama.enable = true;
   services.ollama.acceleration = "rocm";
   systemd.services.ollama.environment = {
