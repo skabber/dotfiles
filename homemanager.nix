@@ -109,9 +109,9 @@ in
      # source /home/jay/.bash_profile.local     
     # '';
     # programs.zsh.enable = true;
-    programs.zsh.initExtra = ''
-      source /home/jay/dotfiles/zshconfig
-    '';
+    # programs.zsh.initExtra = ''
+      # source /home/jay/dotfiles/zshconfig
+    # '';
     # programs.git = {
     #   enable = true;
     #   userName = "Jay Graves";
@@ -123,6 +123,6 @@ in
     # };
     # home.file.".gitconfig".source = /home/jay/dotfiles/gitconfig;
     # home.file.".bash_profile.local".source = /home/jay/dotfiles/bashconfig;
-    # home.file.".zsh_profile.local".source = /home/jay/dotfiles/zshconfig;
+    home.file.".zshrc".source = /home/jay/dotfiles/zshconfig;
   };
 }
