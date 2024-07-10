@@ -129,5 +129,11 @@ in
     home.file.".gitconfig".source = /home/jay/dotfiles/gitconfig;
     # home.file.".bash_profile.local".source = /home/jay/dotfiles/bashconfig;
     home.file.".zshrc".source = /home/jay/dotfiles/zshconfig;
+    programs = {
+      direnv = {
+        enable = true;
+        nix-direnv.enable = true;
+      };
+    };
   };
 }
