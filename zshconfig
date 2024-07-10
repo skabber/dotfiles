@@ -1,6 +1,9 @@
 eval "$(starship init zsh)"
 eval "$(direnv hook zsh)"
 
+alias ledbat="inputmodule-control led-matrix --percentage $(batteryled | cut -c 1-2)"
+alias zed="steam-run ~/bin/zed-preview.app/bin/zed"
+
 export PATH=$PATH:$HOME/.cargo/bin
 export PATH=$PATH:$HOME/go/bin
 export PATH=$PATH:$HOME/bin

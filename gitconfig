@@ -1,6 +1,18 @@
 [init]
 	defaultBranch = main
+[credential "https://github.com"]
+	helper =
+	helper = !/nix/store/p705fy2z5hwpfq18zx3v6772vwmz53yd-gh-2.49.2/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !/nix/store/p705fy2z5hwpfq18zx3v6772vwmz53yd-gh-2.49.2/bin/gh auth git-credential
 [gpg]
 	format = ssh
 [user]
-	signingkey = /home/jay/.ssh/id_rsa.pub
+    email = jay@skabber.com
+	name = Jay Graves
+	signingkey = /home/jay/.ssh/id_ed25519.pub
+[commit]
+	gpgsign = true
+[push]
+	autoSetupRemote = true
