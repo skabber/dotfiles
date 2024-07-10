@@ -140,7 +140,7 @@
     file
     fprintd
     usbutils
-    gnome.gnome-tweaks
+    gnome-tweaks
     gnumake
     minikube
     kubectl
