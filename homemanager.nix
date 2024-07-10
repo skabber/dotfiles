@@ -18,6 +18,7 @@ in
     home.packages = [
       pkgs.htop
       pkgs.git
+      pkgs.gh
       pkgs.tig
       pkgs.deno
       pkgs.rustup
@@ -42,13 +43,15 @@ in
       pkgs.gopls
       pkgs.taplo
       pkgs.nodePackages.typescript-language-server
-      pkgs.nodePackages_latest.vscode-json-languageserver
+      pkgs.nodePackages.vscode-json-languageserver
+      pkgs.docker-compose-language-service
       pkgs.yaml-language-server
       pkgs.zip
       pkgs.zls
       pkgs.python311Packages.python-lsp-server
       pkgs.nil
       pkgs.marksman
+      pkgs.markdown-oxide
       pkgs.dockerfile-language-server-nodejs
       pkgs.slack
       pkgs.discord
@@ -77,6 +80,7 @@ in
       pkgs.elf2uf2-rs
       pkgs.gnomeExtensions.pano
       pkgs.nvtopPackages.amd
+      pkgs.via
       # Cosmic DE Stuff
       pkgs.cosmic-term
       pkgs.cosmic-edit
@@ -107,22 +111,22 @@ in
     # };
     # programs.bash.enable = true;
     # programs.bash.initExtra = ''
-     # source /home/jay/.bash_profile.local     
+     # source /home/jay/.bash_profile.local
     # '';
     # programs.zsh.enable = true;
     # programs.zsh.initExtra = ''
       # source /home/jay/dotfiles/zshconfig
     # '';
-    # programs.git = {
-    #   enable = true;
-    #   userName = "Jay Graves";
-    #   userEmail = "jay@skabber.com";
-    #   iniContent.commit.gpgSign = true;
-    #   includes = [
-    #     { path = "~/.gitconfig"; }
-    #   ];
-    # };
-    # home.file.".gitconfig".source = /home/jay/dotfiles/gitconfig;
+    programs.git = {
+      enable = true;
+      userName = "Jay Graves";
+      userEmail = "jay@skabber.com";
+      iniContent.commit.gpgSign = true;
+      includes = [
+        { path = "~/.gitconfig"; }
+      ];
+    };
+    home.file.".gitconfig".source = /home/jay/dotfiles/gitconfig;
     # home.file.".bash_profile.local".source = /home/jay/dotfiles/bashconfig;
     home.file.".zshrc".source = /home/jay/dotfiles/zshconfig;
   };
