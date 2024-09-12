@@ -58,7 +58,7 @@
     # Framework Laptop 16 - LED Matrix
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="32ac", ATTRS{idProduct}=="0020", MODE="0660", TAG+="uaccess"
   '';
-  hardware.opengl.extraPackages = [ pkgs.amdvlk pkgs.rocm-opencl-icd ];
+  hardware.graphics.extraPackages = [ pkgs.amdvlk pkgs.rocm-opencl-icd ];
   # hardware.opengl.extraPackages = [
   # rocm-opencl-icd
 # ];
