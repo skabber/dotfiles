@@ -9,6 +9,7 @@
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
       ./homemanager.nix
+      # ./programs.nix
       (fetchTarball "https://github.com/nix-community/nixos-vscode-server/tarball/master")
     ];
 
@@ -59,6 +60,7 @@
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="32ac", ATTRS{idProduct}=="0020", MODE="0660", TAG+="uaccess"
   '';
   hardware.graphics.extraPackages = [ pkgs.amdvlk pkgs.rocm-opencl-icd ];
+  hardware.openrazer.enable = true;
   # hardware.opengl.extraPackages = [
   # rocm-opencl-icd
 # ];
@@ -77,6 +79,10 @@
   services.printing.enable = true;
 
   hardware.pulseaudio.enable = false;
+  security.pam.services = {
+    login.u2fAuth = true;
+    sudo .u2fAuth = true;
+  };
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -98,7 +104,7 @@
   users.users.jay = {
     isNormalUser = true;
     description = "Jay Graves";
-    extraGroups = [ "networkmanager" "wheel" "docker" "video" "render" "tty" "dialout" ];
+    extraGroups = [ "networkmanager" "wheel" "docker" "video" "render" "tty" "dialout" "openrazer" ];
     packages = with pkgs; [
       firefox
     #  thunderbird
@@ -108,7 +114,18 @@
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
-
+  fonts.packages = with pkgs; [
+    noto-fonts
+    noto-fonts-cjk
+    noto-fonts-emoji
+    liberation_ttf
+    fira-code
+    fira-code-symbols
+    mplus-outline-fonts.githubRelease
+    dina-font
+    proggyfonts
+    (nerdfonts.override { fonts = [ "FiraCode" "DroidSansMono" ]; })
+  ];
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
@@ -127,6 +144,8 @@
     wlroots
     pavucontrol
     pipewire
+    openrazer-daemon
+    polychromatic
     networkmanagerapplet
     rofi-wayland
     wofi
@@ -136,16 +155,18 @@
     openssl.dev
     lshw
     file
-    fprintd
+    # fprintd
     usbutils
-    gnome-tweaks
+    pkgs.gnome-tweaks
     gnumake
     minikube
     kubectl
+    # roon-server
+    tmux
   ];
 
   services.fwupd.enable = true;
-  services.fprintd.enable = true;
+  # services.fprintd.enable = true;
   # services.fprintd.tod.enable = true;
   # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix; #(On my device it only worked with this driver)
   # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix-550a;
@@ -186,5 +207,4 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "23.11"; # Did you read the comment?
-
 }
