@@ -4,6 +4,7 @@ eval "$(direnv hook zsh)"
 alias ledbat="inputmodule-control led-matrix --percentage $(batteryled | cut -c 1-2)"
 alias zed="steam-run ~/bin/zed.app/bin/zed"
 alias zedp="steam-run ~/bin/zed-preview.app/bin/zed"
+alias vim="nvim"
 
 export PATH=$PATH:$HOME/.cargo/bin
 export PATH=$PATH:$HOME/go/bin
@@ -16,5 +17,5 @@ alias yuzu="appimage-run $HOME/Applications/yuzu.AppImage"
 
 export FLYCTL_INSTALL="/home/jay/.fly"
 export PATH="$FLYCTL_INSTALL/bin:$PATH"
-
+export NIXPKGS_ACCEPT_ANDROID_SDK_LICENSE=1
 source $HOME/dotfiles/export-esp.sh
