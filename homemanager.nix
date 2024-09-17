@@ -81,6 +81,7 @@ in
       pkgs.gnomeExtensions.pano
       pkgs.nvtopPackages.amd
       pkgs.via
+      pkgs.warp-terminal
       # Cosmic DE Stuff
       pkgs.cosmic-term
       pkgs.cosmic-edit
