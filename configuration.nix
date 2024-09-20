@@ -14,6 +14,7 @@
     ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.optimise.automatic = true;
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -61,9 +62,8 @@
   '';
   hardware.graphics.extraPackages = [ pkgs.amdvlk pkgs.rocm-opencl-icd ];
   hardware.openrazer.enable = true;
-  # hardware.opengl.extraPackages = [
-  # rocm-opencl-icd
-# ];
+  nixpkgs.config.rocmSupport = true;
+  
   # Enable the GNOME Desktop Environment.
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
@@ -115,17 +115,13 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
   fonts.packages = with pkgs; [
-    noto-fonts
-    noto-fonts-cjk
-    noto-fonts-emoji
-    liberation_ttf
     fira-code
     fira-code-symbols
-    mplus-outline-fonts.githubRelease
-    dina-font
-    proggyfonts
     (nerdfonts.override { fonts = [ "FiraCode" "DroidSansMono" ]; })
   ];
+  environment.variables = {
+  	NIXPKGS_ACCEPT_ANDROID_SDK_LICENSE=1;
+  };
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
@@ -147,8 +143,6 @@
     openrazer-daemon
     polychromatic
     networkmanagerapplet
-    rofi-wayland
-    wofi
     tailscale
     gcc
     cmake
@@ -175,6 +169,12 @@
     enable = true;
     remotePlay.openFirewall = true;
     dedicatedServer.openFirewall = true;
+  };
+
+  programs._1password.enable = true;
+  programs._1password-gui = {
+    enable = true;
+    polkitPolicyOwners = ["jay"];
   };
 
   services.openssh.enable = true;
