@@ -16,3 +16,5 @@
 	gpgsign = true
 [push]
 	autoSetupRemote = true
+[safe]
+	directory = /app

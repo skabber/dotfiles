@@ -3,14 +3,30 @@ let
   # home-manager = builtins.fetchTarball "https://github.com/nix-community/home-manager/archive/release-23.11.tar.gz";
   home-manager = builtins.fetchTarball "https://github.com/nix-community/home-manager/archive/master.tar.gz";
   # stable = import <stable> { config.allowUnfree = true; };
+  # androidSdkModule = import ((builtins.fetchGit {
+  #   url = "https://github.com/tadfisher/android-nixpkgs.git";
+  #   ref = "main";  # Or "stable", "beta", "preview", "canary"
+  # }) + "/hm-module.nix");
 in
 {
   imports = [
     (import "${home-manager}/nixos")
+    # androidSdkModule
   ];
+  # android-sdk.enable = true;
   nixpkgs.config.permittedInsecurePackages = [
     "electron-25.9.0"
   ];
+  # android-sdk.path = "~/Android/Sdk";
+  # android-sdk.packages = sdkPkgs: with sdkPkgs; [
+  #   build-tools-34-0-0
+  #   cmdline-tools-latest
+  #   emulator
+  #   platforms-android-34
+  #   sources-android-34
+  #   android-studio
+  #   android-sdk
+  # ];
   home-manager.users.jay = {
     /* The home.stateVersion option does not have a default and must be set */
     home.stateVersion = "23.11";
@@ -18,7 +34,6 @@ in
     home.packages = [
       pkgs.htop
       pkgs.git
-      pkgs.gh
       pkgs.tig
       pkgs.deno
       pkgs.rustup
@@ -27,11 +42,10 @@ in
       pkgs.openvscode-server
       pkgs.jetbrains.rust-rover
       pkgs.direnv
-      pkgs.starship
       pkgs.zip
       pkgs.cider
       pkgs.google-chrome
-      pkgs.vim
+      pkgs.neovim
       pkgs.appimage-run
       pkgs.alacritty
       pkgs.remmina
@@ -43,15 +57,13 @@ in
       pkgs.gopls
       pkgs.taplo
       pkgs.nodePackages.typescript-language-server
-      pkgs.nodePackages.vscode-json-languageserver
-      pkgs.docker-compose-language-service
+      pkgs.nodePackages_latest.vscode-json-languageserver
       pkgs.yaml-language-server
       pkgs.zip
       pkgs.zls
       pkgs.python311Packages.python-lsp-server
       pkgs.nil
       pkgs.marksman
-      pkgs.markdown-oxide
       pkgs.dockerfile-language-server-nodejs
       pkgs.slack
       pkgs.discord
@@ -67,11 +79,9 @@ in
       pkgs.zoom-us
       pkgs.teams-for-linux
       pkgs.gnumake
-      pkgs.android-studio
+      pkgs.android-studio-full
       pkgs.ryujinx
       pkgs.neofetch
-      pkgs.awscli2
-      pkgs.cargo-espflash
       pkgs.espup
       pkgs.zed-editor
       pkgs.nushell
@@ -112,9 +122,16 @@ in
     # };
     # programs.bash.enable = true;
     # programs.bash.initExtra = ''
-     # source /home/jay/.bash_profile.local
+     # source /home/jay/.bash_profile.local     
     # '';
-    # programs.zsh.enable = true;
+    programs.starship = {
+      enable = true;
+      settings = {
+        add_newline = false;
+        package.disabled = true;
+      };
+    };
+    programs.zsh.enable = true;
     # programs.zsh.initExtra = ''
       # source /home/jay/dotfiles/zshconfig
     # '';

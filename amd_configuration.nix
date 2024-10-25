@@ -2,24 +2,19 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, lib, ... }:
+{ config, pkgs, ... }:
 
 {
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      ./homemanager.nix
-      # ./programs.nix
-      (fetchTarball "https://github.com/nix-community/nixos-vscode-server/tarball/master")
     ];
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  nix.optimise.automatic = true;
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-  networking.hostName = "nixos-ripper"; # Define your hostname.
+
+  networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -49,41 +44,23 @@
 
   # Enable the X11 windowing system.
   services.xserver.enable = true;
-  services.xserver.videoDrivers = [ "amdgpu" ];
-  # services.vscode-server.enable = true;
-  # services.ollama.enable = true;
-  # services.ollama.acceleration = "rocm";
-  # systemd.services.ollama.environment = {
-    # OLLAMA_HOST =  lib.mkForce "0.0.0.0:11434";
-  # };
-  services.udev.packages = [ pkgs.via ];
-  services.udev.extraRules = ''
-    # Framework Laptop 16 - LED Matrix
-    SUBSYSTEMS=="usb", ATTRS{idVendor}=="32ac", ATTRS{idProduct}=="0020", MODE="0660", TAG+="uaccess"
-  '';
-  hardware.graphics.extraPackages = [ pkgs.amdvlk pkgs.rocm-opencl-icd ];
-  hardware.openrazer.enable = true;
-  nixpkgs.config.rocmSupport = true;
-  
+
   # Enable the GNOME Desktop Environment.
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
-  services.tailscale.enable = true;
 
   # Configure keymap in X11
   services.xserver = {
-    xkb.layout = "us";
-    xkb.variant = "";
+    layout = "us";
+    xkbVariant = "";
   };
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
+  # Enable sound with pipewire.
+  sound.enable = true;
   hardware.pulseaudio.enable = false;
-  security.pam.services = {
-    login.u2fAuth = true;
-    sudo .u2fAuth = true;
-  };
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -100,88 +77,34 @@
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
-
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
+    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+  };
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.jay = {
     isNormalUser = true;
     description = "Jay Graves";
-    extraGroups = [ "networkmanager" "wheel" "docker" "video" "render" "tty" "dialout" "openrazer" ];
+    extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
       firefox
+      git
     #  thunderbird
     ];
-    shell = pkgs.zsh;
   };
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
-  fonts.packages = with pkgs; [
-    fira-code
-    fira-code-symbols
-    (nerdfonts.override { fonts = [ "FiraCode" "DroidSansMono" ]; })
-  ];
-  environment.variables = {
-  	NIXPKGS_ACCEPT_ANDROID_SDK_LICENSE=1;
-  };
+  services.flatpak.enable = true;
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    zsh
-    wget
-    xwayland
-    mosh
-    helix
-    docker-compose
-    jq
-    meson
-    wayland-protocols
-    wayland-utils
-    wl-clipboard
-    wlroots
-    pavucontrol
-    pipewire
-    openrazer-daemon
-    polychromatic
-    networkmanagerapplet
-    tailscale
-    gcc
-    cmake
-    openssl.dev
-    lshw
-    file
-    # fprintd
-    usbutils
-    pkgs.gnome-tweaks
-    gnumake
-    minikube
-    kubectl
-    # roon-server
-    tmux
+   vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+   helix  
+#  wget
   ];
 
-  services.fwupd.enable = true;
-  # services.fprintd.enable = true;
-  # services.fprintd.tod.enable = true;
-  # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix; #(On my device it only worked with this driver)
-  # services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix-550a;
-
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true;
-    dedicatedServer.openFirewall = true;
-  };
-
-  programs._1password.enable = true;
-  programs._1password-gui = {
-    enable = true;
-    polkitPolicyOwners = ["jay"];
-  };
-
-  services.openssh.enable = true;
-  services.dbus.enable = true;
-  programs.zsh.enable = true;
-  virtualisation.docker.enable = true;
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
@@ -208,4 +131,5 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "23.11"; # Did you read the comment?
+
 }
