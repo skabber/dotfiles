@@ -50,12 +50,13 @@
   # Enable the X11 windowing system.
   services.xserver.enable = true;
   services.xserver.videoDrivers = [ "amdgpu" ];
-  services.vscode-server.enable = true;
-  services.ollama.enable = true;
-  services.ollama.acceleration = "rocm";
-  systemd.services.ollama.environment = {
-    OLLAMA_HOST =  lib.mkForce "0.0.0.0:11434";
-  };
+  # services.vscode-server.enable = true;
+  # services.ollama.enable = true;
+  # services.ollama.acceleration = "rocm";
+  # systemd.services.ollama.environment = {
+    # OLLAMA_HOST =  lib.mkForce "0.0.0.0:11434";
+  # };
+  services.udev.packages = [ pkgs.via ];
   services.udev.extraRules = ''
     # Framework Laptop 16 - LED Matrix
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="32ac", ATTRS{idProduct}=="0020", MODE="0660", TAG+="uaccess"

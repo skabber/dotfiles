@@ -89,6 +89,8 @@ in
       pkgs.dualsensectl
       pkgs.elf2uf2-rs
       pkgs.gnomeExtensions.pano
+      pkgs.nvtopPackages.amd
+      pkgs.via
       pkgs.warp-terminal
       # Cosmic DE Stuff
       pkgs.cosmic-term
