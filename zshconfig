@@ -5,7 +5,7 @@ alias ledbat="inputmodule-control led-matrix --percentage $(batteryled | cut -c 
 alias zed="steam-run ~/bin/zed.app/bin/zed"
 alias zedp="steam-run ~/bin/zed-preview.app/bin/zed"
 alias vim="nvim"
-
+alias docker-credential-gcloud=docker-credential-gcr
 export PATH=$PATH:$HOME/.cargo/bin
 export PATH=$PATH:$HOME/go/bin
 export PATH=$PATH:$HOME/bin
