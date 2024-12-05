@@ -37,17 +37,17 @@ in
       pkgs.tig
       pkgs.deno
       pkgs.rustup
-      pkgs.opentofu
+      # pkgs.opentofu
       pkgs.vscode
       pkgs.openvscode-server
-      pkgs.jetbrains.rust-rover
+      # pkgs.jetbrains.rust-rover
       pkgs.direnv
       pkgs.zip
       pkgs.cider
       pkgs.google-chrome
       pkgs.neovim
       pkgs.appimage-run
-      pkgs.alacritty
+      # pkgs.alacritty
       pkgs.remmina
       pkgs.rpi-imager
       pkgs.go
@@ -77,9 +77,9 @@ in
       pkgs.heroic
       pkgs.gnomeExtensions.tailscale-qs
       pkgs.zoom-us
-      pkgs.teams-for-linux
+      # pkgs.teams-for-linux
       pkgs.gnumake
-      pkgs.android-studio-full
+      # pkgs.android-studio-full
       pkgs.ryujinx
       pkgs.neofetch
       pkgs.espup
@@ -93,25 +93,25 @@ in
       pkgs.via
       pkgs.warp-terminal
       # Cosmic DE Stuff
-      pkgs.cosmic-term
-      pkgs.cosmic-edit
-      pkgs.cosmic-bg
-      pkgs.cosmic-osd
-      pkgs.cosmic-comp
-      pkgs.cosmic-randr
-      pkgs.cosmic-panel
-      pkgs.cosmic-icons
-      pkgs.cosmic-greeter
-      pkgs.cosmic-files
-      pkgs.cosmic-applets
-      pkgs.cosmic-settings
-      pkgs.cosmic-launcher
-      pkgs.cosmic-screenshot
-      pkgs.cosmic-applibrary
-      pkgs.cosmic-design-demo
-      pkgs.cosmic-notifications
-      pkgs.cosmic-settings-daemon
-      pkgs.cosmic-workspaces-epoch
+      # pkgs.cosmic-term
+      # pkgs.cosmic-edit
+      # pkgs.cosmic-bg
+      # pkgs.cosmic-osd
+      # pkgs.cosmic-comp
+      # pkgs.cosmic-randr
+      # pkgs.cosmic-panel
+      # pkgs.cosmic-icons
+      # pkgs.cosmic-greeter
+      # pkgs.cosmic-files
+      # pkgs.cosmic-applets
+      # pkgs.cosmic-settings
+      # pkgs.cosmic-launcher
+      # pkgs.cosmic-screenshot
+      # pkgs.cosmic-applibrary
+      # pkgs.cosmic-design-demo
+      # pkgs.cosmic-notifications
+      # pkgs.cosmic-settings-daemon
+      # pkgs.cosmic-workspaces-epoch
     ];
     # programs.1password.enable = true;
     # programs.1password-gui = {
