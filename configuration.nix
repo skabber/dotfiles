@@ -50,7 +50,7 @@
   # Enable the X11 windowing system.
   services.xserver.enable = true;
   services.xserver.videoDrivers = [ "amdgpu" ];
-  # services.vscode-server.enable = true;
+  services.vscode-server.enable = true;
   # services.ollama.enable = true;
   # services.ollama.acceleration = "rocm";
   # systemd.services.ollama.environment = {
@@ -61,15 +61,18 @@
     # Framework Laptop 16 - LED Matrix
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="32ac", ATTRS{idProduct}=="0020", MODE="0660", TAG+="uaccess"
   '';
-  hardware.graphics.extraPackages = [ pkgs.amdvlk pkgs.rocm-opencl-icd ];
+  # hardware.graphics.extraPackages = [ 
+  #   pkgs.amdvlk
+  # ]; 
+  # pkgs.rocm-opencl-icd ];
   hardware.openrazer.enable = true;
   nixpkgs.config.rocmSupport = true;
-  
   # Enable the GNOME Desktop Environment.
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
   services.tailscale.enable = true;
-
+  security.pam.services.gdm.enableGnomeKeyring = true;
+  security.pam.services.gdm-password.enableGnomeKeyring = true;
   # Configure keymap in X11
   services.xserver = {
     xkb.layout = "us";
@@ -116,9 +119,18 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
   fonts.packages = with pkgs; [
+    # noto-fonts
+    # noto-fonts-cjk
+    # noto-fonts-emoji
+    # liberation_ttf
     fira-code
     fira-code-symbols
-    (nerdfonts.override { fonts = [ "FiraCode" "DroidSansMono" ]; })
+    # mplus-outline-fonts.githubRelease
+    # dina-font
+    # proggyfonts
+    nerd-fonts.fira-code
+    nerd-fonts.droid-sans-mono
+    # (nerdfonts.override { fonts = [ "FiraCode" "DroidSansMono" ]; })
   ];
   environment.variables = {
   	NIXPKGS_ACCEPT_ANDROID_SDK_LICENSE=1;
@@ -150,10 +162,10 @@
     openssl.dev
     lshw
     file
-    # fprintd
     usbutils
     pkgs.gnome-tweaks
     gnumake
+    onedrive
     minikube
     kubectl
     # roon-server
@@ -191,6 +203,10 @@
   # };
 
   # List services that you want to enable:
+  
+  services.udisks2.enable = true;
+  services.devmon.enable = true;
+  services.gvfs.enable = true; 
 
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
