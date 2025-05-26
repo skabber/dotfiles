@@ -4,12 +4,16 @@
 with lib;
 
 let
-
   cfg = config.ollama;
-
+  # localNxpkgs = /home/jay/nixpkgs {
+  #   config = {};
+  #   overlays = {};
+  # };
 in
-
 {
+# nixpkgs = {
+#   pkgs = localNxpkgs;
+# };
   options.ollama.enable = mkEnableOption "Ollama";
 
   options.ollama.package = mkOption {
@@ -24,10 +28,12 @@ in
         enable = true;
         acceleration = "rocm";
         environmentVariables = {
-            HCC_AMDGPU_TARGET = "amdgcn-amd-amdhsa--gfx1030"; # used to be necessary, but doesn't seem to anymore
+            HCC_AMDGPU_TARGET = "gfx1030"; # used to be necessary, but doesn't seem to anymore
         };
         rocmOverrideGfx = "10.3.0";
     };
+
+    # services.open-webui.enable = true;
 
     systemd.services.ollama.environment = {
         OLLAMA_HOST =  lib.mkForce "0.0.0.0:11434";
