@@ -10,6 +10,7 @@ export PATH=$PATH:$HOME/.cargo/bin
 export PATH=$PATH:$HOME/go/bin
 export PATH=$PATH:$HOME/bin
 export PATH=$PATH:$HOME/.deno/bin
+export PATH=$PATH:$HOME/.local/bin
 export NIXPKGS_ACCEPT_ANDROID_SDK_LICENSE=1
 
 export EDITOR=hx
