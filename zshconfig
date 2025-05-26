@@ -20,3 +20,14 @@ export FLYCTL_INSTALL="/home/jay/.fly"
 export PATH="$FLYCTL_INSTALL/bin:$PATH"
 export NIXPKGS_ACCEPT_ANDROID_SDK_LICENSE=1
 source $HOME/dotfiles/export-esp.sh
+
+export OPENAI_API_KEY=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
+
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		builtin cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
+}
