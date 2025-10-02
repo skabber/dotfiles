@@ -29,6 +29,7 @@ in
         acceleration = "rocm";
         environmentVariables = {
             HCC_AMDGPU_TARGET = "gfx1030"; # used to be necessary, but doesn't seem to anymore
+            HSA_OVERRIDE_GFX_VERSION = "gfx1030";
             # framework gfx1030
         };
         rocmOverrideGfx = "10.3.0";
