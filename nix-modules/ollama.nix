@@ -31,6 +31,7 @@ in
             HCC_AMDGPU_TARGET = "gfx1030";
             HSA_OVERRIDE_GFX_VERSION = "10.3.0";
             HIP_VISIBLE_DEVICES = "0";
+            ROCR_VISIBLE_DEVICES = "0";
             GPU_MAX_HW_QUEUES = "1";
         };
         rocmOverrideGfx = "10.3.0";
