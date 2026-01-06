@@ -26,7 +26,7 @@ in
 
     services.ollama = {
         enable = true;
-        package = pkgs.ollama-rocm;
+        # package = pkgs.ollama-rocm;
         environmentVariables = {
             HCC_AMDGPU_TARGET = "gfx1030"; # used to be necessary, but doesn't seem to anymore
             HSA_OVERRIDE_GFX_VERSION = "gfx1030";
