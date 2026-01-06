@@ -28,9 +28,11 @@ in
         enable = true;
         # package = pkgs.ollama-rocm;
         environmentVariables = {
-            HCC_AMDGPU_TARGET = "gfx1030"; # used to be necessary, but doesn't seem to anymore
-            HSA_OVERRIDE_GFX_VERSION = "gfx1030";
-            # framework gfx1030
+            HCC_AMDGPU_TARGET = "gfx1030";
+            HSA_OVERRIDE_GFX_VERSION = "10.3.0";
+            HIP_VISIBLE_DEVICES = "0";
+            ROCR_VISIBLE_DEVICES = "0";
+            GPU_MAX_HW_QUEUES = "1";
         };
         rocmOverrideGfx = "10.3.0";
     };
