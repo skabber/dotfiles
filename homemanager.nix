@@ -14,9 +14,7 @@ in
     # androidSdkModule
   ];
   # android-sdk.enable = true;
-  nixpkgs.config.permittedInsecurePackages = [
-    "electron-25.9.0"
-  ];
+  
   # android-sdk.path = "~/Android/Sdk";
   # android-sdk.packages = sdkPkgs: with sdkPkgs; [
   #   build-tools-34-0-0

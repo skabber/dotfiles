@@ -15,6 +15,26 @@
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.optimise.automatic = true;
+  
+  # Fix outlines-core version mismatch by downgrading outlines-core
+  nixpkgs.overlays = [
+    (final: prev: {
+      python3 = prev.python3.override {
+        packageOverrides = pyFinal: pyPrev: {
+          outlines-core = pyPrev.outlines-core.overridePythonAttrs (old: rec {
+            version = "0.2.11";
+            src = pkgs.fetchFromGitHub {
+              owner = "outlines-dev";
+              repo = "outlines-core";
+              rev = "refs/tags/v${version}";
+              hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";  # Will need to update
+            };
+          });
+        };
+      };
+      python3Packages = final.python3.pkgs;
+    })
+  ];
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;

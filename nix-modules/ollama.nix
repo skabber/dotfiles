@@ -26,10 +26,13 @@ in
 
     services.ollama = {
         enable = true;
-        acceleration = "rocm";
+        # package = pkgs.ollama-rocm;
         environmentVariables = {
-            HCC_AMDGPU_TARGET = "gfx1030"; # used to be necessary, but doesn't seem to anymore
-            # framework gfx1030
+            HCC_AMDGPU_TARGET = "gfx1030";
+            HSA_OVERRIDE_GFX_VERSION = "10.3.0";
+            HIP_VISIBLE_DEVICES = "0";
+            ROCR_VISIBLE_DEVICES = "0";
+            GPU_MAX_HW_QUEUES = "1";
         };
         rocmOverrideGfx = "10.3.0";
     };
@@ -39,5 +42,18 @@ in
     systemd.services.ollama.environment = {
         OLLAMA_HOST =  lib.mkForce "0.0.0.0:11434";
     };
+    # Open-Webui setup
+  services.open-webui = {
+    enable = true;
+    openFirewall = true;
+    # host = "hostip";
+    environment = {
+      ANONYMIZED_TELEMETRY = "False";
+      DO_NOT_TRACK = "True";
+      SCARF_NO_ANALYTICS = "True";
+      # OLLAMA_API_BASE_URL = "http://{yourserverip}:11434/api";
+      # OLLAMA_BASE_URL = "http://{yourserverip}:11434";
+    };
+  };
   };
 }
