@@ -25,6 +25,8 @@ in
         # SNES
         snes9x
         bsnes
+        # PC Engine Turbo Grafix
+        beetle-pce-fast
       ]))
     ];
   };
