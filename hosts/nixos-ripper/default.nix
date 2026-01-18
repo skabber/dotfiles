@@ -24,6 +24,9 @@
     "fs.inotify.max_user_watches" = 2048576;
   };
 
+  # WiFi kernel modules (Intel AX200 + Qualcomm WCN785x)
+  boot.kernelModules = [ "iwlwifi" "ath12k" ];
+
   # Hardware firmware
   hardware.enableRedistributableFirmware = true;
   hardware.firmware = with pkgs; [ linux-firmware ];
