@@ -2,9 +2,9 @@ eval "$(starship init zsh)"
 eval "$(direnv hook zsh)"
 
 alias claude="/home/jay/.claude/local/claude"
-if command -v batteryled >/dev/null 2>&1; then
-    alias ledbat="inputmodule-control led-matrix --percentage $(batteryled | cut -c 1-2)"
-fi
+# if command -v batteryled >/dev/null 2>&1; then
+    # alias ledbat="inputmodule-control led-matrix --percentage $(batteryled | cut -c 1-2)"
+# fi
 alias zed="steam-run ~/bin/zed.app/bin/zed"
 alias zedp="steam-run ~/bin/zed-preview.app/bin/zed"
 alias vim="nvim"
