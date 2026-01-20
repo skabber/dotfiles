@@ -32,7 +32,7 @@
   # Framework udev rules
   services.udev.packages = [ pkgs.via ];
   services.udev.extraRules = ''
-    # Framework Laptop 16 - LED Matrix
+    # Framework Laptop 13 - LED Matrix
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="32ac", ATTRS{idProduct}=="0020", MODE="0660", TAG+="uaccess"
   '';
 

@@ -10,8 +10,6 @@ alias zedp="steam-run ~/bin/zed-preview.app/bin/zed"
 alias vim="nvim"
 alias docker-credential-gcloud=docker-credential-gcr
 alias record-pipewire="pw-record -vP '{ stream.capture.sink=true}' ~/Recordings/$(date '+%Y-%m-%d-%H-%M-%S.wav')"
-alias claude="/home/jay/.claude/local/claude"
-
 export PATH=$PATH:$HOME/.cargo/bin
 export PATH=$PATH:$HOME/go/bin
 export PATH=$PATH:$HOME/bin
@@ -25,7 +23,6 @@ alias yuzu="appimage-run $HOME/Applications/yuzu.AppImage"
 
 export FLYCTL_INSTALL="/home/jay/.fly"
 export PATH="$FLYCTL_INSTALL/bin:$PATH"
-export NIXPKGS_ACCEPT_ANDROID_SDK_LICENSE=1
 source $HOME/dotfiles/export-esp.sh
 
 function y() {
