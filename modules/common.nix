@@ -51,6 +51,7 @@
     pipewire
     networkmanagerapplet
     gnome-tweaks
+    opencode
   ];
 
   # User account
