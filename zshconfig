@@ -1,7 +1,7 @@
 eval "$(starship init zsh)"
 eval "$(direnv hook zsh)"
 
-alias claude="/home/jay/.claude/local/claude"
+alias claude="steam-run claude"
 # if command -v batteryled >/dev/null 2>&1; then
     # alias ledbat="inputmodule-control led-matrix --percentage $(batteryled | cut -c 1-2)"
 # fi
