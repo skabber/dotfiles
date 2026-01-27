@@ -11,8 +11,7 @@
   # Hostname
   networking.hostName = "nixos-framework";
 
-  # Timezone - automatic for laptop
-  services.automatic-timezoned.enable = true;
+  # Custom geolocation provider
   services.geoclue2.geoProviderUrl = "https://api.beacondb.net/v1/geolocate";
 
   # Power management

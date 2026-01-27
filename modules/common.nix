@@ -69,6 +69,8 @@
   services.tailscale.enable = true;
   services.fwupd.enable = true;
   services.printing.enable = true;
+  services.geoclue2.enable = true;
+  services.automatic-timezoned.enable = true;
 
   # Programs
   programs.zsh.enable = true;
