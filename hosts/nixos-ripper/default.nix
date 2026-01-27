@@ -47,6 +47,9 @@
   # ROCm support
   nixpkgs.config.rocmSupport = true;
 
+  # Prevent GDM from suspending before user login
+  services.displayManager.gdm.autoSuspend = false;
+
   # GNOME Keyring PAM
   security.pam.services.gdm.enableGnomeKeyring = true;
 
