@@ -18,6 +18,7 @@
     zip
     jq
     tmux
+    alsa-utils
 
     # Development
     nodejs_22
