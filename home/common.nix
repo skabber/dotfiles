@@ -25,6 +25,7 @@
     starship
     vim
     neovim
+    fresh-editor
 
     # Language servers
     nodePackages.typescript-language-server

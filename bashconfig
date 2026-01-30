@@ -8,7 +8,6 @@ export PATH=$PATH:$HOME/bin
 export PATH=$PATH:$HOME/.deno/bin
 export PATH=$PATH:$HOME/.local/bin
 
-export EDITOR=hx
 export HSA_OVERRIDE_GFX_VERSION=10.3.0
 alias yuzu="appimage-run $HOME/Applications/yuzu.AppImage"
 

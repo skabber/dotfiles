@@ -4,10 +4,10 @@
 #  	excludesFile ~/.gitignore
 [credential "https://github.com"]
 	helper =
-	helper = !/nix/store/p705fy2z5hwpfq18zx3v6772vwmz53yd-gh-2.49.2/bin/gh auth git-credential
+	helper = !gh auth git-credential
 [credential "https://gist.github.com"]
 	helper =
-	helper = !/nix/store/p705fy2z5hwpfq18zx3v6772vwmz53yd-gh-2.49.2/bin/gh auth git-credential
+	helper = !gh auth git-credential
 [gpg]
 	format = ssh
 [user]

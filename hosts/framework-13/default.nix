@@ -17,8 +17,7 @@
     "button.lid_init_state=open"
   ];
 
-  # Timezone - automatic for laptop
-  services.automatic-timezoned.enable = true;
+  # Custom geolocation provider
   services.geoclue2.geoProviderUrl = "https://api.beacondb.net/v1/geolocate";
 
   # Power management for laptop
@@ -32,7 +31,7 @@
   # Framework udev rules
   services.udev.packages = [ pkgs.via ];
   services.udev.extraRules = ''
-    # Framework Laptop 16 - LED Matrix
+    # Framework Laptop 13 - LED Matrix
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="32ac", ATTRS{idProduct}=="0020", MODE="0660", TAG+="uaccess"
   '';
 
