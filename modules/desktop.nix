@@ -33,5 +33,8 @@
     wayland-utils
     wl-clipboard
     wlroots
+    # PipeWire/PulseAudio tools for audio control
+    pulseaudio  # provides pactl, pacmd
+    pipewire    # provides pw-record, pw-cli, etc.
   ];
 }

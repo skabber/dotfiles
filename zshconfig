@@ -1,7 +1,6 @@
 eval "$(starship init zsh)"
 eval "$(direnv hook zsh)"
 
-alias claude="/home/jay/.claude/local/claude"
 # if command -v batteryled >/dev/null 2>&1; then
     # alias ledbat="inputmodule-control led-matrix --percentage $(batteryled | cut -c 1-2)"
 # fi
@@ -10,7 +9,7 @@ alias zedp="steam-run ~/bin/zed-preview.app/bin/zed"
 alias vim="nvim"
 alias docker-credential-gcloud=docker-credential-gcr
 alias record-pipewire="pw-record -vP '{ stream.capture.sink=true}' ~/Recordings/$(date '+%Y-%m-%d-%H-%M-%S.wav')"
-alias claude="/home/jay/.claude/local/claude"
+# alias claude="/home/jay/.claude/local/claude"
 
 export PATH=$PATH:$HOME/.cargo/bin
 export PATH=$PATH:$HOME/go/bin
