@@ -15,6 +15,9 @@
   # Timezone
   time.timeZone = "America/Denver";
 
+  # Prevent GDM from suspending before user login
+  services.displayManager.gdm.autoSuspend = false;
+
   # Threadripper-specific settings - configure when deploying
   # hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
