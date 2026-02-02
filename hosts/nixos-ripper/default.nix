@@ -16,8 +16,6 @@
   # Hostname
   networking.hostName = "nixos-ripper";
 
-  # Timezone - static for desktop
-  time.timeZone = "America/Denver";
 
   # Kernel settings
   boot.kernel.sysctl = {

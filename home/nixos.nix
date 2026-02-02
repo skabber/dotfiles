@@ -1,4 +1,4 @@
-# nixos (Threadripper 2) - Home Manager configuration
+# nixos (Threadripper with NVIDIA GPU) - Home Manager configuration
 { config, pkgs, lib, ... }:
 
 {
@@ -6,8 +6,43 @@
     ./common.nix
   ];
 
-  # Add machine-specific packages here
+  # Machine-specific packages
   home.packages = with pkgs; [
-    # Placeholder - configure when deploying to this machine
+    retroarch
+    warp-terminal
+    alacritty
+    system76-keyboard-configurator
   ];
+
+  # Bash configuration (sources local profile)
+  programs.bash.enable = true;
+  programs.bash.initExtra = ''
+    source /home/jay/.bash_profile.local
+  '';
+
+  # Bash profile dotfile
+  home.file.".bash_profile.local".source = ../bashconfig;
+
+  # OpenClaw configuration
+  programs.openclaw = {
+    documents = ../openclaw-docs;
+
+    config = {
+      gateway.mode = "local";
+
+      channels.telegram = {
+        enabled = true;
+        tokenFile = "/home/jay/.config/openclaw/telegram-bot-token";
+        allowFrom = [ 8105954598 ];
+        groups = {
+          "*" = { requireMention = true; };
+        };
+      };
+    };
+
+    instances.default = {
+      enable = true;
+      plugins = [];
+    };
+  };
 }
