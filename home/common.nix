@@ -19,6 +19,7 @@
     jq
     tmux
     alsa-utils
+    ffmpeg
 
     # Development
     nodejs_22
