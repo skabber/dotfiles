@@ -16,7 +16,8 @@
   # Hostname
   networking.hostName = "nixos-ripper";
 
-  # Timezone - static for desktop
+  # Timezone - static for desktop (disable automatic-timezoned from common.nix)
+  services.automatic-timezoned.enable = lib.mkForce false;
   time.timeZone = "America/Denver";
 
   # Kernel settings
