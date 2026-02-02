@@ -20,7 +20,6 @@
     tmux
     alsa-utils
     ffmpeg
-    pulseaudio
 
     # Development
     nodejs_22
