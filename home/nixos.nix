@@ -27,22 +27,21 @@
   programs.openclaw = {
     documents = ../openclaw-docs;
 
-    config = {
-      gateway.mode = "local";
-
-      channels.telegram = {
-        enabled = true;
-        tokenFile = "/home/jay/.config/openclaw/telegram-bot-token";
-        allowFrom = [ 8105954598 ];
-        groups = {
-          "*" = { requireMention = true; };
-        };
-      };
-    };
-
     instances.default = {
       enable = true;
       plugins = [];
+      config = {
+        gateway.mode = "local";
+
+        channels.telegram = {
+          enabled = true;
+          tokenFile = "/home/jay/.config/openclaw/telegram-bot-token";
+          allowFrom = [ 8105954598 ];
+          groups = {
+            "*" = { requireMention = true; };
+          };
+        };
+      };
     };
   };
 }
