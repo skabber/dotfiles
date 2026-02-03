@@ -36,6 +36,9 @@
   services.flatpak.enable = true;
   xdg.portal.enable = true;
 
+  # Prevent GDM from suspending before user login
+  services.displayManager.gdm.autoSuspend = false;
+
   # Enable services
   sunshine.enable = true;
 

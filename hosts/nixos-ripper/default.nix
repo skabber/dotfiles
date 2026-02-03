@@ -16,14 +16,14 @@
   # Hostname
   networking.hostName = "nixos-ripper";
 
-
   # Kernel settings
   boot.kernel.sysctl = {
     "fs.inotify.max_user_watches" = 2048576;
   };
 
   # WiFi kernel modules (Intel AX200 + Qualcomm WCN785x)
-  boot.kernelModules = [ "iwlwifi" "ath12k" ];
+  # snd-aloop: ALSA loopback for system audio capture
+  boot.kernelModules = [ "iwlwifi" "ath12k" "snd-aloop" ];
 
   # Hardware firmware
   hardware.enableRedistributableFirmware = true;

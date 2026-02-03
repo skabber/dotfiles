@@ -1,5 +1,10 @@
 # Common Home Manager configuration shared across all machines
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   home.stateVersion = "23.11";
@@ -18,6 +23,8 @@
     zip
     jq
     tmux
+    alsa-utils
+    ffmpeg
 
     # Development
     nodejs_22

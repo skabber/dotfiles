@@ -38,16 +38,6 @@
   # Fingerprint
   services.fprintd.enable = true;
 
-  # JACK audio (for music production)
-  services.jack = {
-    jackd.enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    # loopback.enable = true;
-  };
-
-  # Additional user groups for Framework
-  users.users.jay.extraGroups = lib.mkAfter [ "jackaudio" ];
 
   # Security
   security.polkit.enable = true;
