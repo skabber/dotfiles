@@ -14,4 +14,15 @@ alias yuzu="appimage-run $HOME/Applications/yuzu.AppImage"
 export FLYCTL_INSTALL="/home/jay/.fly"
 export PATH="$FLYCTL_INSTALL/bin:$PATH"
 
-source $HOME/dotfiles/export-esp.sh
+# Google API credentials (stored in separate files to avoid committing secrets)
+if [ -f "$HOME/.config/google-access-token" ]; then
+  export GOOGLE_ACCESS_TOKEN=$(cat "$HOME/.config/google-access-token")
+fi
+if [ -f "$HOME/.config/google-client-id" ]; then
+  export GOOGLE_CLIENT_ID=$(cat "$HOME/.config/google-client-id")
+fi
+if [ -f "$HOME/.config/google-client-secret" ]; then
+  export GOOGLE_CLIENT_SECRET=$(cat "$HOME/.config/google-client-secret")
+fi
+
+# source $HOME/dotfiles/export-esp.sh

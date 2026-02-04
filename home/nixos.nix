@@ -31,7 +31,9 @@
       enable = true;
       plugins = [];
       config = {
+        agents.defaults.model.primary = "google/gemini-2.0-flash";
         gateway.mode = "local";
+        gateway.auth.allowTailscale = true;
 
         channels.telegram = {
           enabled = true;
