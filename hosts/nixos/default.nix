@@ -14,6 +14,7 @@
 
   # Timezone
   time.timeZone = "America/Denver";
+  services.automatic-timezoned.enable = lib.mkForce false;
 
   # Prevent GDM from suspending before user login
   services.displayManager.gdm.autoSuspend = false;
