@@ -39,6 +39,8 @@ in
       ninja
       pkg-config
       gnumake
+      clang
+      llvm
 
       # CPU backends
       mkl
