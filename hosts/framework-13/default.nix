@@ -6,10 +6,17 @@
     ./hardware-configuration.nix
     ../../modules/common.nix
     ../../modules/desktop.nix
+    ../../modules/rocm-dev.nix
   ];
 
   # Hostname
   networking.hostName = "nixos-framework-13";
+
+  # ROCm development environment (RDNA 3.5)
+  rocm-dev = {
+    enable = true;
+    architecture = "gfx1150";
+  };
 
   # Framework 13 specific kernel params
   boot.kernelParams = [
@@ -60,8 +67,6 @@
     fprintd
     minikube
     kubectl
-    rocmPackages.rocminfo
-    rocmPackages.rocm-smi
     inputmodule-control
     protonvpn-gui
     libnotify

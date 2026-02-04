@@ -6,10 +6,17 @@
     ./hardware-configuration.nix
     ../../modules/common.nix
     ../../modules/desktop.nix
+    ../../modules/rocm-dev.nix
   ];
 
   # Hostname
   networking.hostName = "nixos-framework";
+
+  # ROCm development environment (RDNA 3.5)
+  rocm-dev = {
+    enable = true;
+    architecture = "gfx1150";
+  };
 
   # Custom geolocation provider
   services.geoclue2.geoProviderUrl = "https://api.beacondb.net/v1/geolocate";
@@ -34,8 +41,6 @@
   environment.systemPackages = with pkgs; [
     inputmodule-control
     (btop.override { rocmSupport = true; })
-    rocmPackages.rocminfo
-    rocmPackages.rocm-smi
     fprintd
     meson
     rofi
