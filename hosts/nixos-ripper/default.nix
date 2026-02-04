@@ -154,7 +154,6 @@
     iw
     wlr-randr
     gnome-randr
-    gst_all_1.gst-plugins-base
     openrazer-daemon
     polychromatic
     onedrive

@@ -52,7 +52,33 @@
     networkmanagerapplet
     gnome-tweaks
     opencode
+
+    # GStreamer for audio playback (respects system volume)
+    gst_all_1.gstreamer
+    gst_all_1.gstreamer.dev
+    gst_all_1.gst-plugins-base
+    gst_all_1.gst-plugins-good
+    gst_all_1.gst-plugins-bad
+    gst_all_1.gst-plugins-ugly
   ];
+
+  # GStreamer environment setup for NixOS
+  environment.variables = {
+    GST_PLUGIN_PATH = lib.makeSearchPath "lib/gstreamer-1.0" [
+      pkgs.gst_all_1.gstreamer
+      pkgs.gst_all_1.gst-plugins-base
+      pkgs.gst_all_1.gst-plugins-good
+      pkgs.gst_all_1.gst-plugins-bad
+      pkgs.gst_all_1.gst-plugins-ugly
+    ];
+    GST_PLUGIN_SYSTEM_PATH_1_0 = lib.makeSearchPath "lib/gstreamer-1.0" [
+      pkgs.gst_all_1.gstreamer
+      pkgs.gst_all_1.gst-plugins-base
+      pkgs.gst_all_1.gst-plugins-good
+      pkgs.gst_all_1.gst-plugins-bad
+      pkgs.gst_all_1.gst-plugins-ugly
+    ];
+  };
 
   # User account
   users.users.jay = {
