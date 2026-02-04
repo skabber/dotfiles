@@ -6,6 +6,7 @@
     ./hardware-configuration.nix
     ../../modules/common.nix
     ../../modules/desktop.nix
+    ../../modules/rocm-dev.nix
     ../../modules/services/ollama.nix
     ../../modules/services/sunshine.nix
     ../../modules/services/retroarch.nix
@@ -16,9 +17,11 @@
   # Hostname
   networking.hostName = "nixos-ripper";
 
-  # Timezone - static for desktop (disable automatic-timezoned from common.nix)
-  services.automatic-timezoned.enable = lib.mkForce false;
-  time.timeZone = "America/Denver";
+  # ROCm development environment (RDNA 2)
+  rocm-dev = {
+    enable = true;
+    architecture = "gfx1030";
+  };
 
   # Kernel settings
   boot.kernel.sysctl = {
@@ -45,9 +48,6 @@
   # LACT (AMD GPU control)
   systemd.packages = with pkgs; [ lact ];
   systemd.services.lactd.wantedBy = [ "multi-user.target" ];
-
-  # ROCm support
-  nixpkgs.config.rocmSupport = true;
 
   # Prevent GDM from suspending before user login
   services.displayManager.gdm.autoSuspend = false;
@@ -165,8 +165,6 @@
     spice-gtk
     lact
     docker-credential-gcr
-    rocmPackages.rocm-smi
-    rocmPackages.rocminfo
     pciutils
     joycond-cemuhook
     protonvpn-gui

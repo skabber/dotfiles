@@ -1,0 +1,44 @@
+{
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/claude-opus-4-5"
+      },
+      "thinkingDefault": "high",
+      "workspace": "/home/jay/.openclaw/workspace"
+    },
+    "list": [
+      {
+        "default": true,
+        "id": "main"
+      }
+    ]
+  },
+  "gateway": {
+    "mode": "local"
+  },
+  "messages": {
+    "queue": {
+      "byChannel": {
+        "discord": "queue",
+        "telegram": "interrupt",
+        "webchat": "queue"
+      },
+      "mode": "interrupt"
+    }
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "allowFrom": [
+        8105954598
+      ],
+      "groups": {
+        "*": {
+          "requireMention": true
+        }
+      },
+      "tokenFile": "/home/jay/.config/openclaw/telegram-bot-token"
+    }
+  }
+}
