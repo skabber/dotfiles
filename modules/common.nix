@@ -67,6 +67,7 @@
   services.openssh.enable = true;
   services.dbus.enable = true;
   services.tailscale.enable = true;
+  networking.firewall.trustedInterfaces = [ "tailscale0" ];
   services.fwupd.enable = true;
   services.printing.enable = true;
   services.geoclue2.enable = true;

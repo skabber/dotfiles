@@ -33,7 +33,12 @@
       config = {
         agents.defaults.model.primary = "google/gemini-2.0-flash";
         gateway.mode = "local";
+        gateway.bind = "loopback";
+        gateway.tailscale.mode = "serve";
+        gateway.controlUi.enabled = true;
         gateway.auth.allowTailscale = true;
+        gateway.auth.mode = "token";
+        gateway.auth.token = "temptoken123";
 
         channels.telegram = {
           enabled = true;
@@ -44,6 +49,18 @@
           };
         };
       };
+    };
+  };
+
+  # Fix openclaw-gateway to start on boot
+  systemd.user.services.openclaw-gateway = {
+    Install.WantedBy = [ "default.target" ];
+  };
+
+  # Disable Caps Lock
+  dconf.settings = {
+    "org/gnome/desktop/input-sources" = {
+      xkb-options = [ "caps:none" ];
     };
   };
 }
