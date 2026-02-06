@@ -34,6 +34,7 @@
   # Common system packages
   environment.systemPackages = with pkgs; [
     zsh
+    openssl
     wget
     helix
     jq
@@ -60,19 +61,21 @@
     gst_all_1.gst-plugins-good
     gst_all_1.gst-plugins-bad
     gst_all_1.gst-plugins-ugly
+
+    python312Packages.huggingface-hub
   ];
 
   # GStreamer environment setup for NixOS
   environment.variables = {
     GST_PLUGIN_PATH = lib.makeSearchPath "lib/gstreamer-1.0" [
-      pkgs.gst_all_1.gstreamer
+      pkgs.gst_all_1.gstreamer.out
       pkgs.gst_all_1.gst-plugins-base
       pkgs.gst_all_1.gst-plugins-good
       pkgs.gst_all_1.gst-plugins-bad
       pkgs.gst_all_1.gst-plugins-ugly
     ];
     GST_PLUGIN_SYSTEM_PATH_1_0 = lib.makeSearchPath "lib/gstreamer-1.0" [
-      pkgs.gst_all_1.gstreamer
+      pkgs.gst_all_1.gstreamer.out
       pkgs.gst_all_1.gst-plugins-base
       pkgs.gst_all_1.gst-plugins-good
       pkgs.gst_all_1.gst-plugins-bad
@@ -85,7 +88,7 @@
     isNormalUser = true;
     description = "Jay Graves";
     extraGroups = [ "networkmanager" "wheel" "docker" "video" "render" "tty" "dialout" ];
-    packages = with pkgs; [ firefox ];
+    packages = [ ];
     shell = pkgs.zsh;
   };
 
@@ -118,4 +121,10 @@
   # Security
   security.rtkit.enable = true;
   security.pam.services.gdm-password.enableGnomeKeyring = true;
+
+  # nix-ld for dynamically linked binaries (e.g., cargo-installed tools)
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    openssl
+  ];
 }

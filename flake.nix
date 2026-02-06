@@ -8,7 +8,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-openclaw = {
-      url = "git+http://nixos.tail69fe1.ts.net:3000/skabber/nix-openclaw.git";
+      url = "git+https://nixos.tail69fe1.ts.net:3000/skabber/nix-openclaw.git";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
