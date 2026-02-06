@@ -34,6 +34,7 @@
   # Common system packages
   environment.systemPackages = with pkgs; [
     zsh
+    openssl
     wget
     helix
     jq
@@ -60,6 +61,8 @@
     gst_all_1.gst-plugins-good
     gst_all_1.gst-plugins-bad
     gst_all_1.gst-plugins-ugly
+
+    python312Packages.huggingface-hub
   ];
 
   # GStreamer environment setup for NixOS
@@ -118,4 +121,10 @@
   # Security
   security.rtkit.enable = true;
   security.pam.services.gdm-password.enableGnomeKeyring = true;
+
+  # nix-ld for dynamically linked binaries (e.g., cargo-installed tools)
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    openssl
+  ];
 }
