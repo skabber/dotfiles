@@ -64,9 +64,25 @@
   wallabag = {
     enable = true;
     hostname = "nixos.tail69fe1.ts.net";
+    basePath = "/wallabag";
+    useSSL = true;
     database.type = "sqlite";
     secret = "iWIjQIh9roEBVbTm1ZpZRgjn9jd3CZbuO3YuRQ7IQ4";
   };
+
+  # Static website at root, served via nginx (Tailscale Serve handles HTTPS)
+  services.nginx.virtualHosts."nixos.tail69fe1.ts.net" = {
+    root = "/var/www/public";
+    locations."/" = {
+      index = "index.html index.htm";
+      tryFiles = "$uri $uri/ =404";
+    };
+  };
+
+  # Ensure static site directory exists
+  systemd.tmpfiles.rules = [
+    "d /var/www/public 0755 nginx nginx -"
+  ];
 
   syncthing = {
     enable = true;

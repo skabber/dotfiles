@@ -34,7 +34,7 @@
         agents.defaults.model.primary = "google/gemini-2.0-flash";
         gateway.mode = "local";
         gateway.bind = "loopback";
-        gateway.tailscale.mode = "serve";
+        # Tailscale Serve is configured manually to allow routing multiple services
         gateway.controlUi.enabled = true;
         gateway.auth.allowTailscale = true;
         gateway.auth.mode = "token";
