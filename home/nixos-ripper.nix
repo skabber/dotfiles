@@ -19,7 +19,6 @@
     zig-shell-completions
     gopls
     taplo
-    zls
     python312Packages.python-lsp-server
     # openvscode-server  # broken in nixpkgs - network issue during build
     zed-editor
