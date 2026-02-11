@@ -7,13 +7,13 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-openclaw = {
-      url = "git+https://nixos.tail69fe1.ts.net:3000/skabber/nix-openclaw.git";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # nix-openclaw = {
+    #   url = "git+https://nixos.tail69fe1.ts.net:3000/skabber/nix-openclaw.git";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
   };
 
-  outputs = { self, nixpkgs, home-manager, nix-openclaw, ... }: {
+  outputs = { self, nixpkgs, home-manager, ... }: {
     nixosConfigurations = {
       nixos-ripper = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
@@ -34,15 +34,10 @@
           ./hosts/nixos/default.nix
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.overlays = [ nix-openclaw.overlays.default ];
+            # nixpkgs.overlays = [ nix-openclaw.overlays.default ];
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.jay = { ... }: {
-              imports = [
-                ./home/nixos.nix
-                nix-openclaw.homeManagerModules.openclaw
-              ];
-            };
+            home-manager.users.jay = import ./home/nixos.nix;
           }
         ];
       };
