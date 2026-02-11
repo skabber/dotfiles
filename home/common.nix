@@ -16,6 +16,7 @@
     git
     git-lfs
     gh
+    tea
     hub
     tig
     ripgrep
