@@ -16,7 +16,6 @@
     gopls
     zig
     zig-shell-completions
-    zls
     taplo
     espup
     elf2uf2-rs

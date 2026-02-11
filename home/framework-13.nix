@@ -9,7 +9,6 @@
   # Framework 13 specific packages
   home.packages = with pkgs; [
     # Development
-    zls
     code-cursor
     zed-editor
     awscli2
