@@ -25,11 +25,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1770654520,
-        "narHash": "sha256-mg5WZMIPGsFu9MxSrUcuJUPMbfMsF77el5yb/7rc10k=",
+        "lastModified": 1770818644,
+        "narHash": "sha256-DYS4jIRpRoKOzJjnR/QqEd/MlT4OZZpt8CrBLv+cjsE=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "6c4fdbe1ad198fac36c320fd45c5957324a80b8e",
+        "rev": "0acbd1180697de56724821184ad2c3e6e7202cd7",
         "type": "github"
       },
       "original": {
@@ -69,11 +69,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1770502651,
-        "narHash": "sha256-REPuc3G61/k1GktIknhf9CdUswP0l2ytP5OgY0C/dzU=",
+        "lastModified": 1770817218,
+        "narHash": "sha256-LFMTllZVLSGvAbWSWWwgo7Kqcm2G7HSYUUDdPbpNriQ=",
         "ref": "refs/heads/main",
-        "rev": "072678b997faf5f64bcf3155855cb5ebb8c809d8",
-        "revCount": 610,
+        "rev": "fe70e49c21fcf9f06d48728d219418f4b3ee9eed",
+        "revCount": 657,
         "type": "git",
         "url": "https://nixos.tail69fe1.ts.net:3000/skabber/nix-openclaw.git"
       },
