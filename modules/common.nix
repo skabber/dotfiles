@@ -33,6 +33,7 @@
 
   # Common system packages
   environment.systemPackages = with pkgs; [
+    systemd
     zsh
     openssl
     wget

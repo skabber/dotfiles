@@ -110,7 +110,7 @@
   };
 
   # Service toggles
-  ollama.enable = false;
+  ollama.enable = true;
   sunshine.enable = true;
   retroarch.enable = true;
   syncthing = {

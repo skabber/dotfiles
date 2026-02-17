@@ -33,6 +33,7 @@ in
             HIP_VISIBLE_DEVICES = "0";
             ROCR_VISIBLE_DEVICES = "0";
             GPU_MAX_HW_QUEUES = "1";
+            OLLAMA_FLASH_ATTENTION = "0";
         };
         rocmOverrideGfx = "10.3.0";
     };
