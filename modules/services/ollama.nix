@@ -22,6 +22,12 @@ in
     description = "The Ollama package to install.";
   };
 
+  options.ollama.flashAttention = mkOption {
+    type = types.bool;
+    default = true;
+    description = "Whether to enable flash attention for Ollama.";
+  };
+
   config = mkIf cfg.enable {
 
     services.ollama = {
@@ -33,7 +39,7 @@ in
             HIP_VISIBLE_DEVICES = "0";
             ROCR_VISIBLE_DEVICES = "0";
             GPU_MAX_HW_QUEUES = "1";
-            OLLAMA_FLASH_ATTENTION = "0";
+            OLLAMA_FLASH_ATTENTION = if cfg.flashAttention then "1" else "0";
         };
         rocmOverrideGfx = "10.3.0";
     };
