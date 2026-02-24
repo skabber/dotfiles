@@ -44,7 +44,7 @@
   services.displayManager.gdm.autoSuspend = false;
 
   # Enable services
-  sunshine.enable = true;
+  sunshine.enable = false;
 
   gitea = {
     enable = true;
@@ -81,7 +81,7 @@
 
   # Ensure static site directory exists
   systemd.tmpfiles.rules = [
-    "d /var/www/public 0755 nginx nginx -"
+    "d /var/www/public 0775 nginx nginx -"
   ];
 
   syncthing = {
