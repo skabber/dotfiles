@@ -44,7 +44,7 @@
     dualsensectl
 
     # Media & productivity
-    calibre
+    # calibre
     heroic
     gjs
     vte
