@@ -11,6 +11,11 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
+  # Graphical boot splash
+  boot.plymouth.enable = true;
+  boot.consoleLogLevel = 0;
+  boot.kernelParams = [ "quiet" "splash" "loglevel=3" ];
+
   # Networking
   networking.networkmanager.enable = true;
 

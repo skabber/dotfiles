@@ -68,7 +68,7 @@
     vte
     espup
     elf2uf2-rs
-    sunshine
+    # sunshine
     zoom-us
     code-cursor
 
