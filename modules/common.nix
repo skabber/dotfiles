@@ -33,6 +33,7 @@
 
   # Common system packages
   environment.systemPackages = with pkgs; [
+    systemd
     zsh
     openssl
     wget
@@ -87,7 +88,7 @@
   users.users.jay = {
     isNormalUser = true;
     description = "Jay Graves";
-    extraGroups = [ "networkmanager" "wheel" "docker" "video" "render" "tty" "dialout" ];
+    extraGroups = [ "networkmanager" "wheel" "docker" "video" "render" "tty" "dialout" "nginx" ];
     packages = [ ];
     shell = pkgs.zsh;
   };

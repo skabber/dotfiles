@@ -14,6 +14,11 @@ let
   dbName = if cfg.database.type == "postgresql" then cfg.database.name else "wallabag";
   dbUser = if cfg.database.type == "postgresql" then "wallabag" else "wallabag";
 
+  # Normalize basePath: ensure it starts with / and doesn't end with /
+  basePath = if cfg.basePath == "/" then "" else cfg.basePath;
+  protocol = if cfg.useSSL then "https" else "http";
+  domainUrl = "${protocol}://${cfg.hostname}${basePath}";
+
   # Generate parameters.yml at build time
   parametersYml = pkgs.writeText "parameters.yml" ''
     parameters:
@@ -27,7 +32,7 @@ let
         database_table_prefix: wallabag_
         database_socket: null
         database_charset: utf8
-        domain_name: 'http://${cfg.hostname}'
+        domain_name: '${domainUrl}'
         server_name: 'Wallabag'
         mailer_dsn: 'smtp://127.0.0.1'
         locale: en
@@ -87,6 +92,14 @@ let
     rm -f $out/app/config/parameters.yml
     cp ${parametersYml} $out/app/config/parameters.yml
 
+    # Configure asset base_path for subpath deployments
+    ${lib.optionalString (basePath != "") ''
+      # Modify config.yml to set base_path (replace "assets: ~" with proper config)
+      ${pkgs.gnused}/bin/sed -i 's|assets: ~|assets:\n        base_path: ${basePath}|' $out/app/config/config.yml
+      # Remove the assets section from config_prod.yml to avoid merge conflicts
+      ${pkgs.gnused}/bin/sed -i '/^    assets:$/,/^$/d' $out/app/config/config_prod.yml
+    ''}
+
     # Symlink var to writable location
     ln -s ${dataDir}/var $out/var
   '';
@@ -98,6 +111,19 @@ in
     type = types.str;
     default = "wallabag.localhost";
     description = "Hostname for the Wallabag instance.";
+  };
+
+  options.wallabag.basePath = mkOption {
+    type = types.str;
+    default = "/";
+    description = "Base path for Wallabag (e.g., '/wallabag' to serve at https://hostname/wallabag/).";
+    example = "/wallabag";
+  };
+
+  options.wallabag.useSSL = mkOption {
+    type = types.bool;
+    default = false;
+    description = "Whether URLs should use https:// (for when SSL is terminated by reverse proxy like Tailscale Serve).";
   };
 
   options.wallabag.secret = mkOption {
@@ -115,7 +141,7 @@ in
   options.wallabag.enableSSL = mkOption {
     type = types.bool;
     default = false;
-    description = "Whether to enable SSL with ACME.";
+    description = "Whether to enable SSL with ACME (for direct SSL termination by nginx).";
   };
 
   options.wallabag.database = {
@@ -183,6 +209,8 @@ in
       virtualHosts.${cfg.hostname} = {
         forceSSL = cfg.enableSSL;
         enableACME = cfg.enableSSL;
+      } // (if basePath == "" then {
+        # Root path configuration (original behavior)
         root = "${appDir}/web";
         locations."/" = {
           tryFiles = "$uri /app.php$is_args$args";
@@ -202,7 +230,57 @@ in
           priority = 600;
           extraConfig = "return 404;";
         };
-      };
+      } else {
+        # Subpath configuration
+        # Serve static assets at subpath
+        locations."~ ^${basePath}/(assets|bundles|img|js|uploads|wallassets)/(.*)$" = {
+          priority = 200;
+          alias = "${appDir}/web/$1/$2";
+        };
+        # Also serve assets from root paths (Symfony may generate URLs without basePath prefix)
+        locations."~ ^/(assets|bundles|img|js|wallassets)/(.*)$" = {
+          priority = 150;
+          alias = "${appDir}/web/$1/$2";
+        };
+        # Serve root-level files (favicon, manifest)
+        locations."= /favicon.ico" = {
+          priority = 140;
+          alias = "${appDir}/web/favicon.ico";
+        };
+        locations."= /manifest.json" = {
+          priority = 140;
+          alias = "${appDir}/web/manifest.json";
+        };
+        # Main wallabag location - route everything through PHP
+        locations."${basePath}/" = {
+          priority = 300;
+          alias = "${appDir}/web/";
+          index = "app.php";
+          extraConfig = ''
+            try_files $uri @wallabag;
+          '';
+        };
+        locations."@wallabag" = {
+          extraConfig = ''
+            fastcgi_pass unix:${config.services.phpfpm.pools.wallabag.socket};
+            include ${pkgs.nginx}/conf/fastcgi.conf;
+            fastcgi_param SCRIPT_FILENAME ${appDir}/web/app.php;
+            fastcgi_param SCRIPT_NAME ${basePath}/app.php;
+            fastcgi_param REQUEST_URI $request_uri;
+            fastcgi_param DOCUMENT_ROOT ${appDir}/web;
+            fastcgi_param HTTP_X_FORWARDED_PREFIX ${basePath};
+          '';
+        };
+        # Redirect /wallabag to /wallabag/
+        locations."= ${basePath}" = {
+          priority = 100;
+          return = "301 ${basePath}/";
+        };
+        locations."~ ^${basePath}/.*\\.php$" = {
+          priority = 600;
+          extraConfig = "return 404;";
+        };
+      });
     };
 
     # Data directory setup

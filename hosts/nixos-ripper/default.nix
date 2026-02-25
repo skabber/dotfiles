@@ -110,7 +110,8 @@
   };
 
   # Service toggles
-  ollama.enable = false;
+  ollama.enable = true;
+  ollama.flashAttention = false;
   sunshine.enable = true;
   retroarch.enable = true;
   syncthing = {
@@ -124,28 +125,32 @@
     "electron-25.9.0"
   ];
 
-  # Fix outlines-core version mismatch (outlines 1.2.9 requires ==0.2.11, but 0.2.13 is available)
+  # vLLM with ROCm + outlines-core version fix, scoped to avoid breaking other python3 packages (e.g. calibre)
   nixpkgs.overlays = [
     (final: prev: {
-      python3 = prev.python3.override {
-        packageOverrides = pyFinal: pyPrev: {
-          outlines = pyPrev.outlines.overridePythonAttrs (old: {
-            postPatch = (old.postPatch or "") + ''
-              substituteInPlace pyproject.toml \
-                --replace-fail 'outlines_core==0.2.11' 'outlines_core>=0.2.11,<0.3.0'
-            '';
-          });
-          vllm = (pyPrev.vllm.override { rocmSupport = true; }).overridePythonAttrs (old: {
-            env = (old.env or {}) // { VLLM_TARGET_DEVICE = "rocm"; };
-            postPatch = (old.postPatch or "") + ''
-              sed -i 's/raise RuntimeError("Unknown runtime environment")/return "0.13.0"/' setup.py; sed -i 's/ValueError("Unsupported platform, please use CUDA, ROCm, or CPU.")/["rocm"]/' setup.py || true
-            '';
-          });
+      vllm-rocm = let
+        python3 = prev.python3.override {
+          packageOverrides = pyFinal: pyPrev: {
+            outlines = pyPrev.outlines.overridePythonAttrs (old: {
+              postPatch = (old.postPatch or "") + ''
+                substituteInPlace pyproject.toml \
+                  --replace-fail 'outlines_core==0.2.11' 'outlines_core>=0.2.11,<0.3.0'
+              '';
+            });
+            vllm = (pyPrev.vllm.override { rocmSupport = true; }).overridePythonAttrs (old: {
+              env = (old.env or {}) // { VLLM_TARGET_DEVICE = "rocm"; };
+              postPatch = (old.postPatch or "") + ''
+                sed -i 's/raise RuntimeError("Unknown runtime environment")/return "0.13.0"/' setup.py; sed -i 's/ValueError("Unsupported platform, please use CUDA, ROCm, or CPU.")/["rocm"]/' setup.py || true
+              '';
+            });
+          };
         };
-      };
-      python3Packages = final.python3.pkgs;
+      in python3.pkgs.vllm;
     })
   ];
+
+  # Use the scoped vllm-rocm package
+  vllm.package = pkgs.vllm-rocm;
 
   # Threadripper-specific packages
   environment.systemPackages = with pkgs; [
