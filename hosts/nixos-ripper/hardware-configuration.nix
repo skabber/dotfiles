@@ -40,6 +40,13 @@
       options = [ "noatime" ];
     };
 
+  fileSystems."/nix" =
+    { device = "/dev/disk/by-uuid/602e0292-cb3e-41a0-9844-3233b8d09ca7";
+      fsType = "ext4";
+      options = [ "noatime" ];
+      neededForBoot = true;
+    };
+
   swapDevices = [ ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
