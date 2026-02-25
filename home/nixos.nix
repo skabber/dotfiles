@@ -24,61 +24,61 @@
   # Bash profile dotfile
   home.file.".bash_profile.local".source = ../bashconfig;
 
-  # OpenClaw configuration (commented out)
-  # programs.openclaw = {
-  #   documents = ../openclaw-docs;
-  #
-  #   instances.default = {
-  #     enable = true;
-  #     plugins = [];
-  #     config = {
-  #       agents.defaults.model = {
-  #         primary = "google/gemini-2.5-pro";
-  #         fallbacks = [
-  #           "mistral/mistral-large"
-  #           "google/gemini-2.0-flash"
-  #         ];
-  #       };
-  #       agents.defaults.models = {
-  #         "google/gemini-2.5-pro" = { alias = "pro"; };
-  #         "mistral/mistral-large" = { alias = "large"; };
-  #         "google/gemini-2.0-flash" = { alias = "flash"; };
-  #         "google/gemini-2.5-flash-lite" = { alias = "lite"; };
-  #         "mistral/mistral-small" = { alias = "small"; };
-  #       };
-  #       agents.defaults.heartbeat = {
-  #         every = "30m";
-  #         model = "google/gemini-2.5-flash-lite";
-  #         target = "last";
-  #       };
-  #       agents.defaults.subagents = {
-  #         model = "mistral/mistral-small";
-  #         maxConcurrent = 8;
-  #       };
-  #       gateway.mode = "local";
-  #       gateway.bind = "loopback";
-  #       # Tailscale Serve is configured manually to allow routing multiple services
-  #       gateway.controlUi.enabled = true;
-  #       gateway.auth.allowTailscale = true;
-  #       gateway.auth.mode = "token";
-  #       gateway.auth.token = "temptoken123";
-  #
-  #       channels.telegram = {
-  #         enabled = true;
-  #         tokenFile = "/home/jay/.config/openclaw/telegram-bot-token";
-  #         allowFrom = [ 8105954598 ];
-  #         groups = {
-  #           "*" = { requireMention = true; };
-  #         };
-  #       };
-  #     };
-  #   };
-  # };
-  #
-  # # Fix openclaw-gateway to start on boot
-  # systemd.user.services.openclaw-gateway = {
-  #   Install.WantedBy = [ "default.target" ];
-  # };
+  # OpenClaw configuration
+  programs.openclaw = {
+    documents = ../openclaw-docs;
+
+    instances.default = {
+      enable = true;
+      plugins = [];
+      config = {
+        agents.defaults.model = {
+          primary = "google/gemini-2.5-pro";
+          fallbacks = [
+            "mistral/mistral-large"
+            "google/gemini-2.0-flash"
+          ];
+        };
+        agents.defaults.models = {
+          "google/gemini-2.5-pro" = { alias = "pro"; };
+          "mistral/mistral-large" = { alias = "large"; };
+          "google/gemini-2.0-flash" = { alias = "flash"; };
+          "google/gemini-2.5-flash-lite" = { alias = "lite"; };
+          "mistral/mistral-small" = { alias = "small"; };
+        };
+        agents.defaults.heartbeat = {
+          every = "30m";
+          model = "google/gemini-2.5-flash-lite";
+          target = "last";
+        };
+        agents.defaults.subagents = {
+          model = "mistral/mistral-small";
+          maxConcurrent = 8;
+        };
+        gateway.mode = "local";
+        gateway.bind = "loopback";
+        # Tailscale Serve is configured manually to allow routing multiple services
+        gateway.controlUi.enabled = true;
+        gateway.auth.allowTailscale = true;
+        gateway.auth.mode = "token";
+        gateway.auth.token = "temptoken123";
+
+        channels.telegram = {
+          enabled = true;
+          tokenFile = "/home/jay/.config/openclaw/telegram-bot-token";
+          allowFrom = [ 8105954598 ];
+          groups = {
+            "*" = { requireMention = true; };
+          };
+        };
+      };
+    };
+  };
+
+  # Fix openclaw-gateway to start on boot
+  systemd.user.services.openclaw-gateway = {
+    Install.WantedBy = [ "default.target" ];
+  };
 
   # Playwright MCP server (SSE on port 8182)
   systemd.user.services.playwright-mcp = {
@@ -96,27 +96,27 @@
     };
   };
 
-  # IronClaw AI assistant service
-  systemd.user.services.ironclaw = {
-    Unit = {
-      Description = "IronClaw AI Assistant";
-      After = [ "network-online.target" ];
-    };
-    Service = {
-      ExecStart = "/home/jay/Projects/ironclaw/target/release/ironclaw";
-      WorkingDirectory = "/home/jay/Projects/ironclaw";
-      EnvironmentFile = "/home/jay/.config/ironclaw/env";
-      Environment = [
-        "LD_LIBRARY_PATH=${pkgs.openssl.out}/lib"
-        "RUST_LOG=ironclaw::llm=info"
-      ];
-      Restart = "on-failure";
-      RestartSec = 10;
-    };
-    Install = {
-      WantedBy = [ "default.target" ];
-    };
-  };
+  # IronClaw AI assistant service (disabled)
+  # systemd.user.services.ironclaw = {
+  #   Unit = {
+  #     Description = "IronClaw AI Assistant";
+  #     After = [ "network-online.target" ];
+  #   };
+  #   Service = {
+  #     ExecStart = "/home/jay/Projects/ironclaw/target/release/ironclaw";
+  #     WorkingDirectory = "/home/jay/Projects/ironclaw";
+  #     EnvironmentFile = "/home/jay/.config/ironclaw/env";
+  #     Environment = [
+  #       "LD_LIBRARY_PATH=${pkgs.openssl.out}/lib"
+  #       "RUST_LOG=ironclaw::llm=info"
+  #     ];
+  #     Restart = "on-failure";
+  #     RestartSec = 10;
+  #   };
+  #   Install = {
+  #     WantedBy = [ "default.target" ];
+  #   };
+  # };
 
   # Disable Caps Lock
   dconf.settings = {

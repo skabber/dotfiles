@@ -7,13 +7,13 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # nix-openclaw = {
-    #   url = "git+http://127.0.0.1:3000/skabber/nix-openclaw.git";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
+    nix-openclaw = {
+      url = "git+http://127.0.0.1:3000/skabber/nix-openclaw.git";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, ... }: let
+  outputs = { self, nixpkgs, home-manager, nix-openclaw, ... }: let
     system = "x86_64-linux";
   in {
     devShells.${system}.whisperx = let
@@ -74,11 +74,11 @@
           ./hosts/nixos/default.nix
           home-manager.nixosModules.home-manager
           {
-            # nixpkgs.overlays = [ nix-openclaw.overlays.default ];
+            nixpkgs.overlays = [ nix-openclaw.overlays.default ];
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "backup";
-            # home-manager.sharedModules = [ nix-openclaw.homeManagerModules.openclaw ];
+            home-manager.sharedModules = [ nix-openclaw.homeManagerModules.openclaw ];
             home-manager.users.jay = import ./home/nixos.nix;
           }
         ];
