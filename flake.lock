@@ -75,11 +75,11 @@
         "rev": "a42189fcb70f2437b70448cc9b4b4d487b8c371f",
         "revCount": 828,
         "type": "git",
-        "url": "http://127.0.0.1:3000/skabber/nix-openclaw.git"
+        "url": "https://nixos.tail69fe1.ts.net:3000//skabber/nix-openclaw.git"
       },
       "original": {
         "type": "git",
-        "url": "http://127.0.0.1:3000/skabber/nix-openclaw.git"
+        "url": "https://nixos.tail69fe1.ts.net:3000//skabber/nix-openclaw.git"
       }
     },
     "nix-steipete-tools": {

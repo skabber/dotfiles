@@ -14,7 +14,7 @@
 
   # ROCm development environment (RDNA 3.5)
   rocm-dev = {
-    enable = true;
+    enable = false;
     architecture = "gfx1150";
   };
 
