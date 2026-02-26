@@ -75,9 +75,17 @@
     };
   };
 
+  # Generate GOG keyring env file from password file for openclaw-gateway
+  home.activation.gogKeyringEnv = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ -f "$HOME/.config/gogcli/keyring-password" ]; then
+      printf "GOG_KEYRING_PASSWORD=%s\n" "$(cat "$HOME/.config/gogcli/keyring-password")" > "$HOME/.config/gogcli/keyring-env"
+    fi
+  '';
+
   # Fix openclaw-gateway to start on boot
   systemd.user.services.openclaw-gateway = {
     Install.WantedBy = [ "default.target" ];
+    Service.EnvironmentFile = "/home/jay/.config/gogcli/keyring-env";
   };
 
   # Playwright MCP server (SSE on port 8182)
@@ -96,27 +104,27 @@
     };
   };
 
-  # IronClaw AI assistant service (disabled)
-  # systemd.user.services.ironclaw = {
-  #   Unit = {
-  #     Description = "IronClaw AI Assistant";
-  #     After = [ "network-online.target" ];
-  #   };
-  #   Service = {
-  #     ExecStart = "/home/jay/Projects/ironclaw/target/release/ironclaw";
-  #     WorkingDirectory = "/home/jay/Projects/ironclaw";
-  #     EnvironmentFile = "/home/jay/.config/ironclaw/env";
-  #     Environment = [
-  #       "LD_LIBRARY_PATH=${pkgs.openssl.out}/lib"
-  #       "RUST_LOG=ironclaw::llm=info"
-  #     ];
-  #     Restart = "on-failure";
-  #     RestartSec = 10;
-  #   };
-  #   Install = {
-  #     WantedBy = [ "default.target" ];
-  #   };
-  # };
+  # IronClaw AI assistant service
+  systemd.user.services.ironclaw = {
+    Unit = {
+      Description = "IronClaw AI Assistant";
+      After = [ "network-online.target" ];
+    };
+    Service = {
+      ExecStart = "/home/jay/Projects/ironclaw/target/release/ironclaw";
+      WorkingDirectory = "/home/jay/Projects/ironclaw";
+      EnvironmentFile = "/home/jay/.config/ironclaw/env";
+      Environment = [
+        "LD_LIBRARY_PATH=${pkgs.openssl.out}/lib"
+        "RUST_LOG=ironclaw::llm=info"
+      ];
+      Restart = "on-failure";
+      RestartSec = 10;
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
 
   # Disable Caps Lock
   dconf.settings = {

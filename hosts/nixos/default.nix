@@ -95,6 +95,13 @@
   services.fprintd.tod.enable = true;
   services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix;
 
+  # Enable linger so systemd --user starts at boot (needed for user services over SSH)
+  users.users.jay.linger = true;
+
+  # GNOME Keyring PAM (unlock keyring at login, including SSH sessions)
+  security.pam.services.gdm.enableGnomeKeyring = true;
+  security.pam.services.sshd.enableGnomeKeyring = true;
+
   # YubiKey / U2F authentication
   security.pam.services = {
     login.u2fAuth = true;

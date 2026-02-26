@@ -10,6 +10,9 @@
   services.displayManager.gdm.enable = true;
   services.desktopManager.gnome.enable = true;
 
+  # GNOME Keyring (SecretService provider)
+  services.gnome.gnome-keyring.enable = true;
+
   # Keyboard layout
   services.xserver = {
     xkb.layout = "us";

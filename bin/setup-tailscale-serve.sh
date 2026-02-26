@@ -5,6 +5,7 @@
 #   - https://nixos.tail69fe1.ts.net/         -> nginx (static site + /wallabag/)
 #   - https://nixos.tail69fe1.ts.net:3000/    -> Gitea
 #   - https://nixos.tail69fe1.ts.net:8443/    -> OpenClaw gateway (Tailscale IP)
+#   - https://nixos.tail69fe1.ts.net:8444/    -> IronClaw gateway
 #   - https://nixos.tail69fe1.ts.net:8182/    -> Playwright MCP
 
 set -euo pipefail
@@ -26,6 +27,9 @@ tailscale serve --bg --https=8443 http://127.0.0.1:18789
 # Port 8182 -> Playwright MCP
 tailscale serve --bg --https=8182 http://127.0.0.1:8182
 
+# Port 8444 -> IronClaw gateway
+tailscale serve --bg --https=8444 http://127.0.0.1:8444
+
 echo ""
 echo "Tailscale Serve configuration complete!"
 echo ""
@@ -36,4 +40,5 @@ echo "  https://nixos.tail69fe1.ts.net/           - Static site"
 echo "  https://nixos.tail69fe1.ts.net/wallabag/  - Wallabag"
 echo "  https://nixos.tail69fe1.ts.net:3000/      - Gitea"
 echo "  https://nixos.tail69fe1.ts.net:8443/      - OpenClaw gateway"
+echo "  https://nixos.tail69fe1.ts.net:8444/      - IronClaw gateway"
 echo "  https://nixos.tail69fe1.ts.net:8182/      - Playwright MCP"
