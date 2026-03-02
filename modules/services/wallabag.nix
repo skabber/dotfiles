@@ -61,13 +61,16 @@ let
   appDir = pkgs.runCommand "wallabag-app" {} ''
     mkdir -p $out/app
 
-    # Symlink top-level files/dirs except app, var, and web
+    # Symlink top-level files/dirs except app, var, web, and data
     for item in ${pkgs.wallabag}/*; do
       name=$(basename "$item")
-      if [ "$name" != "app" ] && [ "$name" != "var" ] && [ "$name" != "web" ]; then
+      if [ "$name" != "app" ] && [ "$name" != "var" ] && [ "$name" != "web" ] && [ "$name" != "data" ]; then
         ln -s "$item" "$out/$name"
       fi
     done
+
+    # Symlink data to writable location
+    ln -s ${dataDir}/data $out/data
 
     # Copy web directory (so PHP doesn't resolve back to nix store)
     cp -r ${pkgs.wallabag}/web $out/web
@@ -293,6 +296,7 @@ in
       "d ${dataDir}/var/cache/prod 0750 wallabag wallabag -"
       "d ${dataDir}/var/logs 0750 wallabag wallabag -"
       "d ${dataDir}/var/sessions 0750 wallabag wallabag -"
+      "d ${dataDir}/var/sessions/prod 0750 wallabag wallabag -"
       "d ${dataDir}/uploads 0750 wallabag wallabag -"
       "d ${dataDir}/uploads/import 0750 wallabag wallabag -"
     ];
