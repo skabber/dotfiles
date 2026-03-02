@@ -59,6 +59,10 @@
         gateway.bind = "loopback";
         # Tailscale Serve is configured manually to allow routing multiple services
         gateway.controlUi.enabled = true;
+        gateway.controlUi.allowedOrigins = [ "https://nixos.tail69fe1.ts.net:8443" ];
+        # Workaround: Nix store uses hardlinks (nlink>1) which OpenClaw's
+        # openVerifiedFileSync rejects. Copy assets to a local dir instead.
+        gateway.controlUi.root = "/home/jay/.openclaw/control-ui";
         gateway.auth.allowTailscale = true;
         gateway.auth.mode = "token";
         gateway.auth.token = "temptoken123";
@@ -74,6 +78,15 @@
       };
     };
   };
+
+  # Copy OpenClaw control-ui assets to break Nix store hardlinks (nlink>1)
+  # which OpenClaw's openVerifiedFileSync rejects
+  home.activation.openclawControlUi = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    rm -rf "$HOME/.openclaw/control-ui"
+    ${pkgs.coreutils}/bin/cp -rL --no-preserve=links \
+      ${pkgs.openclaw-gateway}/lib/openclaw/dist/control-ui \
+      "$HOME/.openclaw/control-ui"
+  '';
 
   # Generate GOG keyring env file from password file for openclaw-gateway
   home.activation.gogKeyringEnv = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -118,6 +131,24 @@
         "LD_LIBRARY_PATH=${pkgs.openssl.out}/lib"
         "RUST_LOG=ironclaw::llm=info"
       ];
+      Restart = "on-failure";
+      RestartSec = 10;
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
+
+  # RustFS S3-compatible object storage
+  systemd.user.services.rustfs = {
+    Unit = {
+      Description = "RustFS Object Storage";
+      After = [ "network-online.target" ];
+    };
+    Service = {
+      ExecStart = "/home/jay/Projects/rustfs/target/release/rustfs --address 127.0.0.1:9000 --console-enable /home/jay/buckets";
+      WorkingDirectory = "/home/jay/Projects/rustfs";
+      EnvironmentFile = "/home/jay/.config/rustfs/env";
       Restart = "on-failure";
       RestartSec = 10;
     };
