@@ -79,11 +79,18 @@
     };
   };
 
+  # Remove stale HM backup so the next activation can back up openclaw.json
+  # without hitting "would be clobbered" (openclaw rewrites the managed file at runtime)
+  home.activation.cleanOpenclawBackup = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    rm -f "$HOME/.openclaw/openclaw.json.backup"
+  '';
+
   # Copy OpenClaw control-ui assets to break Nix store hardlinks (nlink>1)
   # which OpenClaw's openVerifiedFileSync rejects
   home.activation.openclawControlUi = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    chmod -R u+w "$HOME/.openclaw/control-ui" 2>/dev/null || true
     rm -rf "$HOME/.openclaw/control-ui"
-    ${pkgs.coreutils}/bin/cp -rL --no-preserve=links \
+    ${pkgs.coreutils}/bin/cp -rL --no-preserve=mode,links \
       ${pkgs.openclaw-gateway}/lib/openclaw/dist/control-ui \
       "$HOME/.openclaw/control-ui"
   '';
@@ -95,10 +102,14 @@
     fi
   '';
 
-  # Fix openclaw-gateway to start on boot
+  # Fix openclaw-gateway to start on boot and use correct binary
+  # The HM module wrapper points to an older openclaw binary that lacks plugin
+  # extensions, causing all plugins (including Telegram) to be rejected as unsafe.
+  # Override ExecStart to use the openclaw-gateway package directly.
   systemd.user.services.openclaw-gateway = {
     Install.WantedBy = [ "default.target" ];
     Service.EnvironmentFile = "/home/jay/.config/gogcli/keyring-env";
+    Service.ExecStart = lib.mkForce "${pkgs.openclaw-gateway}/bin/openclaw gateway --port 18789";
   };
 
   # Playwright MCP server (SSE on port 8182)
