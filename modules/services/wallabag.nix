@@ -98,10 +98,11 @@ let
     ${pkgs.gnused}/bin/sed -i 's|return $this->getProjectDir() . .*/var/cache/.* . $this->getEnvironment();|return '"'"'${varDir}/cache/'"'"' . $this->getEnvironment();|' $out/app/AppKernel.php
     ${pkgs.gnused}/bin/sed -i 's|return $this->getProjectDir() . .*/var/logs.*;|return '"'"'${varDir}/logs'"'"';|' $out/app/AppKernel.php
 
-    # For subpath deployments, patch AppKernel to use base_path instead of base_url
-    # (Symfony doesn't allow both on the same asset package)
+    # For subpath deployments, remove the base_url asset config from AppKernel.
+    # Symfony auto-detects the base path from SCRIPT_NAME/HTTP_X_FORWARDED_PREFIX
+    # set by nginx, so explicit asset base config causes double-prefixed URLs.
     ${lib.optionalString (basePath != "") ''
-      ${pkgs.gnused}/bin/sed -i "s|'base_url' => .*\$container->getParameter('domain_name'),|'base_path' => '${basePath}',|" $out/app/AppKernel.php
+      ${pkgs.gnused}/bin/sed -i "/'base_url' => .*\$container->getParameter('domain_name'),/d" $out/app/AppKernel.php
     ''}
 
     # Create console wrapper that loads patched AppKernel instead of original
