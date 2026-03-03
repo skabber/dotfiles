@@ -130,6 +130,12 @@
   # Spice USB redirection (for VMs)
   virtualisation.spiceUSBRedirection.enable = true;
 
+  # Symlink Chrome to standard path for tools like Playwright that expect it
+  system.activationScripts.chromeSymlink.text = ''
+    mkdir -p /opt/google/chrome
+    ln -sf ${pkgs.google-chrome}/bin/google-chrome-stable /opt/google/chrome/chrome
+  '';
+
   # Additional system packages
   environment.systemPackages = with pkgs; [
     meson
