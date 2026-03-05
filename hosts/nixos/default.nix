@@ -95,6 +95,13 @@
   services.fprintd.tod.enable = true;
   services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix;
 
+  # Enable linger so systemd --user starts at boot (needed for user services over SSH)
+  users.users.jay.linger = true;
+
+  # GNOME Keyring PAM (unlock keyring at login, including SSH sessions)
+  security.pam.services.gdm.enableGnomeKeyring = true;
+  security.pam.services.sshd.enableGnomeKeyring = true;
+
   # YubiKey / U2F authentication
   security.pam.services = {
     login.u2fAuth = true;
@@ -122,6 +129,12 @@
 
   # Spice USB redirection (for VMs)
   virtualisation.spiceUSBRedirection.enable = true;
+
+  # Symlink Chrome to standard path for tools like Playwright that expect it
+  system.activationScripts.chromeSymlink.text = ''
+    mkdir -p /opt/google/chrome
+    ln -sf ${pkgs.google-chrome}/bin/google-chrome-stable /opt/google/chrome/chrome
+  '';
 
   # Additional system packages
   environment.systemPackages = with pkgs; [

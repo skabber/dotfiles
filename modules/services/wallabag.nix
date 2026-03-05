@@ -57,23 +57,29 @@ let
         sentry_dsn: null
   '';
 
+  varDir = "${dataDir}/var";
+
   # Create merged app directory with custom parameters.yml and writable var symlink
   appDir = pkgs.runCommand "wallabag-app" {} ''
     mkdir -p $out/app
 
-    # Symlink top-level files/dirs except app, var, and web
+    # Symlink top-level files/dirs except app, var, web, and data
     for item in ${pkgs.wallabag}/*; do
       name=$(basename "$item")
-      if [ "$name" != "app" ] && [ "$name" != "var" ] && [ "$name" != "web" ]; then
+      if [ "$name" != "app" ] && [ "$name" != "var" ] && [ "$name" != "web" ] && [ "$name" != "data" ]; then
         ln -s "$item" "$out/$name"
       fi
     done
+
+    # Symlink data to writable location
+    ln -s ${dataDir}/data $out/data
 
     # Copy web directory (so PHP doesn't resolve back to nix store)
     cp -r ${pkgs.wallabag}/web $out/web
     chmod -R u+w $out/web
     rm -rf $out/web/uploads
     ln -s ${dataDir}/uploads $out/web/uploads
+
 
     # Symlink app subdirs except config and AppKernel.php
     for item in ${pkgs.wallabag}/app/*; do
@@ -83,8 +89,48 @@ let
       fi
     done
 
-    # Copy AppKernel.php so __DIR__ resolves correctly
+    # Copy and patch AppKernel.php to use absolute paths for writable dirs.
+    # This avoids Symfony resolving cache/log/session paths through Nix store
+    # symlinks, which breaks is_writable() and causes stale path references
+    # after nixos-rebuild.
     cp ${pkgs.wallabag}/app/AppKernel.php $out/app/AppKernel.php
+    chmod u+w $out/app/AppKernel.php
+    ${pkgs.gnused}/bin/sed -i 's|return $this->getProjectDir() . .*/var/cache/.* . $this->getEnvironment();|return '"'"'${varDir}/cache/'"'"' . $this->getEnvironment();|' $out/app/AppKernel.php
+    ${pkgs.gnused}/bin/sed -i 's|return $this->getProjectDir() . .*/var/logs.*;|return '"'"'${varDir}/logs'"'"';|' $out/app/AppKernel.php
+
+    # For subpath deployments, remove the base_url asset config from AppKernel.
+    # Symfony auto-detects the base path from SCRIPT_NAME/HTTP_X_FORWARDED_PREFIX
+    # set by nginx, so explicit asset base config causes double-prefixed URLs.
+    ${lib.optionalString (basePath != "") ''
+      ${pkgs.gnused}/bin/sed -i "/'base_url' => .*\$container->getParameter('domain_name'),/d" $out/app/AppKernel.php
+    ''}
+
+    # Create console wrapper that loads patched AppKernel instead of original
+    # (bin/console is symlinked, so __DIR__ resolves to the original wallabag
+    # package and the autoloader loads the unpatched AppKernel)
+    cat > $out/app/console-wrapper.php << 'CONSOLEOF'
+<?php
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\ErrorHandler\Debug;
+
+set_time_limit(0);
+
+require __DIR__.'/../vendor/autoload.php';
+require __DIR__.'/AppKernel.php';
+
+$input = new ArgvInput();
+$env = $input->getParameterOption(['--env', '-e'], getenv('SYMFONY_ENV') ?: 'dev', true);
+$debug = getenv('SYMFONY_DEBUG') !== '0' && !$input->hasParameterOption('--no-debug', true) && $env !== 'prod';
+
+if ($debug) {
+    Debug::enable();
+}
+
+$kernel = new AppKernel($env, $debug);
+$application = new Application($kernel);
+$application->run($input);
+CONSOLEOF
 
     # Copy config dir and replace parameters.yml
     cp -r ${pkgs.wallabag}/app/config $out/app/config
@@ -92,15 +138,10 @@ let
     rm -f $out/app/config/parameters.yml
     cp ${parametersYml} $out/app/config/parameters.yml
 
-    # Configure asset base_path for subpath deployments
-    ${lib.optionalString (basePath != "") ''
-      # Modify config.yml to set base_path (replace "assets: ~" with proper config)
-      ${pkgs.gnused}/bin/sed -i 's|assets: ~|assets:\n        base_path: ${basePath}|' $out/app/config/config.yml
-      # Remove the assets section from config_prod.yml to avoid merge conflicts
-      ${pkgs.gnused}/bin/sed -i '/^    assets:$/,/^$/d' $out/app/config/config_prod.yml
-    ''}
+    # Fix session save_path to use absolute path instead of going through Nix store
+    ${pkgs.gnused}/bin/sed -i 's|save_path: "%kernel.project_dir%/var/sessions/%kernel.environment%"|save_path: "${varDir}/sessions/%kernel.environment%"|' $out/app/config/config.yml
 
-    # Symlink var to writable location
+    # Symlink var to writable location (still needed for other Symfony references)
     ln -s ${dataDir}/var $out/var
   '';
 in
@@ -163,7 +204,6 @@ in
       isSystemUser = true;
       group = "wallabag";
       home = dataDir;
-      createHome = true;
     };
     users.groups.wallabag = {};
 
@@ -197,6 +237,9 @@ in
         "pm.start_servers" = 2;
         "pm.min_spare_servers" = 1;
         "pm.max_spare_servers" = 4;
+        "php_admin_value[log_errors]" = "On";
+        "php_admin_value[error_log]" = "${varDir}/logs/php-fpm-errors.log";
+        "catch_workers_output" = "yes";
       };
       phpEnv = {
         WALLABAG_DATA = "${appDir}";
@@ -284,18 +327,38 @@ in
     };
 
     # Data directory setup
+    # PHP-FPM runs as nobody:wallabag, so writable dirs need group-write (0770)
     systemd.tmpfiles.rules = [
-      "d ${dataDir} 0750 wallabag wallabag -"
-      "d ${dataDir}/data 0750 wallabag wallabag -"
-      "d ${dataDir}/data/db 0750 wallabag wallabag -"
-      "d ${dataDir}/var 0750 wallabag wallabag -"
-      "d ${dataDir}/var/cache 0750 wallabag wallabag -"
-      "d ${dataDir}/var/cache/prod 0750 wallabag wallabag -"
-      "d ${dataDir}/var/logs 0750 wallabag wallabag -"
-      "d ${dataDir}/var/sessions 0750 wallabag wallabag -"
-      "d ${dataDir}/uploads 0750 wallabag wallabag -"
-      "d ${dataDir}/uploads/import 0750 wallabag wallabag -"
+      "d ${dataDir} 0770 nobody wallabag -"
+      "d ${dataDir}/data 0770 nobody wallabag -"
+      "d ${dataDir}/data/db 0770 nobody wallabag -"
+      "d ${dataDir}/var 0770 nobody wallabag -"
+      "d ${dataDir}/var/cache 0770 nobody wallabag -"
+      "d ${dataDir}/var/cache/prod 0770 nobody wallabag -"
+      "d ${dataDir}/var/logs 0770 nobody wallabag -"
+      "d ${dataDir}/var/sessions 0770 nobody wallabag -"
+      "d ${dataDir}/var/sessions/prod 0770 nobody wallabag -"
+      "d ${dataDir}/uploads 0770 nobody wallabag -"
+      "d ${dataDir}/uploads/import 0770 nobody wallabag -"
     ];
+
+    # Clear Symfony cache on NixOS rebuild to prevent stale Nix store path references
+    systemd.services.wallabag-cache-clear = {
+      description = "Clear Wallabag Symfony cache";
+      wantedBy = [ "multi-user.target" ];
+      before = [ "phpfpm-wallabag.service" ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = pkgs.writeShellScript "wallabag-cache-clear" ''
+          ${pkgs.coreutils}/bin/rm -rf ${varDir}/cache/prod
+          ${pkgs.coreutils}/bin/mkdir -p ${varDir}/cache/prod
+          ${pkgs.coreutils}/bin/chown nobody:wallabag ${varDir}/cache/prod
+          ${pkgs.coreutils}/bin/chmod 770 ${varDir}/cache/prod
+          # Reset prod.log to prevent stale log files from becoming unwritable
+          ${pkgs.coreutils}/bin/rm -f ${varDir}/logs/prod.log
+        '';
+      };
+    };
 
     # Open firewall
     networking.firewall.allowedTCPPorts = mkIf cfg.enableNginx ([ 80 ] ++ (optional cfg.enableSSL 443));
@@ -304,7 +367,7 @@ in
       (pkgs.writeShellScriptBin "wallabag-console" ''
         export WALLABAG_DATA="${appDir}"
         export APP_ENV=prod
-        exec ${php}/bin/php ${appDir}/bin/console --env=prod "$@"
+        exec ${php}/bin/php ${appDir}/app/console-wrapper.php --env=prod "$@"
       '')
     ];
   };

@@ -18,6 +18,7 @@ export PATH=$PATH:$HOME/.local/bin
 export NIXPKGS_ACCEPT_ANDROID_SDK_LICENSE=1
 
 export EDITOR=hx
+export GOG_KEYRING_PASSWORD="$(cat ~/.config/gogcli/keyring-password 2>/dev/null)"
 export HSA_OVERRIDE_GFX_VERSION=10.3.0
 alias yuzu="appimage-run $HOME/Applications/yuzu.AppImage"
 
