@@ -29,6 +29,7 @@
     zed-editor
     postman
     bruno
+    lmstudio
 
     # Media & productivity
     cider
