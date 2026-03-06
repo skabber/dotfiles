@@ -58,7 +58,7 @@
     # Utilities
     trayscale
     yazi
-    neofetch
+    fastfetch
 
     # GNOME extensions
     gnomeExtensions.tailscale-qs
