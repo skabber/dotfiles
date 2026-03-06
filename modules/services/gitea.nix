@@ -106,6 +106,12 @@ in
       description = "Labels for the runner. Use 'native:host' for host execution or docker labels.";
     };
 
+    cachePort = mkOption {
+      type = types.port;
+      default = 8088;
+      description = "Fixed port for the runner's Actions cache server. Avoids random port assignment that gets blocked by the firewall.";
+    };
+
     hostPackages = mkOption {
       type = types.listOf types.package;
       default = with pkgs; [
@@ -144,7 +150,9 @@ in
       };
     };
 
-    networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [ cfg.httpPort ];
+    networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall (
+      [ cfg.httpPort ] ++ optionals cfg.runner.enable [ cfg.runner.cachePort ]
+    );
 
     services.gitea-actions-runner.instances.${cfg.runner.name} = mkIf cfg.runner.enable {
       enable = true;
@@ -157,7 +165,11 @@ in
       hostPackages = cfg.runner.hostPackages;
       settings = {
         runner.file = ".runner";
-        cache.dir = "cache";
+        runner.capacity = 10;
+        cache = {
+          dir = "cache";
+          port = cfg.runner.cachePort;
+        };
         container = {
           options = "-m 32g --cpus 32";  # 32GB RAM, 32 CPUs
           valid_volumes = [ ];

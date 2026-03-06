@@ -1,5 +1,10 @@
 # nixos-ripper (Threadripper 1) - Home Manager configuration
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   imports = [
@@ -30,7 +35,7 @@
     heroic
     obs-studio
     helvum
-    calibre
+    # calibre
 
     # Gaming
     ryubing
@@ -63,7 +68,7 @@
     vte
     espup
     elf2uf2-rs
-    sunshine
+    # sunshine
     zoom-us
     code-cursor
 
