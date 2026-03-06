@@ -53,14 +53,27 @@ in
   services.open-webui = {
     enable = true;
     openFirewall = true;
-    # host = "hostip";
+    host = "127.0.0.1";
     environment = {
       ANONYMIZED_TELEMETRY = "False";
       DO_NOT_TRACK = "True";
       SCARF_NO_ANALYTICS = "True";
-      # OLLAMA_API_BASE_URL = "http://{yourserverip}:11434/api";
-      # OLLAMA_BASE_URL = "http://{yourserverip}:11434";
     };
   };
+
+  # Tailscale Serve: HTTPS proxy for Open WebUI
+  systemd.services.tailscale-serve-open-webui = {
+    description = "Tailscale Serve for Open WebUI";
+    after = [ "tailscaled.service" "open-webui.service" ];
+    wants = [ "tailscaled.service" "open-webui.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.tailscale}/bin/tailscale serve --bg --https=8080 http://127.0.0.1:8080";
+      ExecStop = "${pkgs.tailscale}/bin/tailscale serve --https=8080 off";
+    };
+  };
+
   };
 }
