@@ -11,6 +11,9 @@
       url = "git+https://nixos.tail69fe1.ts.net:3000//skabber/nix-openclaw.git";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    google-workspace-cli = {
+      url = "github:googleworkspace/cli";
+    };
   };
 
   outputs =
@@ -19,10 +22,21 @@
       nixpkgs,
       home-manager,
       nix-openclaw,
+      google-workspace-cli,
       ...
     }:
     let
       system = "x86_64-linux";
+      googleWorkspaceModule = {
+        environment.systemPackages = [
+          google-workspace-cli.packages.${system}.default
+        ];
+      };
+      googleCloudSdkModule = { pkgs, ... }: {
+        environment.systemPackages = [
+          pkgs.google-cloud-sdk
+        ];
+      };
     in
     {
       devShells.${system}.whisperx =
@@ -74,6 +88,8 @@
           system = "x86_64-linux";
           modules = [
             ./hosts/nixos-ripper/default.nix
+            googleWorkspaceModule
+            googleCloudSdkModule
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
@@ -87,6 +103,8 @@
           system = "x86_64-linux";
           modules = [
             ./hosts/nixos/default.nix
+            googleWorkspaceModule
+            googleCloudSdkModule
             home-manager.nixosModules.home-manager
             {
               nixpkgs.overlays = [ nix-openclaw.overlays.default ];
@@ -103,6 +121,8 @@
           system = "x86_64-linux";
           modules = [
             ./hosts/framework-13/default.nix
+            googleWorkspaceModule
+            googleCloudSdkModule
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
@@ -116,6 +136,8 @@
           system = "x86_64-linux";
           modules = [
             ./hosts/framework-16/default.nix
+            googleWorkspaceModule
+            googleCloudSdkModule
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
