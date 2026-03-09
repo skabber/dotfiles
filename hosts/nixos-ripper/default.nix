@@ -8,7 +8,7 @@
     ../../modules/desktop.nix
     ../../modules/rocm-dev.nix
     ../../modules/services/ollama.nix
-    # ../../modules/services/sunshine.nix
+    ../../modules/services/sunshine.nix
     ../../modules/services/retroarch.nix
     ../../modules/services/syncthing.nix
     ../../modules/services/vllm.nix
@@ -112,7 +112,7 @@
   # Service toggles
   ollama.enable = true;
   ollama.flashAttention = false;
-  # sunshine.enable = true;
+  sunshine.enable = true;
   retroarch.enable = true;
   syncthing = {
     enable = true;

@@ -35,8 +35,8 @@
     cider
     heroic
     obs-studio
-    helvum
-    # calibre
+
+    calibre
 
     # Gaming
     ryubing

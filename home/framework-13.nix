@@ -39,7 +39,7 @@
     ghostty
     warp-terminal
     nushell
-    helvum
+
 
     # Other
     gjs
