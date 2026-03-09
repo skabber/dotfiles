@@ -1,5 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+UPGRADE=false
+HOST=""
+
+for arg in "$@"; do
+  case "$arg" in
+    --upgrade) UPGRADE=true ;;
+    *) HOST="$arg" ;;
+  esac
+done
+
 cd ~/dotfiles
-nix flake update && sudo nixos-rebuild switch --flake ".#${1:-$(hostname)}"
+
+if [ "$UPGRADE" = true ]; then
+  nix flake update
+fi
+
+sudo nixos-rebuild switch --flake ".#${HOST:-$(hostname)}"
