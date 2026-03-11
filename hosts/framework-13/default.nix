@@ -7,6 +7,7 @@
     ../../modules/common.nix
     ../../modules/desktop.nix
     ../../modules/rocm-dev.nix
+    ../../modules/services/comfyui.nix
   ];
 
   # Hostname
@@ -17,6 +18,9 @@
     enable = true;
     architecture = "gfx1150";
   };
+
+  # ComfyUI - Stable Diffusion node-based UI (ROCm Docker container)
+  comfyui.enable = true;
 
   # Framework 13 specific kernel params
   boot.kernelParams = [
