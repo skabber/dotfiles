@@ -93,7 +93,7 @@
   users.users.jay = {
     isNormalUser = true;
     description = "Jay Graves";
-    extraGroups = [ "networkmanager" "wheel" "docker" "video" "render" "tty" "dialout" "nginx" ];
+    extraGroups = [ "networkmanager" "wheel" "docker" "video" "render" "tty" "dialout" "nginx" "systemd-journal" ];
     packages = [ ];
     shell = pkgs.zsh;
   };

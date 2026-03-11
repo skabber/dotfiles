@@ -56,6 +56,17 @@
   # libvirt for VMs
   virtualisation.libvirtd.enable = true;
 
+  # Workaround: upstream virt-secret-init-encryption.service hardcodes /usr/bin/sh
+  # which doesn't exist on NixOS. Override ExecStart with Nix store paths.
+  # https://github.com/NixOS/nixpkgs/issues/496836
+  systemd.services.virt-secret-init-encryption.serviceConfig.ExecStart = let
+    dd = "${pkgs.coreutils}/bin/dd";
+    systemd-creds = "${pkgs.systemd}/bin/systemd-creds";
+  in lib.mkForce [
+    ""
+    "${pkgs.bash}/bin/bash -c 'umask 0077 && (${dd} if=/dev/random status=none bs=32 count=1 | ${systemd-creds} encrypt --name=secrets-encryption-key - /var/lib/libvirt/secrets/secrets-encryption-key)'"
+  ];
+
   # Framework-specific packages
   environment.systemPackages = with pkgs; [
     (btop.override { rocmSupport = true; })

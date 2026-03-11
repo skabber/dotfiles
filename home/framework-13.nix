@@ -39,8 +39,7 @@
     ghostty
     warp-terminal
     nushell
-
-
+    
     # Other
     gjs
     vte
