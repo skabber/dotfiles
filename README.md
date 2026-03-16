@@ -82,6 +82,29 @@ All under `modules/services/`, each with `enable` and configuration options:
 
 ## Home Manager
 
+### Module Options
+
+- **modules/common.nix** – Base config; options: `boot.loader.grub.enable`, `services.openssh.enable`, etc.
+- **modules/desktop.nix** – GNOME desktop; options: `services.xserver.displayManager.gdm.enable`, `services.xserver.desktopManager.gnome.enable`.
+- **modules/desktop-nvidia.nix** – NVIDIA desktop; options: `hardware.nvidia.enable`, `services.xserver.videoDrivers`.
+- **modules/rocm-dev.nix** – ROCm development; options: `services.rocm.enable`, `hardware.opengl.driSupport`.
+- **modules/services/gitea.nix** – Gitea service; options: `services.gitea.enable`, `services.gitea.port`.
+- **modules/services/wallabag.nix** – Wallabag; options: `services.wallabag.enable`, `services.wallabag.db`.
+- **modules/services/syncthing.nix** – Syncthing; options: `services.syncthing.enable`, `services.syncthing.user`.
+- **modules/services/ollama.nix** – Ollama; options: `services.ollama.enable`, `services.ollama.port`.
+- **modules/services/vllm.nix** – vLLM; options: `services.vllm.enable`, `services.vllm.port`.
+- **modules/services/sunshine.nix** – Sunshine; options: `services.sunshine.enable`, `services.sunshine.port`.
+- **modules/services/retroarch.nix** – RetroArch; options: `services.retroarch.enable`, `services.retroarch.cores`.
+
+### Example nix-shell usage
+
+```bash
+# Enter a development environment for the Framework-16 laptop
+nix develop .#framework-16
+# Or using the older syntax
+nix-shell -A devShells.framework-16
+```
+
 All hosts share `home/common.nix` which provides:
 - Development: Node.js 22, direnv, starship prompt, vim, neovim
 - Language servers: TypeScript, JSON, YAML, Nix (nil, nixd), Markdown, Dockerfile

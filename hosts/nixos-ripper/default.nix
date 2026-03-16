@@ -2,16 +2,27 @@
 { config, pkgs, lib, ... }:
 
 {
+  # imports = [
+  #   ./hardware-configuration.nix
+  #   ../../modules/common.nix
+  #   ../../modules/desktop.nix
+  #   ../../modules/rocm-dev.nix
+  #   ../../modules/services/ollama.nix
+  #   ../../modules/services/sunshine.nix
+  #   ../../modules/services/retroarch.nix
+  #   ../../modules/services/syncthing.nix
+  #   ../../modules/services/vllm.nix
+  # ];
   imports = [
     ./hardware-configuration.nix
     ../../modules/common.nix
     ../../modules/desktop.nix
     ../../modules/rocm-dev.nix
-    ../../modules/services/ollama.nix
-    ../../modules/services/sunshine.nix
-    ../../modules/services/retroarch.nix
-    ../../modules/services/syncthing.nix
-    ../../modules/services/vllm.nix
+    # ../../modules/services/ollama.nix
+    # ../../modules/services/sunshine.nix
+    # ../../modules/services/retroarch.nix
+    # ../../modules/services/syncthing.nix
+    # ../../modules/services/vllm.nix
   ];
 
   # Hostname
@@ -21,6 +32,12 @@
   rocm-dev = {
     enable = true;
     architecture = "gfx1030";
+  };
+
+  # Zram swap (helps with memory-heavy builds like ROCm)
+  zramSwap = {
+    enable = true;
+    memoryPercent = 50;
   };
 
   # Kernel settings
@@ -110,15 +127,15 @@
   };
 
   # Service toggles
-  ollama.enable = true;
-  ollama.flashAttention = false;
-  sunshine.enable = true;
-  retroarch.enable = true;
-  syncthing = {
-    enable = true;
-    dataDir = "/home/jay/.syncthing";
-    guiAddress = "0.0.0.0:8384";
-  };
+  # ollama.enable = true;
+  # ollama.flashAttention = false;
+  # sunshine.enable = true;
+  # retroarch.enable = true;
+  # syncthing = {
+  #   enable = true;
+  #   dataDir = "/home/jay/.syncthing";
+  #   guiAddress = "0.0.0.0:8384";
+  # };
 
   # Permitted insecure packages
   nixpkgs.config.permittedInsecurePackages = [
@@ -128,6 +145,9 @@
   # vLLM with ROCm + outlines-core version fix, scoped to avoid breaking other python3 packages (e.g. calibre)
   nixpkgs.overlays = [
     (final: prev: {
+      whisper-cpp = prev.whisper-cpp.overrideAttrs (old: {
+        doBuild = false;
+      });
       vllm-rocm = let
         python3 = prev.python3.override {
           packageOverrides = pyFinal: pyPrev: {
@@ -149,8 +169,8 @@
     })
   ];
 
-  # Use the scoped vllm-rocm package
-  vllm.package = pkgs.vllm-rocm;
+  # # Use the scoped vllm-rocm package
+  # vllm.package = pkgs.vllm-rocm;
 
   # Threadripper-specific packages
   environment.systemPackages = with pkgs; [
