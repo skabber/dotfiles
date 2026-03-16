@@ -34,6 +34,9 @@
     architecture = "gfx1030";
   };
 
+  # Flatpak support
+  services.flatpak.enable = true;
+
   # Zram swap (helps with memory-heavy builds like ROCm)
   zramSwap = {
     enable = true;
