@@ -10,6 +10,7 @@
     ../../modules/services/gitea.nix
     ../../modules/services/wallabag.nix
     ../../modules/services/syncthing.nix
+    ../../modules/services/whisperx.nix
   ];
 
   # Hostname
@@ -95,6 +96,12 @@
     enable = true;
     dataDir = /home/jay/.syncthing;
     guiAddress = "0.0.0.0:8384";
+  };
+
+  whisperx = {
+    enable = true;
+    openFirewall = true;
+    # hfTokenFile = "/run/secrets/hf-token";  # uncomment to enable diarization
   };
 
   # Fingerprint reader (Goodix)

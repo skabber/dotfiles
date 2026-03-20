@@ -8,6 +8,8 @@
 #   - https://nixos.tail69fe1.ts.net:8444/    -> IronClaw gateway
 #   - https://nixos.tail69fe1.ts.net:9000/    -> RustFS (S3 API + Console)
 #   - https://nixos.tail69fe1.ts.net:8182/    -> Playwright MCP
+#   - https://nixos.tail69fe1.ts.net:8000/    -> WhisperX transcription
+#   - https://nixos.tail69fe1.ts.net:8880/    -> Kokoro TTS
 
 set -euo pipefail
 
@@ -31,6 +33,12 @@ tailscale serve --bg --https=8182 http://127.0.0.1:8182
 # Port 8444 -> IronClaw gateway
 tailscale serve --bg --https=8444 http://127.0.0.1:8444
 
+# Port 8000 -> WhisperX transcription
+tailscale serve --bg --https=8000 http://127.0.0.1:8000
+
+# Port 8880 -> Kokoro TTS
+tailscale serve --bg --https=8880 http://127.0.0.1:8880
+
 # Port 9000 -> RustFS (S3 API + Console)
 tailscale serve --bg --https=9000 http://127.0.0.1:9000
 
@@ -46,4 +54,6 @@ echo "  https://nixos.tail69fe1.ts.net:3000/      - Gitea"
 echo "  https://nixos.tail69fe1.ts.net:8443/      - OpenClaw gateway"
 echo "  https://nixos.tail69fe1.ts.net:8444/      - IronClaw gateway"
 echo "  https://nixos.tail69fe1.ts.net:9000/      - RustFS (S3 + Console)"
+echo "  https://nixos.tail69fe1.ts.net:8000/      - WhisperX transcription"
+echo "  https://nixos.tail69fe1.ts.net:8880/      - Kokoro TTS"
 echo "  https://nixos.tail69fe1.ts.net:8182/      - Playwright MCP"
