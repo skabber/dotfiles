@@ -84,6 +84,13 @@
     "d /var/www/public 0775 nginx nginx -"
   ];
 
+  services.kokoro-fastapi = {
+    enable = true;
+    useGpu = true;
+    port = 8880;
+    openFirewall = true;
+  };
+
   syncthing = {
     enable = true;
     dataDir = /home/jay/.syncthing;
@@ -138,6 +145,7 @@
 
   # Additional system packages
   environment.systemPackages = with pkgs; [
+    (btop.override { cudaSupport = true; })
     meson
     gnome-randr
   ];
