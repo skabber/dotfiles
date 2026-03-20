@@ -33,7 +33,7 @@
 
     # Media & productivity
     cider
-    heroic
+    # heroic  # broken in nixpkgs - electron-39 patch failure
     obs-studio
 
     calibre
