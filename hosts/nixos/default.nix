@@ -10,6 +10,7 @@
     ../../modules/services/gitea.nix
     ../../modules/services/wallabag.nix
     ../../modules/services/syncthing.nix
+    ../../modules/services/whisperx.nix
   ];
 
   # Hostname
@@ -84,10 +85,23 @@
     "d /var/www/public 0775 nginx nginx -"
   ];
 
+  services.kokoro-fastapi = {
+    enable = true;
+    useGpu = true;
+    port = 8880;
+    openFirewall = true;
+  };
+
   syncthing = {
     enable = true;
     dataDir = /home/jay/.syncthing;
     guiAddress = "0.0.0.0:8384";
+  };
+
+  whisperx = {
+    enable = true;
+    openFirewall = true;
+    # hfTokenFile = "/run/secrets/hf-token";  # uncomment to enable diarization
   };
 
   # Fingerprint reader (Goodix)
@@ -138,6 +152,7 @@
 
   # Additional system packages
   environment.systemPackages = with pkgs; [
+    (btop.override { cudaSupport = true; })
     meson
     gnome-randr
   ];

@@ -1,5 +1,5 @@
 # nixos (Threadripper with NVIDIA GPU) - Home Manager configuration
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, googleworkspace-cli, ... }:
 
 {
   imports = [
@@ -13,6 +13,7 @@
     alacritty
     system76-keyboard-configurator
     playwright-mcp
+    googleworkspace-cli.packages.${pkgs.system}.default
   ];
 
   # Bash configuration (sources local profile)
@@ -45,6 +46,13 @@
           "google/gemini-2.0-flash" = { alias = "flash"; };
           "google/gemini-2.5-flash-lite" = { alias = "lite"; };
           "mistral/mistral-small" = { alias = "small"; };
+          "ollama/qwen3.5:9b" = { alias = "qwen"; };
+        };
+        models.providers.ollama = {
+          baseUrl = "http://nixos-ripper.tail69fe1.ts.net:11434";
+          models = [
+            { id = "qwen3.5:9b"; name = "qwen3.5:9b"; }
+          ];
         };
         agents.defaults.heartbeat = {
           every = "30m";

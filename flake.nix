@@ -14,6 +14,9 @@
     google-workspace-cli = {
       url = "github:googleworkspace/cli";
     };
+    kokoro-fastapi-nix = {
+      url = "github:mndfcked/kokoro-fastapi-nix";
+    };
   };
 
   outputs =
@@ -23,6 +26,7 @@
       home-manager,
       # nix-openclaw,
       google-workspace-cli,
+      kokoro-fastapi-nix,
       ...
     }:
     let
@@ -107,6 +111,7 @@
             ./hosts/nixos/default.nix
             googleWorkspaceModule
             googleCloudSdkModule
+            kokoro-fastapi-nix.nixosModules.default
             home-manager.nixosModules.home-manager
             {
               # nixpkgs.overlays = [ nix-openclaw.overlays.default ];
