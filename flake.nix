@@ -24,7 +24,7 @@
       self,
       nixpkgs,
       home-manager,
-      # nix-openclaw,
+      nix-openclaw,
       google-workspace-cli,
       kokoro-fastapi-nix,
       wallbag-rust,
