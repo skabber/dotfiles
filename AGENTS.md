@@ -7,63 +7,52 @@ This guide is for agentic coding agents (like yourself) working in this reposito
 - **Hardware**: Framework Laptop 16 (AMD RDNA 3, gfx1030/gfx1150)
 - **Editor**: Helix (`hx`) is the primary editor.
 - **Languages**: Nix, Shell, Rust, Go, Zig, Python, Deno.
+- **User**: `jay`
+
+## Repository Structure
+```
+~/dotfiles/
+├── flake.nix                    # Main flake entry point
+├── hosts/                       # Machine-specific configs (framework-16, framework-13, nixos, nixos-ripper)
+├── modules/                     # Shared NixOS modules (common.nix, desktop.nix, rocm-dev.nix, services/)
+├── home/                        # Home Manager configs (common.nix, [hostname].nix)
+└── scripts/                     # Deployment scripts (rebuild.sh, deploy.sh, rollback.sh)
+```
 
 ## Core Commands
 
 ### System Rebuild & Deployment
-Always use the provided scripts for system operations to ensure flake consistency.
-
 ```bash
-# Update flake and switch to new configuration (current hostname)
-./scripts/rebuild.sh
-
-# Build configuration without switching (useful for validation)
-./scripts/deploy.sh
-
-# Rollback to the previous generation
-./scripts/rollback.sh
-
-# Clean up old generations (retains 30 generations/30 days)
-./bin/trim-generations.sh
+./scripts/rebuild.sh              # Rebuild and switch (current hostname)
+./scripts/rebuild.sh --upgrade    # Rebuild with flake update
+./scripts/rebuild.sh framework-16 # Rebuild specific host
+./scripts/deploy.sh               # Build without switching (validation)
+./scripts/rollback.sh             # Rollback to previous generation
+./bin/trim-generations.sh         # Clean up old generations
 ```
 
-### Manual Nix Operations
+### Validation & Testing
 ```bash
-# Verify flake syntax and evaluation
-nix flake check
-
-# Build a specific host configuration (e.g., framework-16)
-nix build .#nixosConfigurations.framework-16.config.system.build.toplevel
-
-# Run a specific check or test (if defined in flake.nix)
-nix flake check -L --filter "checks/x86_64-linux/some-check"
-
-# Update specific flake input
-nix flake lock --update-input <input_name>
-
-# Search for a package in nixpkgs
-nix search nixpkgs <package_name>
-```
-
-### Development Shells
-Some directories may have local `flake.nix` or specific dev shells.
-```bash
-# Enter the whisperx development shell
-nix develop .#whisperx
+nix flake check                   # Verify flake syntax and evaluation
+nix build .#nixosConfigurations.framework-16.config.system.build.toplevel  # Build host config
+nix eval .#nixosConfigurations.framework-16.config.services.openssh.enable # Quick validation
+nix flake show                    # Show flake outputs
+nix flake lock --update-input <name>  # Update specific input
+nix search nixpkgs <package>      # Search for package
 ```
 
 ## Code Style & Conventions
 
 ### Nix Formatting
 - **Indentation**: 2 spaces (strictly no tabs).
-- **Filenames**: Use `kebab-case.nix` (e.g., `amdgpu-config.nix`).
-- **Attributes**: Use `camelCase` for Nix attribute names (e.g., `stateVersion`).
-- **Imports**: Prefer absolute paths relative to the flake root or clear relative paths.
-- **Cleanliness**: Avoid trailing whitespace and ensure a final newline.
+- **Filenames**: `kebab-case.nix` (e.g., `rocm-dev.nix`).
+- **Attributes**: `camelCase` for attribute names (e.g., `stateVersion`).
+- **Imports**: Relative paths from file location (e.g., `../../modules/common.nix`).
+- **Comments**: Use `#` for line comments. Add brief descriptions at module top.
 
 ### Nix Module Structure
-Follow the standard NixOS module pattern. Use `options` and `config` to make services composable:
 ```nix
+# Brief description of the module
 { config, pkgs, lib, ... }:
 
 with lib;
@@ -74,7 +63,6 @@ in
 {
   options.services.custom-service = {
     enable = mkEnableOption "Custom Service";
-    # Add other options using lib.types
     port = mkOption {
       type = types.port;
       default = 8080;
@@ -84,53 +72,83 @@ in
 
   config = mkIf cfg.enable {
     environment.systemPackages = [ pkgs.some-package ];
-    # Implementation logic using config and pkgs
-    services.nginx.virtualHosts."localhost" = {
-      locations."/".proxyPass = "http://127.0.0.1:${toString cfg.port}";
+    systemd.services.custom-service = {
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig.ExecStart = "${pkgs.some-package}/bin/some-binary";
     };
   };
 }
 ```
 
 ### Types and Options
-- Use `lib.types` for all options (e.g., `types.str`, `types.bool`, `types.enum`, `types.attrsOf`).
-- Provide sensible defaults for optional settings.
-- Always include `description` for new options to aid in configuration.
+- Use `lib.types` for all options: `types.str`, `types.bool`, `types.int`, `types.port`, `types.enum`, `types.attrsOf`, `types.listOf`.
+- Provide sensible defaults. Always include `description` for new options.
+- Use `mkEnableOption` for boolean enable flags.
+
+### Imports Pattern
+Host configurations import modules in order:
+1. `./hardware-configuration.nix` (always first)
+2. `../../modules/common.nix` (base system config)
+3. Desktop/GPU modules (`desktop.nix`, `rocm-dev.nix`)
+4. Service modules from `../../modules/services/`
 
 ### Shell Scripts
-- **Shebang**: Use `#!/usr/bin/env bash` or `#!/usr/bin/env sh`.
-- **Safety**: Always include `set -euo pipefail`.
-- **Formatting**: Use 2-space indentation.
-- **Naming**: `kebab-case.sh`.
+- **Shebang**: `#!/usr/bin/env bash`
+- **Safety**: Always include `set -euo pipefail`
+- **Formatting**: 2-space indentation, `kebab-case.sh` naming
 
 ### Error Handling
-- **Nix**: Use `assert` or `throw` for critical configuration-level errors.
-- **Shell**: Rely on `set -e` and check exit codes for critical operations.
-- **Validation**: Use `nix flake check` to catch syntax errors and evaluation failures.
+- **Nix**: Use `assert` for invariants, `throw` for critical errors, `lib.warn` for warnings.
+- **Shell**: Rely on `set -e` and check exit codes.
+- **Validation**: Always run `nix flake check` after structural changes.
 
 ### Git & Commits
 - **Messages**: Concise, focus on "why" (e.g., `feat: add ollama module with ROCm support`).
-- **Scope**: Avoid massive commits; separate system changes from home-manager changes where possible.
-- **Style**: Follow Conventional Commits where applicable (feat, fix, refactor, docs, etc.).
+- **Style**: Follow Conventional Commits (feat, fix, refactor, docs, chore).
 
-## Key Hardware/GPU Support
-This repo targets AMD RDNA 3 hardware (Framework Laptop 16). When modifying GPU-related modules (like `ollama.nix` or `amdgpu.nix`):
-- Ensure `HSA_OVERRIDE_GFX_VERSION=10.3.0` (or appropriate) is set for ROCm compatibility.
+## Hardware/GPU Support
+This repo targets AMD RDNA 3 hardware:
+- **RDNA 3** (gfx1030): Use `HSA_OVERRIDE_GFX_VERSION=10.3.0`
+- **RDNA 3.5** (gfx1150): See `rocm-dev.nix` for architecture setting
 - Prefer `amdgpu` drivers and `mesa` for graphics.
-- Check `modules/amd-gpu.nix` for global GPU settings.
+
+## Service Module Patterns
+Service modules in `modules/services/` should:
+1. Define `enable` option using `mkEnableOption`
+2. Use `mkIf cfg.enable` for conditional configuration
+3. Set environment variables for GPU support when needed
+4. Include systemd service configuration
+5. Open firewall ports only when necessary
 
 ## Editor Integration
-- **Helix**: Configuration is managed in `home/common.nix` or dedicated helix modules.
-- **LSP**: `nil` and `nixd` are used for Nix language support.
-- **Formatting**: Use `nixfmt` if available, otherwise follow 2-space standard.
+- **Helix**: Configuration managed via Home Manager.
+- **LSP**: `nil` and `nixd` for Nix language support.
 
 ## AI Assistant Instructions
-- **Proactiveness**: If adding a new service, look at `modules/services/` for existing patterns.
-- **Structure**: Host-specific settings go in `hosts/[hostname]/default.nix`. Shared user settings go in `home/common.nix`.
+- **Proactiveness**: If adding a new service, look at `modules/services/` for patterns.
+- **Structure**: Host-specific → `hosts/[hostname]/default.nix`. Shared user → `home/common.nix`.
 - **Safety**: Never modify `hardware-configuration.nix` directly; it is auto-generated.
-- **Verification**: Always run `nix flake check` or `./scripts/deploy.sh` after structural changes.
-- **Secrets**: Do NOT add secrets (API keys, passwords) to the repository. Use `sops-nix` or similar if available (check for `.sops.yaml`).
-- **Single Test**: To test a specific module change without a full rebuild, use `nix eval .#nixosConfigurations.<hostname>.config.<module_path>` to verify evaluation.
+- **Verification**: Run `nix flake check` or `./scripts/deploy.sh` after structural changes.
+- **Secrets**: Do NOT add secrets to the repository. Use `sops-nix` if available.
 
-## Additional Rules (Cursor/Copilot)
-No dedicated `.cursorrules` or `.github/copilot-instructions.md` were found in this repository. All agent instructions should follow this `AGENTS.md` and the `Plan.md` for architectural context.
+## Common Tasks
+
+### Adding a package
+- System-wide: `modules/common.nix` → `environment.systemPackages`
+- User-level: `home/common.nix` → `home.packages`
+
+### Adding a service
+1. Create `modules/services/<name>.nix` following the module pattern
+2. Add `enable = true;` in the host config
+3. Validate: `nix flake check`
+
+### Adding a host
+1. `mkdir hosts/<hostname>` && `sudo nixos-generate-config`
+2. Create `default.nix` with imports
+3. Add to `flake.nix` outputs and `home-manager.users`
+
+## Troubleshooting
+
+- **Module not found**: Check import paths, verify file exists, check syntax
+- **Home Manager conflicts**: `home-manager switch --flake .#$(hostname) --force`
+- **GPU/ROCm**: Verify `HSA_OVERRIDE_GFX_VERSION`, check `rocmSupport`, use `rocm-smi`
