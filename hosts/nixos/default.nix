@@ -11,6 +11,7 @@
     ../../modules/services/wallabag.nix
     ../../modules/services/syncthing.nix
     ../../modules/services/whisperx.nix
+    ../../modules/services/wallabag-tts.nix
   ];
 
   # Hostname
@@ -138,6 +139,13 @@
     enable = true;
     openFirewall = true;
     # hfTokenFile = "/run/secrets/hf-token";  # uncomment to enable diarization
+  };
+
+  wallabag-tts = {
+    enable = true;
+    openFirewall = true;
+    environmentFile = "/home/jay/.secrets/wallabag-tts.env";
+    podcastBaseUrl = "https://nixos.tail69fe1.ts.net:3001";
   };
 
   # Fingerprint reader (Goodix)

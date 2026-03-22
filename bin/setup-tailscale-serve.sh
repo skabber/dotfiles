@@ -39,6 +39,9 @@ tailscale serve --bg --https=8000 http://127.0.0.1:8000
 # Port 8880 -> Kokoro TTS (internal port 8881 to avoid Docker bind conflict)
 tailscale serve --bg --https=8880 http://127.0.0.1:8881
 
+# Port 3001 -> (new service)
+tailscale serve --bg --https=3001 http://127.0.0.1:3001
+
 # Port 9000 -> RustFS (S3 API + Console)
 tailscale serve --bg --https=9000 http://127.0.0.1:9000
 
