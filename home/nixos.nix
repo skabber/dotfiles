@@ -1,5 +1,5 @@
 # nixos (Threadripper with NVIDIA GPU) - Home Manager configuration
-{ config, pkgs, lib, googleworkspace-cli, ... }:
+{ config, pkgs, lib, googleWorkspaceCli, ... }:
 
 {
   imports = [
@@ -13,7 +13,7 @@
     alacritty
     system76-keyboard-configurator
     playwright-mcp
-    googleworkspace-cli.packages.${pkgs.system}.default
+    googleWorkspaceCli.packages.${pkgs.system}.default
   ];
 
   # Bash configuration (sources local profile)

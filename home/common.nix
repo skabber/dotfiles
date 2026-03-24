@@ -56,7 +56,7 @@
     appimage-run
 
     # Utilities
-    trayscale
+    # trayscale  # FIXME: broken with Go 1.26 in nixpkgs (gvisor build tag conflict)
     yazi
     fastfetch
 

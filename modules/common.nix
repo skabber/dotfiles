@@ -69,6 +69,7 @@
     gst_all_1.gst-plugins-ugly
 
     python312Packages.huggingface-hub
+    appimage-run
   ];
 
   # GStreamer environment setup for NixOS

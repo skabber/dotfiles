@@ -11,6 +11,7 @@
     ../../modules/services/wallabag.nix
     ../../modules/services/syncthing.nix
     ../../modules/services/whisperx.nix
+    ../../modules/services/wallabag-tts.nix
   ];
 
   # Hostname
@@ -85,11 +86,47 @@
     "d /var/www/public 0775 nginx nginx -"
   ];
 
+  # NVIDIA Container Toolkit for GPU access in Docker
+  # enableNvidia is deprecated but needed to register the nvidia runtime
+  # for docker-compose files that use deploy.resources.reservations.devices
+  hardware.nvidia-container-toolkit.enable = true;
+  virtualisation.docker.enableNvidia = true;
+
   services.kokoro-fastapi = {
     enable = true;
     useGpu = true;
-    port = 8880;
+    port = 8881;
     openFirewall = true;
+  };
+
+  # Override kokoro-fastapi to use docker compose v2 (has buildx support)
+  # The upstream Dockerfile uses --platform=$BUILDPLATFORM which requires buildx
+  systemd.services.kokoro-fastapi.serviceConfig = let
+    dataDir = "/var/lib/kokoro-fastapi";
+    dockerDir = "${dataDir}/Kokoro-FastAPI/docker/gpu";
+  in lib.mkForce {
+    Type = "exec";
+    User = "kokoro-fastapi";
+    Group = "kokoro-fastapi";
+    WorkingDirectory = dataDir;
+    Restart = "always";
+    RestartSec = "10";
+    TimeoutStartSec = "300";
+    TimeoutStopSec = "60";
+    ExecStartPre = [
+      "${pkgs.coreutils}/bin/mkdir -p ${dataDir}"
+      "${pkgs.coreutils}/bin/chown kokoro-fastapi:kokoro-fastapi ${dataDir}"
+      "${pkgs.bash}/bin/bash -c 'cd ${dataDir} && if [ ! -d Kokoro-FastAPI ]; then ${pkgs.git}/bin/git clone https://github.com/remsky/Kokoro-FastAPI.git; else cd Kokoro-FastAPI && ${pkgs.git}/bin/git fetch origin && ${pkgs.git}/bin/git reset --hard origin/master; fi'"
+      # chown what we can (Docker-created files may be owned by container UID)
+      "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/chown -R kokoro-fastapi:kokoro-fastapi ${dataDir}/Kokoro-FastAPI || true'"
+      # Make api dir writable by container's appuser (UID 1001)
+      "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/chmod -R a+w ${dataDir}/Kokoro-FastAPI/api || true'"
+      # Patch port mapping (upstream hardcodes 8880:8880, we use 8881 to avoid Tailscale Serve conflict)
+      "${pkgs.gnused}/bin/sed -i 's/8880:8880/8881:8880/' ${dockerDir}/docker-compose.yml"
+      "${pkgs.bash}/bin/bash -c 'cd ${dockerDir} && ${pkgs.docker}/bin/docker compose down || true'"
+    ];
+    ExecStart = "${pkgs.bash}/bin/bash -c 'cd ${dockerDir} && ${pkgs.docker}/bin/docker compose up --build'";
+    ExecStop = "${pkgs.bash}/bin/bash -c 'cd ${dockerDir} && ${pkgs.docker}/bin/docker compose down'";
   };
 
   syncthing = {
@@ -102,6 +139,13 @@
     enable = true;
     openFirewall = true;
     # hfTokenFile = "/run/secrets/hf-token";  # uncomment to enable diarization
+  };
+
+  wallabag-tts = {
+    enable = true;
+    openFirewall = true;
+    environmentFile = "/home/jay/.secrets/wallabag-tts.env";
+    podcastBaseUrl = "https://nixos.tail69fe1.ts.net:3001";
   };
 
   # Fingerprint reader (Goodix)
