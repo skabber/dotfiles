@@ -7,15 +7,19 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-openclaw = {
-      url = "git+http://nixos.tail69fe1.ts.net:3000/skabber/nix-openclaw.git";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # nix-openclaw = {
+    #   url = "git+http://nixos.tail69fe1.ts.net:3000/skabber/nix-openclaw.git";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
     google-workspace-cli = {
       url = "github:googleworkspace/cli";
     };
     kokoro-fastapi-nix = {
       url = "github:mndfcked/kokoro-fastapi-nix";
+    };
+    wallbag-rust = {
+      url = "path:/home/jay/Projects/wallbag-rust";
+      flake = false;
     };
   };
 
@@ -24,9 +28,10 @@
       self,
       nixpkgs,
       home-manager,
-      nix-openclaw,
+      # nix-openclaw,
       google-workspace-cli,
       kokoro-fastapi-nix,
+      wallbag-rust,
       ...
     }:
     let
@@ -106,6 +111,7 @@
         };
 
         nixos = nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit wallbag-rust; };
           modules = [
             { nixpkgs.hostPlatform = "x86_64-linux"; }
             ./hosts/nixos/default.nix
@@ -114,11 +120,11 @@
             kokoro-fastapi-nix.nixosModules.default
             home-manager.nixosModules.home-manager
             {
-              nixpkgs.overlays = [ nix-openclaw.overlays.default ];
+              nixpkgs.overlays = [ ];
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
-              home-manager.sharedModules = [ nix-openclaw.homeManagerModules.openclaw ];
+              # home-manager.sharedModules = [ nix-openclaw.homeManagerModules.openclaw ];
               home-manager.extraSpecialArgs = { googleWorkspaceCli = google-workspace-cli; };
               home-manager.users.jay = import ./home/nixos.nix;
             }

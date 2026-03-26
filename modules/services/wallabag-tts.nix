@@ -1,7 +1,7 @@
 # Wallabag TTS Service
 # Converts Wallabag articles to podcast episodes via TTS (standalone axum server)
 
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, wallbag-rust, ... }:
 
 with lib;
 
@@ -11,9 +11,9 @@ let
   wallabag-tts-pkg = pkgs.rustPlatform.buildRustPackage {
     pname = "wallabag-tts-server";
     version = "0.1.0";
-    src = cfg.sourceDir;
+    src = wallbag-rust;
 
-    cargoLock.lockFile = "${cfg.sourceDir}/Cargo.lock";
+    cargoLock.lockFile = "${wallbag-rust}/Cargo.lock";
 
     buildNoDefaultFeatures = true;
     buildFeatures = [ "standalone" ];
@@ -25,12 +25,6 @@ in
 {
   options.wallabag-tts = {
     enable = mkEnableOption "Wallabag TTS podcast service";
-
-    sourceDir = mkOption {
-      type = types.path;
-      default = /home/jay/Projects/wallbag-rust;
-      description = "Path to the wallbag-rust source directory.";
-    };
 
     port = mkOption {
       type = types.port;
@@ -85,6 +79,12 @@ in
       description = "Public base URL for audio file links in the feed.";
     };
 
+    pullInterval = mkOption {
+      type = types.int;
+      default = 15;
+      description = "Interval in minutes between Wallabag sync checks.";
+    };
+
     openFirewall = mkOption {
       type = types.bool;
       default = false;
@@ -99,7 +99,7 @@ in
       wantedBy = [ "multi-user.target" ];
 
       environment = {
-        LISTEN_ADDR = "0.0.0.0:${toString cfg.port}";
+        LISTEN_ADDR = "127.0.0.1:${toString cfg.port}";
         DATA_DIR = cfg.dataDir;
         TTS_API_URL = cfg.ttsApiUrl;
         TTS_MODEL = cfg.ttsModel;
@@ -107,6 +107,7 @@ in
         PODCAST_TITLE = cfg.podcastTitle;
         PODCAST_DESCRIPTION = cfg.podcastDescription;
         PODCAST_BASE_URL = cfg.podcastBaseUrl;
+        PULL_INTERVAL = toString cfg.pullInterval;
       };
 
       serviceConfig = {

@@ -54,6 +54,7 @@ in
     enable = true;
     openFirewall = true;
     host = "127.0.0.1";
+    port = 8181;
     environment = {
       ANONYMIZED_TELEMETRY = "False";
       DO_NOT_TRACK = "True";
@@ -70,8 +71,8 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStart = "${pkgs.tailscale}/bin/tailscale serve --bg --https=8080 http://127.0.0.1:8080";
-      ExecStop = "${pkgs.tailscale}/bin/tailscale serve --https=8080 off";
+      ExecStart = "${pkgs.tailscale}/bin/tailscale serve --bg --https=8443 http://127.0.0.1:8181";
+      ExecStop = "${pkgs.tailscale}/bin/tailscale serve --https=8443 off";
     };
   };
 
