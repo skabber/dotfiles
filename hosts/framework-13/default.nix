@@ -19,8 +19,12 @@
     architecture = "gfx1150";
   };
 
-  # ComfyUI - Stable Diffusion node-based UI (ROCm Docker container)
-  comfyui.enable = true;
+  # ComfyUI - Stable Diffusion node-based UI (ROCm, Python venv)
+  comfyui = {
+    enable = true;
+    gfxVersion = "11.5.0";
+    extraArgs = [ "--enable-manager" ];
+  };
 
   # Framework 13 specific kernel params
   boot.kernelParams = [
@@ -83,7 +87,7 @@
     minikube
     kubectl
     inputmodule-control
-    protonvpn-gui
+    proton-vpn
     libnotify
     ffmpeg
   ];

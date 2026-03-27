@@ -194,7 +194,7 @@
     docker-credential-gcr
     pciutils
     joycond-cemuhook
-    protonvpn-gui
+    proton-vpn
     ffmpeg
     squashfsTools
     fuse

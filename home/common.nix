@@ -68,6 +68,7 @@
   # Git configuration
   programs.git = {
     enable = true;
+    signing.format = "openpgp";
     settings = {
       user.name = "Jay Graves";
       user.email = "jay@skabber.com";
