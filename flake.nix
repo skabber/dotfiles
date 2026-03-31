@@ -17,6 +17,10 @@
     kokoro-fastapi-nix = {
       url = "github:mndfcked/kokoro-fastapi-nix";
     };
+    wallbag-rust = {
+      url = "path:/home/jay/Projects/wallbag-rust";
+      flake = false;
+    };
   };
 
   outputs =
@@ -27,6 +31,7 @@
       nix-openclaw,
       google-workspace-cli,
       kokoro-fastapi-nix,
+      wallbag-rust,
       ...
     }:
     let
@@ -106,6 +111,7 @@
         };
 
         nixos = nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit wallbag-rust; };
           modules = [
             { nixpkgs.hostPlatform = "x86_64-linux"; }
             ./hosts/nixos/default.nix

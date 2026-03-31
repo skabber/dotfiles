@@ -146,6 +146,8 @@
     openFirewall = true;
     environmentFile = "/home/jay/.secrets/wallabag-tts.env";
     podcastBaseUrl = "https://nixos.tail69fe1.ts.net:3001";
+    pullInterval = 15;
+    ttsVoice = "af_bella";
   };
 
   # Fingerprint reader (Goodix)
@@ -155,6 +157,14 @@
 
   # Enable linger so systemd --user starts at boot (needed for user services over SSH)
   users.users.jay.linger = true;
+
+  # Russell user account
+  users.users.russell = {
+    isNormalUser = true;
+    description = "Russell";
+    extraGroups = [ "networkmanager" "wheel" "docker" ];
+    shell = pkgs.zsh;
+  };
 
   # GNOME Keyring PAM (unlock keyring at login, including SSH sessions)
   security.pam.services.gdm.enableGnomeKeyring = true;
