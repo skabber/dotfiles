@@ -18,7 +18,7 @@
       url = "github:mndfcked/kokoro-fastapi-nix";
     };
     wallbag-rust = {
-      url = "path:/home/jay/Projects/wallbag-rust";
+      url = "git+https://nixos.tail69fe1.ts.net:3000/skabber/wallbag-rust.git";
       flake = false;
     };
   };
