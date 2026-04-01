@@ -7,10 +7,6 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-openclaw = {
-      url = "git+https://nixos.tail69fe1.ts.net:3000/skabber/nix-openclaw.git";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     google-workspace-cli = {
       url = "github:googleworkspace/cli";
     };

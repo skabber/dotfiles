@@ -42,6 +42,9 @@ tailscale serve --bg --https=8880 http://127.0.0.1:8881
 # Port 3001 -> (new service)
 tailscale serve --bg --https=3001 http://127.0.0.1:3001
 
+# Port 3002 -> Defuddle (URL-to-Markdown)
+tailscale serve --bg --https=3002 http://127.0.0.1:3002
+
 # Port 9000 -> RustFS (S3 API + Console)
 tailscale serve --bg --https=9000 http://127.0.0.1:9000
 
@@ -60,3 +63,4 @@ echo "  https://nixos.tail69fe1.ts.net:9000/      - RustFS (S3 + Console)"
 echo "  https://nixos.tail69fe1.ts.net:8000/      - WhisperX transcription"
 echo "  https://nixos.tail69fe1.ts.net:8880/      - Kokoro TTS"
 echo "  https://nixos.tail69fe1.ts.net:8182/      - Playwright MCP"
+echo "  https://nixos.tail69fe1.ts.net:3002/      - Defuddle (URL-to-Markdown)"

@@ -12,6 +12,7 @@
     ../../modules/services/syncthing.nix
     ../../modules/services/whisperx.nix
     ../../modules/services/wallabag-tts.nix
+    ../../modules/services/defuddle.nix
   ];
 
   # Hostname
@@ -87,10 +88,7 @@
   ];
 
   # NVIDIA Container Toolkit for GPU access in Docker
-  # enableNvidia is deprecated but needed to register the nvidia runtime
-  # for docker-compose files that use deploy.resources.reservations.devices
   hardware.nvidia-container-toolkit.enable = true;
-  virtualisation.docker.enableNvidia = true;
 
   services.kokoro-fastapi = {
     enable = true;
@@ -137,8 +135,14 @@
 
   whisperx = {
     enable = true;
+    port = 8007;
     openFirewall = true;
     # hfTokenFile = "/run/secrets/hf-token";  # uncomment to enable diarization
+  };
+
+  defuddle = {
+    enable = true;
+    openFirewall = true;
   };
 
   wallabag-tts = {
@@ -193,6 +197,8 @@
   # Docker insecure registry for local Gitea
   virtualisation.docker.daemon.settings = {
     insecure-registries = [ "nixos.tail69fe1.ts.net:3000" ];
+    runtimes.nvidia.path = "${pkgs.nvidia-container-toolkit}/bin/nvidia-container-runtime";
+    features = { cdi = true; };
   };
 
   # Spice USB redirection (for VMs)

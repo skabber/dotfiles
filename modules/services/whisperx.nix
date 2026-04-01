@@ -79,7 +79,7 @@ in
           pip install --quiet -r ${cfg.sourceDir}/requirements.txt
         '';
       };
-      path = [ pkgs.git pkgs.ffmpeg pkgs.sox ];
+      path = [ pkgs.git pkgs.ffmpeg pkgs.sox pkgs.bash pkgs.coreutils ];
     };
 
     systemd.services.whisperx = {
@@ -109,7 +109,7 @@ in
         RestartSec = 10;
       };
 
-      path = [ pkgs.git pkgs.ffmpeg pkgs.sox ];
+      path = [ pkgs.git pkgs.ffmpeg pkgs.sox pkgs.bash pkgs.coreutils ];
     };
 
     networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [ cfg.port ];
