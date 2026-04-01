@@ -16,7 +16,6 @@
     # Development
     libreoffice
     android-studio
-    deno
     rustup
     go
     delve
