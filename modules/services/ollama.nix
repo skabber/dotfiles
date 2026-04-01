@@ -59,6 +59,7 @@ in
       ANONYMIZED_TELEMETRY = "False";
       DO_NOT_TRACK = "True";
       SCARF_NO_ANALYTICS = "True";
+      HOME = "/var/lib/open-webui";
     };
   };
 
