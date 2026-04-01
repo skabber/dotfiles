@@ -45,5 +45,5 @@ Composable service modules with enable options:
 - **GPU**: AMD RDNA 3 (gfx1030) with ROCm support
 - **Desktop**: GNOME on X11/Wayland
 - **Editor**: Helix (hx) as primary, Neovim, VSCode
-- **Languages**: Rust, Go, Zig, Python, Deno
+- **Languages**: Rust, Go, Zig, Python
 - **Services**: Docker, Tailscale, SSH, PipeWire, Proton Drive sync

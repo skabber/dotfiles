@@ -25,7 +25,7 @@ GNOME on X11/Wayland via `modules/desktop.nix` (amdgpu driver).
 ## Home Manager Packages
 
 ### Development
-- Deno, Go (gopls), Zig, PostgreSQL, OpenTofu
+- Go (gopls), Zig, PostgreSQL, OpenTofu
 - Taplo (TOML), espup + elf2uf2-rs (embedded)
 - code-cursor, zed-editor, Android Studio
 - awscli2, Bruno, Postman

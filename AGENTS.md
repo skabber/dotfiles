@@ -9,7 +9,7 @@ This guide provides instructions and conventions for AI agents working in this r
   - Framework Laptop 13
   - Desktops with NVIDIA GPUs (`desktop-nvidia.nix`)
 - **Editor**: Helix (`hx`) is the primary editor.
-- **Languages**: Nix, Shell, Rust, Go, Zig, Python, Deno.
+- **Languages**: Nix, Shell, Rust, Go, Zig, Python.
 - **User**: `jay`
 
 ## Repository Structure

@@ -1,5 +1,10 @@
 # Framework 16 - Home Manager configuration
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   imports = [
@@ -9,8 +14,6 @@
   # Framework 16 specific packages
   home.packages = with pkgs; [
     # Development tools
-    deno
-    opentofu
     postgresql
     go
     gopls

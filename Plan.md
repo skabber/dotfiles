@@ -278,7 +278,6 @@ Transform current `zshconfig` content using Home Manager's `programs.zsh.enable 
       export PATH=$PATH:$HOME/.cargo/bin
       export PATH=$PATH:$HOME/go/bin
       export PATH=$PATH:$HOME/bin
-      export PATH=$PATH:$HOME/.deno/bin
       export PATH=$PATH:$HOME/.local/bin
 
       export EDITOR=hx
