@@ -107,7 +107,7 @@ in
         PODCAST_TITLE = cfg.podcastTitle;
         PODCAST_DESCRIPTION = cfg.podcastDescription;
         PODCAST_BASE_URL = cfg.podcastBaseUrl;
-        PULL_INTERVAL = toString cfg.pullInterval;
+        POLL_INTERVAL = toString cfg.pullInterval;
       };
 
       serviceConfig = {

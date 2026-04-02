@@ -88,7 +88,11 @@
   ];
 
   # NVIDIA Container Toolkit for GPU access in Docker
+  # enableNvidia is deprecated but still required — it creates config.toml
+  # and registers the nvidia runtime with Docker for legacy --gpus/driver:nvidia support.
+  # hardware.nvidia-container-toolkit.enable alone only sets up CDI specs.
   hardware.nvidia-container-toolkit.enable = true;
+  virtualisation.docker.enableNvidia = true;
 
   services.kokoro-fastapi = {
     enable = true;
@@ -197,8 +201,6 @@
   # Docker insecure registry for local Gitea
   virtualisation.docker.daemon.settings = {
     insecure-registries = [ "nixos.tail69fe1.ts.net:3000" ];
-    runtimes.nvidia.path = "${pkgs.nvidia-container-toolkit}/bin/nvidia-container-runtime";
-    features = { cdi = true; };
   };
 
   # Spice USB redirection (for VMs)
