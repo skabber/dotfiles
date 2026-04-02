@@ -24,7 +24,6 @@
       self,
       nixpkgs,
       home-manager,
-      nix-openclaw,
       google-workspace-cli,
       kokoro-fastapi-nix,
       wallbag-rust,
@@ -120,7 +119,7 @@
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
-              # home-manager.sharedModules = [ nix-openclaw.homeManagerModules.openclaw ];
+              # home-manager.sharedModules = [];
               home-manager.extraSpecialArgs = { googleWorkspaceCli = google-workspace-cli; };
               home-manager.users.jay = import ./home/nixos.nix;
             }
