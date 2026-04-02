@@ -36,8 +36,8 @@
     fresh-editor
 
     # Language servers
-    nodePackages.typescript-language-server
-    nodePackages.vscode-json-languageserver
+    typescript-language-server
+    vscode-langservers-extracted
     yaml-language-server
     nil
     nixd
