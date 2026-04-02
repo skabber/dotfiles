@@ -14,7 +14,7 @@ NixOS declarative configuration using **Nix Flakes** and **Home Manager** to man
 ## Repository Structure
 
 ```
-flake.nix                  # Flake entry — inputs, all host configs, devShells
+flake.nix                  # Flake entry — inputs and all host configs
 hosts/
   nixos-ripper/            # Threadripper + AMD GPU workstation
   nixos/                   # Threadripper + NVIDIA server
@@ -28,16 +28,19 @@ modules/
   services/                # Reusable NixOS service modules
     gitea.nix              # Self-hosted git + Actions runner
     wallabag.nix           # Read-it-later service (nginx + PHP-FPM)
+    wallabag-tts.nix       # Wallabag text-to-speech podcast generation
     syncthing.nix          # File synchronization
     ollama.nix             # LLM inference with ROCm
     vllm.nix               # vLLM quantized inference
+    whisperx.nix           # Speech recognition service
+    comfyui.nix            # Stable Diffusion node-based UI with ROCm
     sunshine.nix           # Remote streaming
     retroarch.nix          # Emulation (GBA, PSX, NDS, Saturn, NES, SNES)
     proton-drive.nix       # rclone Proton Drive mount (template)
 home/
   common.nix               # Shared Home Manager config — editors, LSPs, dotfiles
-  nixos.nix                # nixos-ripper home — OpenClaw, RetroArch, custom services
-  nixos-server.nix         # nixos server home — OpenClaw gateway + Telegram
+  nixos.nix                # nixos (server) home — user services, Playwright MCP
+  nixos-ripper.nix         # nixos-ripper home — dev tools, emulation, gaming
   framework-16.nix         # Framework 16 home — Cosmic DE, dev tools, gaming
   framework-13.nix         # Framework 13 home — media, dev tools, gaming
 zshconfig                  # Zsh config sourced by Home Manager
@@ -74,36 +77,17 @@ All under `modules/services/`, each with `enable` and configuration options:
 
 - **gitea** — Actions runner with Docker containers, cache server, resource limits
 - **wallabag** — Read-it-later with SQLite/PostgreSQL, Redis caching, nginx subpath routing, PHP-FPM
+- **wallabag-tts** — Text-to-speech podcast generation from Wallabag articles (Kokoro TTS)
 - **syncthing** — File sync with configurable user and data directory
 - **ollama** — LLM server with ROCm GPU acceleration, Open-WebUI
 - **vllm** — Quantized LLM inference with ROCm
+- **whisperx** — Speech recognition/transcription service with CUDA/ROCm support
+- **comfyui** — Stable Diffusion node-based UI with ROCm GPU acceleration
 - **sunshine** — Remote desktop streaming
 - **retroarch** — Emulation platform with pre-configured cores
+- **proton-drive** — rclone-based Proton Drive FUSE mount (template)
 
 ## Home Manager
-
-### Module Options
-
-- **modules/common.nix** – Base config; options: `boot.loader.grub.enable`, `services.openssh.enable`, etc.
-- **modules/desktop.nix** – GNOME desktop; options: `services.xserver.displayManager.gdm.enable`, `services.xserver.desktopManager.gnome.enable`.
-- **modules/desktop-nvidia.nix** – NVIDIA desktop; options: `hardware.nvidia.enable`, `services.xserver.videoDrivers`.
-- **modules/rocm-dev.nix** – ROCm development; options: `services.rocm.enable`, `hardware.opengl.driSupport`.
-- **modules/services/gitea.nix** – Gitea service; options: `services.gitea.enable`, `services.gitea.port`.
-- **modules/services/wallabag.nix** – Wallabag; options: `services.wallabag.enable`, `services.wallabag.db`.
-- **modules/services/syncthing.nix** – Syncthing; options: `services.syncthing.enable`, `services.syncthing.user`.
-- **modules/services/ollama.nix** – Ollama; options: `services.ollama.enable`, `services.ollama.port`.
-- **modules/services/vllm.nix** – vLLM; options: `services.vllm.enable`, `services.vllm.port`.
-- **modules/services/sunshine.nix** – Sunshine; options: `services.sunshine.enable`, `services.sunshine.port`.
-- **modules/services/retroarch.nix** – RetroArch; options: `services.retroarch.enable`, `services.retroarch.cores`.
-
-### Example nix-shell usage
-
-```bash
-# Enter a development environment for the Framework-16 laptop
-nix develop .#framework-16
-# Or using the older syntax
-nix-shell -A devShells.framework-16
-```
 
 All hosts share `home/common.nix` which provides:
 - Development: Node.js 22, direnv, starship prompt, vim, neovim
@@ -146,9 +130,12 @@ All services are exposed via **Tailscale Serve** for zero-config HTTPS:
 |------|---------|
 | 443 | nginx (static site + Wallabag) |
 | 3000 | Gitea |
-| 8443 | OpenClaw gateway |
+| 3001 | Wallabag TTS Podcast |
+| 8000 | WhisperX transcription |
 | 8182 | Playwright MCP |
+| 8443 | OpenClaw gateway |
 | 8444 | IronClaw |
+| 8880 | Kokoro TTS |
 | 9000 | RustFS (S3 API) |
 
 ## Flake Inputs
@@ -156,7 +143,6 @@ All services are exposed via **Tailscale Serve** for zero-config HTTPS:
 - `nixpkgs` — NixOS unstable
 - `home-manager` — follows nixpkgs
 - `nix-openclaw` — AI agent gateway (self-hosted Gitea)
-
-## Dev Shells
-
-- `whisperx` — WhisperX speech recognition environment with CUDA toolkit
+- `google-workspace-cli` — Google Workspace CLI tool
+- `kokoro-fastapi-nix` — Kokoro text-to-speech service (Docker-based)
+- `wallbag-rust` — Custom Wallabag implementation (self-hosted Gitea)
