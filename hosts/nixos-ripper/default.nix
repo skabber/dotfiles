@@ -2,27 +2,12 @@
 { config, pkgs, lib, ... }:
 
 {
-  # imports = [
-  #   ./hardware-configuration.nix
-  #   ../../modules/common.nix
-  #   ../../modules/desktop.nix
-  #   ../../modules/rocm-dev.nix
-  #   ../../modules/services/ollama.nix
-  #   ../../modules/services/sunshine.nix
-  #   ../../modules/services/retroarch.nix
-  #   ../../modules/services/syncthing.nix
-  #   ../../modules/services/vllm.nix
-  # ];
   imports = [
     ./hardware-configuration.nix
     ../../modules/common.nix
     ../../modules/desktop.nix
     ../../modules/rocm-dev.nix
     ../../modules/services/ollama.nix
-    # ../../modules/services/sunshine.nix
-    # ../../modules/services/retroarch.nix
-    # ../../modules/services/syncthing.nix
-    # ../../modules/services/vllm.nix
   ];
 
   # Hostname
@@ -132,13 +117,6 @@
   # Service toggles
   ollama.enable = true;
   ollama.flashAttention = false;
-  # sunshine.enable = true;
-  # retroarch.enable = true;
-  # syncthing = {
-  #   enable = true;
-  #   dataDir = "/home/jay/.syncthing";
-  #   guiAddress = "0.0.0.0:8384";
-  # };
 
   # Permitted insecure packages
   nixpkgs.config.permittedInsecurePackages = [
@@ -171,9 +149,6 @@
       in python3.pkgs.vllm;
     })
   ];
-
-  # # Use the scoped vllm-rocm package
-  # vllm.package = pkgs.vllm-rocm;
 
   # Threadripper-specific packages
   environment.systemPackages = with pkgs; [
