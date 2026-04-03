@@ -115,7 +115,6 @@
             kokoro-fastapi-nix.nixosModules.default
             home-manager.nixosModules.home-manager
             {
-              nixpkgs.overlays = [ ];
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";

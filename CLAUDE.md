@@ -46,5 +46,5 @@ sudo nixos-rebuild switch --flake .#<hostname>
 - **Desktop**: GNOME on X11/Wayland
 - **Editor**: Helix (hx) as primary, Neovim, VSCode
 - **Languages**: Rust, Go, Zig, Python
-- **Services**: Docker, Tailscale, SSH, PipeWire
+- **Services**: Docker, Tailscale, SSH, PipeWire, Proton Drive sync
 - **Networking**: Services exposed via Tailscale Serve for zero-config HTTPS
