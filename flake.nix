@@ -36,121 +36,40 @@
           google-workspace-cli.packages.${system}.default
         ];
       };
-      googleCloudSdkModule =
-        { pkgs, ... }:
-        {
-          environment.systemPackages = [
-            pkgs.google-cloud-sdk
-          ];
+      googleCloudSdkModule = { pkgs, ... }: {
+        environment.systemPackages = [ pkgs.google-cloud-sdk ];
+      };
+
+      mkHost = { hostname, extraModules ? [ ], extraSpecialArgs ? { } }:
+        nixpkgs.lib.nixosSystem {
+          specialArgs = extraSpecialArgs;
+          modules = [
+            { nixpkgs.hostPlatform = system; }
+            ./hosts/${hostname}/default.nix
+            googleWorkspaceModule
+            googleCloudSdkModule
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.users.jay = import ./home/${hostname}.nix;
+            }
+          ] ++ extraModules;
         };
     in
     {
-      # devShells.${system}.whisperx =
-      #   let
-      #     pkgs = import nixpkgs {
-      #       inherit system;
-      #       config = {
-      #         allowUnfree = true;
-      #         cudaSupport = true;
-      #       };
-      #     };
-      #   in
-      #   pkgs.mkShell {
-      #     packages = with pkgs; [
-      #       (python3.withPackages (
-      #         ps: with ps; [
-      #           pip
-      #           virtualenv
-      #         ]
-      #       ))
-      #       cudaPackages.cudatoolkit
-      #       cudaPackages.cudnn
-      #       ffmpeg
-      #       sox
-      #       git
-      #     ];
-
-      #     shellHook = ''
-      #       export LD_LIBRARY_PATH=${
-      #         pkgs.lib.makeLibraryPath [
-      #           pkgs.cudaPackages.cudatoolkit
-      #           pkgs.cudaPackages.cudnn
-      #           pkgs.stdenv.cc.cc.lib
-      #         ]
-      #       }:/run/opengl-driver/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-      #       export CUDA_PATH=${pkgs.cudaPackages.cudatoolkit}
-
-      #       if [ ! -d .venv ]; then
-      #         echo "Creating Python venv..."
-      #         python -m venv .venv
-      #       fi
-      #       source .venv/bin/activate
-      #       echo "WhisperX dev shell ready. Run: pip install whisperx"
-      #     '';
-      #   };
-
       nixosConfigurations = {
-        nixos-ripper = nixpkgs.lib.nixosSystem {
-          modules = [
-            { nixpkgs.hostPlatform = "x86_64-linux"; }
-            ./hosts/nixos-ripper/default.nix
-            googleWorkspaceModule
-            googleCloudSdkModule
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.users.jay = import ./home/nixos-ripper.nix;
-            }
-          ];
-        };
-
-        nixos = nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit wallbag-rust; };
-          modules = [
-            { nixpkgs.hostPlatform = "x86_64-linux"; }
-            ./hosts/nixos/default.nix
-            googleWorkspaceModule
-            googleCloudSdkModule
+        nixos-ripper = mkHost { hostname = "nixos-ripper"; };
+        framework-13 = mkHost { hostname = "framework-13"; };
+        framework-16 = mkHost { hostname = "framework-16"; };
+        nixos = mkHost {
+          hostname = "nixos";
+          extraSpecialArgs = { inherit wallbag-rust; };
+          extraModules = [
             kokoro-fastapi-nix.nixosModules.default
-            home-manager.nixosModules.home-manager
             {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
-              # home-manager.sharedModules = [];
               home-manager.extraSpecialArgs = { googleWorkspaceCli = google-workspace-cli; };
-              home-manager.users.jay = import ./home/nixos.nix;
-            }
-          ];
-        };
-
-        framework-13 = nixpkgs.lib.nixosSystem {
-          modules = [
-            { nixpkgs.hostPlatform = "x86_64-linux"; }
-            ./hosts/framework-13/default.nix
-            googleWorkspaceModule
-            googleCloudSdkModule
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.users.jay = import ./home/framework-13.nix;
-            }
-          ];
-        };
-
-        framework-16 = nixpkgs.lib.nixosSystem {
-          modules = [
-            { nixpkgs.hostPlatform = "x86_64-linux"; }
-            ./hosts/framework-16/default.nix
-            googleWorkspaceModule
-            googleCloudSdkModule
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.users.jay = import ./home/framework-16.nix;
             }
           ];
         };
