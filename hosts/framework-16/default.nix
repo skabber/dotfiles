@@ -43,10 +43,6 @@
     (btop.override { rocmSupport = true; })
     fprintd
     meson
-    rofi
-    wofi
-    minikube
-    kubectl
   ];
 
   # Permitted insecure packages

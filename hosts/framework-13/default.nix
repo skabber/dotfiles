@@ -81,11 +81,7 @@
     pulseaudio
     dwarfs
     meson
-    rofi
-    wofi
     fprintd
-    minikube
-    kubectl
     inputmodule-control
     proton-vpn
     libnotify

@@ -185,8 +185,6 @@
     openrazer-daemon
     polychromatic
     onedrive
-    minikube
-    kubectl
     cryptsetup
     tmux
     spice-gtk
