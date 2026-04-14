@@ -33,6 +33,8 @@ in
     services.ollama = {
         enable = true;
         package = pkgs.ollama-rocm;
+        host = "0.0.0.0";
+        port = 11434;
         environmentVariables = {
             HCC_AMDGPU_TARGET = "gfx1030";
             HSA_OVERRIDE_GFX_VERSION = "10.3.0";
@@ -44,11 +46,8 @@ in
         rocmOverrideGfx = "10.3.0";
     };
 
-    # services.open-webui.enable = true;
-
-    systemd.services.ollama.environment = {
-        OLLAMA_HOST =  lib.mkForce "0.0.0.0:11434";
-    };
+    # Allow Docker containers to reach Ollama
+    networking.firewall.interfaces."docker0".allowedTCPPorts = [ 11434 ];
     # Open-Webui setup
   services.open-webui = {
     enable = true;

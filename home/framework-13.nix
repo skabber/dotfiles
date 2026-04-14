@@ -1,5 +1,10 @@
 # Framework 13 - Home Manager configuration
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   imports = [
@@ -24,7 +29,6 @@
     lmstudio
 
     # Gaming
-    cemu
     ryubing
     bottles
 
@@ -39,7 +43,7 @@
     ghostty
     warp-terminal
     nushell
-    
+
     # Other
     gjs
     vte

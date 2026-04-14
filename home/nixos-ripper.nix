@@ -39,7 +39,6 @@
 
     # Gaming
     ryubing
-    cemu
     bottles
     moonlight-qt
     evdevhook2

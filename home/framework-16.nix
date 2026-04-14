@@ -53,7 +53,7 @@
     vte
 
     # Gaming
-    cemu
+    # cemu
     ryubing
     bottles
 
