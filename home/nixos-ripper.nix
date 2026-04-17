@@ -55,7 +55,6 @@
     ghostty
     warp-terminal
     nushell
-    bat
     fd
     eza
     dust

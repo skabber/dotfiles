@@ -1,5 +1,10 @@
 eval "$(starship init zsh)"
 eval "$(direnv hook zsh)"
+eval "$(zoxide init zsh)"
+
+source $HOME/.nix-profile/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source $HOME/.nix-profile/share/fzf/key-bindings.zsh
+source $HOME/.nix-profile/share/fzf/completion.zsh
 
 alias claude="steam-run claude"
 # if command -v batteryled >/dev/null 2>&1; then

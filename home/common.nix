@@ -61,6 +61,11 @@
     # trayscale  # FIXME: broken with Go 1.26 in nixpkgs (gvisor build tag conflict)
     yazi
     fastfetch
+    zsh-syntax-highlighting
+    fzf
+    zoxide
+    eza
+    bat
 
     # GNOME extensions
     gnomeExtensions.tailscale-qs
