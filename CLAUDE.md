@@ -9,42 +9,70 @@ Multi-machine NixOS declarative configuration using Nix Flakes and Home Manager 
 ## Common Commands
 
 ```bash
-# Rebuild and switch to new system configuration
-sudo nixos-rebuild switch --flake .#<hostname>
+# Rebuild and switch (preferred — handles hostname automatically)
+./scripts/rebuild.sh [--upgrade] [hostname]
+
+# Rebuild with flake update (upgrades all inputs first)
+./scripts/rebuild.sh --upgrade
+
+# Quick rollback to previous generation
+./scripts/rollback.sh
+
+# Deploy script (creates /etc/nixos symlink, prompts before switching)
+./scripts/deploy.sh
 
 # Clean up old NixOS generations (keeps 30 generations, 30-day history)
 ./bin/trim-generations.sh
 
-# Deploy script
-./scripts/deploy.sh
+# Re-apply Tailscale Serve port mappings after config changes
+./bin/setup-tailscale-serve.sh
 ```
 
 ## Architecture
 
 ### Hosts
 
-- **nixos** — Threadripper + NVIDIA server (Gitea, Wallabag, Kokoro TTS, WhisperX)
-- **nixos-ripper** — Threadripper + AMD RDNA 2 workstation (Ollama, ROCm)
-- **framework-16** — Framework Laptop 16, AMD RDNA 3.5, Cosmic DE
-- **framework-13** — Framework Laptop 13, AMD RDNA 3.5, ROCm + ComfyUI
+| Flake name | Hostname on system | Hardware | Role |
+|---|---|---|---|
+| `nixos` | nixos | Threadripper + NVIDIA | Server (Gitea, Wallabag, Kokoro TTS, WhisperX) |
+| `nixos-ripper` | nixos-ripper | Threadripper + RDNA 2 | Workstation (Ollama, ROCm, vLLM) |
+| `framework-13` | nixos-framework-13 | Framework 13 + RDNA 3.5 | Dev laptop (ComfyUI, ROCm) |
+| `framework-16` | nixos-framework | Framework 16 + RDNA 3.5 | Dev laptop (Cosmic DE) |
 
-### Directory Layout
+> The flake name (`.#nixos-ripper`) and the system hostname differ for framework hosts — keep this in mind when targeting builds.
 
-- `hosts/<hostname>/default.nix` — Per-host NixOS system configuration
-- `modules/common.nix` — Base config shared by all hosts
-- `modules/desktop.nix` / `desktop-nvidia.nix` — GNOME desktop (AMD / NVIDIA)
-- `modules/rocm-dev.nix` — Optional ROCm/HIP development toolchain
-- `modules/services/` — Composable service modules with enable options
-- `home/common.nix` — Shared Home Manager config (editors, LSPs, dotfiles)
-- `home/<hostname>.nix` — Per-host Home Manager config
-- `zshconfig` / `bashconfig` — Shell configs sourced by Home Manager
-- `bin/` — Utility scripts
-- `scripts/` — Deploy/rebuild/rollback helpers
+### Module Composition
+
+All hosts import `modules/common.nix` (base system) plus optional modules:
+
+- `modules/desktop-base.nix` — GNOME + GDM + PipeWire (shared base)
+- `modules/desktop.nix` — extends desktop-base with `amdgpu` driver
+- `modules/desktop-nvidia.nix` — extends desktop-base with proprietary NVIDIA + vulkan_beta
+- `modules/rocm-dev.nix` — ROCm/HIP toolchain; exposes `rocm-dev.enable` and `rocm-dev.architecture` options (gfx1030 for nixos-ripper, gfx1150 for framework-13/16)
+- `modules/services/*.nix` — each service is a NixOS module with an `enable` option and service-specific options (see each file for available options)
+
+The `mkHost` helper in `flake.nix` wires Home Manager into every host with a shared `specialArgs` and the `jay` user account.
+
+### Services Architecture
+
+Services use different deployment patterns:
+
+- **Docker Compose**: Gitea Actions runner, Kokoro FastAPI TTS
+- **NixOS services**: Gitea, Wallabag (PHP/nginx), Syncthing, Ollama, Open-WebUI
+- **Python venvs** (set up by one-shot systemd units): WhisperX (`~/Projects/whisperx-service`), ComfyUI
+- **Systemd user services** (on `nixos` host): `ironclaw`, `playwright-mcp`, `rustfs` — source dirs expected at `~/Projects/<name>`
+
+External services that depend on project directories (`whisperx-service`, `ironclaw`, `rustfs`) are not managed by Nix — only their systemd wrappers are.
+
+### Networking
+
+All external services are exposed via Tailscale Serve at `nixos.tail69fe1.ts.net`. Run `./bin/setup-tailscale-serve.sh` to (re)configure the port mappings. Key ports: Gitea :3000, Wallabag at /wallabag/ (nginx), WhisperX :8000, Ollama/Open-WebUI :8443, Playwright MCP :8182, Kokoro TTS :8880, RustFS :9000.
 
 ### Key Details
 
-- **Desktop**: GNOME on X11/Wayland
-- **Editor**: Helix (hx) as primary, Neovim, VSCode
-- **Languages**: Rust, Go, Zig, Python
-- **Services**: Docker, Tailscale, SSH, PipeWire, Proton Drive sync
-- **Networking**: Services exposed via Tailscale Serve for zero-config HTTPS
+- **Channel**: `nixos-unstable` (all hosts track unstable)
+- **Flake inputs**: `home-manager`, `kokoro-fastapi-nix`, `wallbag-rust`, `google-workspace-cli`
+- **Editor**: Helix (`hx`) as primary; Neovim, VS Code, Zed also installed
+- **Shell**: Zsh with Starship, direnv/nix-direnv, zoxide, fzf, zsh-syntax-highlighting
+- **Git signing**: GPG/OpenPGP (configured in `home/common.nix` and `gitconfig`)
+- **Binary caches**: `nix-community.cachix.org`, `cuda-maintainers.cachix.org` (configured on `nixos` host)
