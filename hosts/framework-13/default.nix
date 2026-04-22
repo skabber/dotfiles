@@ -5,7 +5,7 @@
   imports = [
     ./hardware-configuration.nix
     ../../modules/common.nix
-    ../../modules/desktop.nix
+    ../../modules/desktop-cosmic.nix
     ../../modules/rocm-dev.nix
     ../../modules/services/comfyui.nix
   ];
@@ -57,9 +57,6 @@
   # Security
   security.polkit.enable = true;
   security.sudo.enable = true;
-
-  # Screen lock
-  programs.xss-lock.enable = true;
 
   # libvirt for VMs
   virtualisation.libvirtd.enable = true;

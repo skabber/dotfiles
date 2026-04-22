@@ -31,7 +31,7 @@
     lmstudio
 
     # Media & productivity
-    cider
+    # cider
     # heroic  # broken in nixpkgs - electron-39 patch failure
     obs-studio
 
