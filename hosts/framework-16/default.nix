@@ -5,7 +5,7 @@
   imports = [
     ./hardware-configuration.nix
     ../../modules/common.nix
-    ../../modules/desktop.nix
+    ../../modules/desktop-cosmic.nix
     ../../modules/rocm-dev.nix
   ];
 
