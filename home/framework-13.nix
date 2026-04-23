@@ -21,7 +21,7 @@
     bruno
 
     # Media & productivity
-    cider
+    # cider
     heroic
     libreoffice
     obs-studio
@@ -47,10 +47,28 @@
     # Other
     gjs
     vte
-    gnome-boxes
-    gnomeExtensions.resource-monitor
-    gnomeExtensions.wireless-hid
     android-studio
+
+    # Cosmic DE
+    cosmic-term
+    cosmic-edit
+    cosmic-bg
+    cosmic-osd
+    cosmic-comp
+    cosmic-randr
+    cosmic-panel
+    cosmic-icons
+    cosmic-greeter
+    cosmic-files
+    cosmic-applets
+    cosmic-settings
+    cosmic-launcher
+    cosmic-screenshot
+    cosmic-applibrary
+    cosmic-design-demo
+    cosmic-notifications
+    cosmic-settings-daemon
+    cosmic-workspaces-epoch
     postgresql
     elf2uf2-rs
   ];
