@@ -39,7 +39,6 @@
 
     # Gaming
     ryubing
-    bottles
     moonlight-qt
     evdevhook2
 

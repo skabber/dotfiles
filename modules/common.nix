@@ -111,7 +111,14 @@
   services.automatic-timezoned.enable = true;
 
   # Programs
-  programs.zsh.enable = true;
+  programs.zsh = {
+    enable = true;
+    syntaxHighlighting.enable = true;
+    interactiveShellInit = ''
+      source $(fzf-share)/key-bindings.zsh
+      source $(fzf-share)/completion.zsh
+    '';
+  };
   programs._1password.enable = true;
   programs._1password-gui = {
     enable = true;

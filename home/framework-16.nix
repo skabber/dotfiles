@@ -55,7 +55,7 @@
     # Gaming
     # cemu
     ryubing
-    bottles
+    # bottles
 
     # API tools
     bruno
