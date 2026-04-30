@@ -55,7 +55,6 @@
     # Gaming
     # cemu
     ryubing
-    bottles
 
     # API tools
     bruno
@@ -66,26 +65,6 @@
     gnome-boxes
     gnomeExtensions.resource-monitor
 
-    # Cosmic DE stuff
-    cosmic-term
-    cosmic-edit
-    cosmic-bg
-    cosmic-osd
-    cosmic-comp
-    cosmic-randr
-    cosmic-panel
-    cosmic-icons
-    cosmic-greeter
-    cosmic-files
-    cosmic-applets
-    cosmic-settings
-    cosmic-launcher
-    cosmic-screenshot
-    cosmic-applibrary
-    cosmic-design-demo
-    cosmic-notifications
-    cosmic-settings-daemon
-    cosmic-workspaces-epoch
   ];
 
   # Framework 16 needs HSA override for AMD GPU
