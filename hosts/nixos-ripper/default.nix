@@ -54,12 +54,6 @@
   systemd.packages = with pkgs; [ lact ];
   systemd.services.lactd.wantedBy = [ "multi-user.target" ];
 
-  # Prevent GDM from suspending before user login
-  services.displayManager.gdm.autoSuspend = false;
-
-  # GNOME Keyring PAM
-  security.pam.services.gdm.enableGnomeKeyring = true;
-
   # U2F and Yubikey auth
   services.pcscd.enable = true;
   services.udev.packages = [ pkgs.yubikey-personalization pkgs.via ];

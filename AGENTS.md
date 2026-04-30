@@ -1,147 +1,70 @@
 # AGENTS.md
 
-This guide provides instructions and conventions for AI agents working in this repository. It outlines the core workflows, environment, and code style standards for this NixOS dotfiles configuration.
+## System
 
-## System Overview
-- **OS**: NixOS (using Flakes and Home Manager)
-- **Hardware Targets**: 
-  - Framework Laptop 16 (AMD RDNA 3, `gfx1030`/`gfx1150`)
-  - Framework Laptop 13
-  - Desktops with NVIDIA GPUs (`desktop-nvidia.nix`)
-- **Editor**: Helix (`hx`) is the primary editor.
-- **Languages**: Nix, Shell, Rust, Go, Zig, Python.
-- **User**: `jay`
+- NixOS with Flakes + Home Manager, tracking `nixos-unstable`
+- 4 hosts, all `x86_64-linux`, user `jay`
+- Flake names differ from system hostnames for Framework laptops
 
-## Repository Structure
-```
-~/dotfiles/
-├── flake.nix                    # Main flake entry point
-├── hosts/                       # Machine-specific configs (framework-16, framework-13, nixos, nixos-ripper)
-├── modules/                     # Shared NixOS modules (common.nix, desktop.nix, desktop-nvidia.nix, rocm-dev.nix)
-│   └── services/                # Custom services (gitea, ollama, comfyui, wallabag-tts, whisperx, etc.)
-├── home/                        # Home Manager configs (common.nix, [hostname].nix)
-└── scripts/                     # Deployment scripts (rebuild.sh, deploy.sh, rollback.sh)
-```
+| Flake name | System hostname | Hardware | Desktop |
+|---|---|---|---|
+| `nixos` | nixos | Threadripper + NVIDIA | GNOME (desktop-nvidia) |
+| `nixos-ripper` | nixos-ripper | Threadripper + RDNA 2 | GNOME (desktop) |
+| `framework-13` | nixos-framework-13 | Framework 13 + RDNA 3.5 | GNOME (desktop) |
+| `framework-16` | nixos-framework | Framework 16 + RDNA 3.5 | COSMIC (desktop-cosmic) |
 
-## Core Commands
+## Commands
 
-### System Rebuild & Deployment
 ```bash
-./scripts/rebuild.sh              # Rebuild and switch (current hostname)
-./scripts/rebuild.sh --upgrade    # Rebuild with flake update
+./scripts/rebuild.sh              # Rebuild and switch (auto-detects hostname)
+./scripts/rebuild.sh --upgrade    # Rebuild with nix flake update first
 ./scripts/rebuild.sh framework-16 # Rebuild specific host
-./scripts/deploy.sh               # Build without switching (validation)
+./scripts/deploy.sh               # Build without switching (prompts before switch)
 ./scripts/rollback.sh             # Rollback to previous generation
-./bin/trim-generations.sh         # Clean up old generations
+nix flake check                   # Validate flake — run after any structural change
 ```
 
-### Validation & Testing
-```bash
-nix flake check                   # Verify flake syntax and evaluation
-nix build .#nixosConfigurations.framework-16.config.system.build.toplevel  # Build host config
-nix eval .#nixosConfigurations.framework-16.config.services.openssh.enable # Quick validation
-nix flake show                    # Show flake outputs
-nix flake lock --update-input <name>  # Update specific input
-nix search nixpkgs <package>      # Search for package
+## Architecture
+
+```
+flake.nix              # mkHost helper wires HM + google-workspace-cli into every host
+hosts/<name>/          # default.nix imports modules + sets hostname
+  hardware-configuration.nix  # AUTO-GENERATED — never edit
+modules/common.nix     # base system (boot, networking, docker, zsh, steam, 1password)
+modules/desktop-base.nix → desktop.nix (AMD) / desktop-nvidia.nix / desktop-cosmic.nix
+modules/rocm-dev.nix   # ROCm toolchain (enable + architecture option)
+modules/services/*.nix # each is a NixOS module with `enable` option
+home/common.nix        # shared user packages, git, starship, direnv
+home/<hostname>.nix    # host-specific user packages
 ```
 
-## Code Style & Conventions
-
-### Nix Formatting
-- **Indentation**: 2 spaces (strictly no tabs).
-- **Filenames**: `kebab-case.nix` (e.g., `rocm-dev.nix`).
-- **Attributes**: `camelCase` for attribute names (e.g., `stateVersion`).
-- **Imports**: Relative paths from file location (e.g., `../../modules/common.nix`).
-- **Comments**: Use `#` for line comments. Add brief descriptions at module top.
-
-### Nix Module Structure
-```nix
-# Brief description of the module
-{ config, pkgs, lib, ... }:
-
-with lib;
-
-let
-  cfg = config.services.custom-service;
-in
-{
-  options.services.custom-service = {
-    enable = mkEnableOption "Custom Service";
-    port = mkOption {
-      type = types.port;
-      default = 8080;
-      description = "Port to listen on";
-    };
-  };
-
-  config = mkIf cfg.enable {
-    environment.systemPackages = [ pkgs.some-package ];
-    systemd.services.custom-service = {
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig.ExecStart = "${pkgs.some-package}/bin/some-binary";
-    };
-  };
-}
-```
-
-### Types and Options
-- Use `lib.types` for all options: `types.str`, `types.bool`, `types.int`, `types.port`, `types.enum`, `types.attrsOf`, `types.listOf`.
-- Provide sensible defaults. Always include `description` for new options.
-- Use `mkEnableOption` for boolean enable flags.
-
-### Imports Pattern
-Host configurations import modules in order:
+### Module import order in host configs
 1. `./hardware-configuration.nix` (always first)
-2. `../../modules/common.nix` (base system config)
-3. Desktop/GPU modules (`desktop.nix`, `desktop-nvidia.nix`, `rocm-dev.nix`)
+2. `../../modules/common.nix`
+3. One desktop module
 4. Service modules from `../../modules/services/`
 
-### Shell Scripts
-- **Shebang**: `#!/usr/bin/env bash`
-- **Safety**: Always include `set -euo pipefail`
-- **Formatting**: 2-space indentation, `kebab-case.sh` naming
+### Services on `nixos` (server host)
+Docker Compose: Gitea Actions runner, Kokoro FastAPI TTS. NixOS services: Gitea, Wallabag, Syncthing, Ollama, WhisperX, Defuddle. External via Tailscale Serve at `nixos.tail69fe1.ts.net`.
 
-### Error Handling
-- **Nix**: Use `assert` for invariants, `throw` for critical errors, `lib.warn` for warnings.
-- **Shell**: Rely on `set -e` and check exit codes.
-- **Validation**: Always run `nix flake check` after structural changes.
+## Key Gotchas
 
-### Git & Commits
-- **Messages**: Concise, focus on "why" (e.g., `feat: add ollama module with ROCm support`).
-- **Style**: Follow Conventional Commits (feat, fix, refactor, docs, chore).
+- **Flake name vs hostname**: Use flake name (e.g., `.#framework-16`) for builds, but the system hostname differs (`nixos-framework`). The `rebuild.sh` script uses `$(hostname)` — pass flake name explicitly when cross-building.
+- **Flake immutability**: Shell scripts referenced by Nix must be committed/staged before rebuild, or the daemon reads stale content.
+- **`hardware-configuration.nix`**: Auto-generated by `nixos-generate-config`. Never edit.
+- **Home Manager conflict resolution**: `home-manager switch --flake .#$(hostname) --force`
+- **GPU env vars**: RDNA 2 needs `HSA_OVERRIDE_GFX_VERSION=10.3.0` (nixos-ripper). RDNA 3.5 uses `gfx1150` in `rocm-dev.nix`.
+- **Zsh config**: Declarative via `programs.zsh` in `modules/common.nix`. Do not add manual `source` lines to `zshconfig` for things handled there (syntax-highlighting, fzf).
+- **Dotfile wiring**: `home/common.nix` symlinks `~/.zshrc` → `zshconfig` and `~/.gitconfig` → `gitconfig` via `home.file`.
+- **`nixos` host special args**: Gets `wallbag-rust` flake input and `kokoro-fastapi-nix` module. Other hosts don't.
 
-## Hardware/GPU Support
-- **AMD RDNA 2** (gfx1030): Use `HSA_OVERRIDE_GFX_VERSION=10.3.0` (nixos-ripper)
-- **AMD RDNA 3.5** (gfx1150): See `rocm-dev.nix` for architecture setting (Framework laptops)
-- **NVIDIA:** Handled via `modules/desktop-nvidia.nix`, utilizing `vulkan_beta` packages (nixos server)
-- Prefer `amdgpu` drivers and `mesa` for graphics.
+## Style
 
-## AI Assistant Instructions
-- **Proactiveness**: If adding a new service, look at `modules/services/` for patterns.
-- **Structure**: Host-specific → `hosts/[hostname]/default.nix`. Shared user → `home/common.nix`.
-- **Safety**: Never modify `hardware-configuration.nix` directly; it is auto-generated.
-- **Flake Immutability**: When modifying shell scripts referenced by Nix, commit/stage them so the Flake daemon can read the updated content.
-- **Verification**: Run `nix flake check` or `./scripts/deploy.sh` after structural changes.
-- **Secrets**: Do NOT add secrets to the repository. Use `sops-nix` if available, or local `.env` files.
+- Nix: 2-space indent, `kebab-case.nix` filenames, `camelCase` attributes, `mkEnableOption` for booleans, module top comment
+- Shell: `#!/usr/bin/env bash`, `set -euo pipefail`, 2-space indent
+- Commits: Conventional Commits (`feat:`, `fix:`, `refactor:`)
+- No comments unless asked
 
-## Common Tasks
+## Verification
 
-### Adding a package
-- System-wide: `modules/common.nix` → `environment.systemPackages`
-- User-level: `home/common.nix` → `home.packages`
-
-### Adding a service
-1. Create `modules/services/<name>.nix` following the module pattern
-2. Add `enable = true;` in the host config
-3. Validate: `nix flake check`
-
-### Adding a host
-1. `mkdir hosts/<hostname>` && `sudo nixos-generate-config`
-2. Create `default.nix` with imports
-3. Add to `flake.nix` outputs and `home-manager.users`
-
-## Troubleshooting
-
-- **Module not found**: Check import paths, verify file exists, check syntax
-- **Home Manager conflicts**: `home-manager switch --flake .#$(hostname) --force`
-- **GPU/ROCm**: Verify `HSA_OVERRIDE_GFX_VERSION`, check `rocmSupport`, use `rocm-smi`
+After any Nix change, validate with `nix flake check`. After modifying scripts, stage them first.

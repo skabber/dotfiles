@@ -55,7 +55,6 @@
     # Gaming
     # cemu
     ryubing
-
     # API tools
     bruno
     postman
