@@ -13,6 +13,7 @@
     ../../modules/services/whisperx.nix
     ../../modules/services/wallabag-tts.nix
     ../../modules/services/defuddle.nix
+    ../../modules/services/paperless.nix
   ];
 
   # Hostname
@@ -156,6 +157,13 @@
     podcastBaseUrl = "https://nixos.tail69fe1.ts.net:3001";
     pullInterval = 15;
     ttsVoice = "af_bella";
+  };
+
+  paperless = {
+    enable = true;
+    openFirewall = true;
+    domain = "nixos.tail69fe1.ts.net";
+    passwordFile = "/home/jay/.secrets/paperless-admin-password";
   };
 
   # Fingerprint reader (Goodix)

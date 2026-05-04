@@ -18,6 +18,8 @@ let
     buildNoDefaultFeatures = true;
     buildFeatures = [ "standalone" ];
 
+    CARGO_PROFILE_RELEASE_LTO = "false";
+
     nativeBuildInputs = [ pkgs.pkg-config ];
     buildInputs = [ pkgs.openssl ];
   };

@@ -48,6 +48,9 @@ tailscale serve --bg --https=3002 http://127.0.0.1:3002
 # Port 9000 -> RustFS (S3 API + Console)
 tailscale serve --bg --https=9000 http://127.0.0.1:9000
 
+# Port 28981 -> Paperless-ngx
+tailscale serve --bg --https=28981 http://127.0.0.1:28981
+
 echo ""
 echo "Tailscale Serve configuration complete!"
 echo ""
@@ -64,3 +67,4 @@ echo "  https://nixos.tail69fe1.ts.net:8000/      - WhisperX transcription"
 echo "  https://nixos.tail69fe1.ts.net:8880/      - Kokoro TTS"
 echo "  https://nixos.tail69fe1.ts.net:8182/      - Playwright MCP"
 echo "  https://nixos.tail69fe1.ts.net:3002/      - Defuddle (URL-to-Markdown)"
+echo "  https://nixos.tail69fe1.ts.net:28981/     - Paperless-ngx"
