@@ -21,6 +21,16 @@ in
     description = "The HTTP port for Gitea.";
   };
 
+  options.gitea.httpAddr = mkOption {
+    type = types.str;
+    default = "127.0.0.1";
+    description = ''
+      Address Gitea binds to. Defaults to 127.0.0.1 so a reverse proxy
+      (e.g. Tailscale Serve) handles external access without racing for
+      the port on Gitea restarts.
+    '';
+  };
+
   options.gitea.openFirewall = mkOption {
     type = types.bool;
     default = false;
@@ -136,6 +146,7 @@ in
       settings = {
         server = {
           DOMAIN = cfg.domain;
+          HTTP_ADDR = cfg.httpAddr;
           HTTP_PORT = cfg.httpPort;
           ROOT_URL = "http://${cfg.domain}:${toString cfg.httpPort}/";
         };
