@@ -16,6 +16,16 @@ in
       description = "Host port mapped to the container's :8080 web UI.";
     };
 
+    bindAddress = mkOption {
+      type = types.str;
+      default = "127.0.0.1";
+      description = ''
+        Host address the container's port is published on. Defaults to
+        127.0.0.1 so Tailscale Serve owns the public listener and Docker
+        doesn't race tailscaled for 0.0.0.0.
+      '';
+    };
+
     openFirewall = mkOption {
       type = types.bool;
       default = false;
@@ -96,7 +106,7 @@ in
     virtualisation.oci-containers.containers.paperless-gpt = {
       image = cfg.image;
       autoStart = true;
-      ports = [ "${toString cfg.port}:8080" ];
+      ports = [ "${cfg.bindAddress}:${toString cfg.port}:8080" ];
       volumes = [ "${cfg.promptsDir}:/app/prompts" ];
       environment = {
         PAPERLESS_BASE_URL = cfg.paperlessBaseUrl;

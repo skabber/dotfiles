@@ -16,6 +16,16 @@ in
       description = "Host port mapped to the container's :3000 web UI.";
     };
 
+    bindAddress = mkOption {
+      type = types.str;
+      default = "127.0.0.1";
+      description = ''
+        Host address the container's port is published on. Defaults to
+        127.0.0.1 so Tailscale Serve owns the public listener and Docker
+        doesn't race tailscaled for 0.0.0.0.
+      '';
+    };
+
     openFirewall = mkOption {
       type = types.bool;
       default = false;
@@ -84,7 +94,7 @@ in
     virtualisation.oci-containers.containers.paperless-ai = {
       image = cfg.image;
       autoStart = true;
-      ports = [ "${toString cfg.port}:3000" ];
+      ports = [ "${cfg.bindAddress}:${toString cfg.port}:3000" ];
       volumes = [ "${cfg.dataDir}:/app/data" ];
       environment = {
         PUID = "1000";
