@@ -14,6 +14,8 @@
     ../../modules/services/wallabag-tts.nix
     ../../modules/services/defuddle.nix
     ../../modules/services/paperless.nix
+    ../../modules/services/paperless-ai.nix
+    ../../modules/services/paperless-gpt.nix
   ];
 
   # Hostname
@@ -164,6 +166,23 @@
     openFirewall = true;
     domain = "nixos.tail69fe1.ts.net";
     passwordFile = "/home/jay/.secrets/paperless-admin-password";
+  };
+
+  # Use docker (already enabled below) as the backend for oci-containers
+  # so we don't bring up a parallel podman stack.
+  virtualisation.oci-containers.backend = "docker";
+
+  paperless-ai = {
+    enable = true;
+    openFirewall = true;
+    environmentFile = "/home/jay/.secrets/paperless-ai.env";
+  };
+
+  paperless-gpt = {
+    enable = true;
+    openFirewall = true;
+    enableLlmOcr = true;
+    environmentFile = "/home/jay/.secrets/paperless-gpt.env";
   };
 
   # Fingerprint reader (Goodix)

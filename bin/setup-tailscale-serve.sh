@@ -51,6 +51,12 @@ tailscale serve --bg --https=9000 http://127.0.0.1:9000
 # Port 28981 -> Paperless-ngx
 tailscale serve --bg --https=28981 http://127.0.0.1:28981
 
+# Port 3003 -> Paperless-AI
+tailscale serve --bg --https=3003 http://127.0.0.1:3003
+
+# Port 8080 -> paperless-gpt
+tailscale serve --bg --https=8080 http://127.0.0.1:8080
+
 echo ""
 echo "Tailscale Serve configuration complete!"
 echo ""
@@ -68,3 +74,5 @@ echo "  https://nixos.tail69fe1.ts.net:8880/      - Kokoro TTS"
 echo "  https://nixos.tail69fe1.ts.net:8182/      - Playwright MCP"
 echo "  https://nixos.tail69fe1.ts.net:3002/      - Defuddle (URL-to-Markdown)"
 echo "  https://nixos.tail69fe1.ts.net:28981/     - Paperless-ngx"
+echo "  https://nixos.tail69fe1.ts.net:3003/      - Paperless-AI"
+echo "  https://nixos.tail69fe1.ts.net:8080/      - paperless-gpt"

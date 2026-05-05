@@ -48,6 +48,8 @@ in
 
     # Allow Docker containers to reach Ollama
     networking.firewall.interfaces."docker0".allowedTCPPorts = [ 11434 ];
+    # Allow other Tailscale peers (e.g. paperless-ai/paperless-gpt on nixos host) to reach Ollama
+    networking.firewall.interfaces."tailscale0".allowedTCPPorts = [ 11434 ];
     # Open-Webui setup
   services.open-webui = {
     enable = true;
