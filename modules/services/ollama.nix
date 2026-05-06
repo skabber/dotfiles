@@ -36,6 +36,7 @@ in
         host = "0.0.0.0";
         port = 11434;
         environmentVariables = {
+            LD_LIBRARY_PATH = "${pkgs.ollama-rocm}/lib/ollama";
             HCC_AMDGPU_TARGET = "gfx1030";
             HSA_OVERRIDE_GFX_VERSION = "10.3.0";
             HIP_VISIBLE_DEVICES = "0";
