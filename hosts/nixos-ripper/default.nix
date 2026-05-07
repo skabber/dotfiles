@@ -8,6 +8,7 @@
     ../../modules/desktop.nix
     ../../modules/rocm-dev.nix
     ../../modules/services/ollama.nix
+    ../../modules/services/sunshine.nix
   ];
 
   # Hostname
@@ -111,6 +112,7 @@
   # Service toggles
   ollama.enable = true;
   ollama.flashAttention = false;
+  sunshine.enable = true;
 
   # Permitted insecure packages
   nixpkgs.config.permittedInsecurePackages = [
