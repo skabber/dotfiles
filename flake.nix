@@ -39,6 +39,9 @@
       googleCloudSdkModule = { pkgs, ... }: {
         environment.systemPackages = [ pkgs.google-cloud-sdk ];
       };
+      nixLdModule = {
+        programs.nix-ld.enable = true;
+      };
 
       mkHost = { hostname, extraModules ? [ ], extraSpecialArgs ? { } }:
         nixpkgs.lib.nixosSystem {
@@ -48,6 +51,7 @@
             ./hosts/${hostname}/default.nix
             googleWorkspaceModule
             googleCloudSdkModule
+            nixLdModule
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
