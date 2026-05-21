@@ -37,6 +37,14 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
+  # Skip openldap's flaky test017-syncreplication-refresh (timing-sensitive,
+  # fails intermittently on loaded build hosts). Pulled in transitively via bottles.
+  nixpkgs.overlays = [
+    (final: prev: {
+      openldap = prev.openldap.overrideAttrs (_: { doCheck = false; });
+    })
+  ];
+
   # Common system packages
   environment.systemPackages = with pkgs; [
     systemd
