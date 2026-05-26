@@ -12,6 +12,7 @@
   # Common packages for all machines
   home.packages = with pkgs; [
     # Core tools
+    ghostty.terminfo
     lsof
     # cemu
     htop
