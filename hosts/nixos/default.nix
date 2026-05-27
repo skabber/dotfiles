@@ -16,6 +16,7 @@
     ../../modules/services/paperless.nix
     ../../modules/services/paperless-ai.nix
     ../../modules/services/paperless-gpt.nix
+    ../../modules/services/romm.nix
   ];
 
   # Hostname
@@ -25,8 +26,15 @@
   time.timeZone = "America/Denver";
   services.automatic-timezoned.enable = lib.mkForce false;
 
-  # NTFS support
-  boot.supportedFilesystems = [ "ntfs" ];
+  # NTFS + exFAT support
+  boot.supportedFilesystems = [ "ntfs" "exfat" ];
+
+  # External ROM library drive (Crucial X8)
+  fileSystems."/run/media/jay/Crucial X8" = {
+    device = "/dev/disk/by-uuid/A89B-F756";
+    fsType = "exfat";
+    options = [ "nofail" "noauto" "x-systemd.automount" "x-systemd.idle-timeout=600" "uid=1000" "gid=100" "iocharset=utf8" "errors=remount-ro" ];
+  };
 
   # Binary caches
   nix.settings = {
@@ -183,6 +191,13 @@
     openFirewall = true;
     enableLlmOcr = true;
     environmentFile = "/home/jay/.secrets/paperless-gpt.env";
+  };
+
+  romm = {
+    enable = true;
+    port = 8070;
+    libraryPath = "/run/media/jay/Crucial X8";
+    environmentFile = "/home/jay/.secrets/romm.env";
   };
 
   # Fingerprint reader (Goodix)
