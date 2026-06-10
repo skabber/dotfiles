@@ -42,9 +42,9 @@
   hardware.enableRedistributableFirmware = true;
   hardware.firmware = with pkgs; [ linux-firmware ];
 
-  # Razer peripherals
-  hardware.openrazer.enable = true;
-  users.users.jay.extraGroups = lib.mkAfter [ "openrazer" "roon-server" "input" ];
+  # Razer peripherals — disabled: openrazer 3.12.2 fails to build against Linux 7.x (hid_report_raw_event API change)
+  # hardware.openrazer.enable = true;
+  users.users.jay.extraGroups = lib.mkAfter [ "roon-server" "input" ];
 
   # Mount points
   systemd.tmpfiles.rules = [
@@ -153,8 +153,8 @@
     iw
     wlr-randr
     gnome-randr
-    openrazer-daemon
-    polychromatic
+    # openrazer-daemon  # disabled with hardware.openrazer above
+    # polychromatic
     onedrive
     cryptsetup
     tmux

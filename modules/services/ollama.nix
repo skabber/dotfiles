@@ -36,15 +36,8 @@ in
         host = "0.0.0.0";
         port = 11434;
         environmentVariables = {
-            LD_LIBRARY_PATH = "${pkgs.ollama-rocm}/lib/ollama";
-            HCC_AMDGPU_TARGET = "gfx1030";
-            HSA_OVERRIDE_GFX_VERSION = "10.3.0";
-            HIP_VISIBLE_DEVICES = "0";
-            ROCR_VISIBLE_DEVICES = "0";
-            GPU_MAX_HW_QUEUES = "1";
             OLLAMA_FLASH_ATTENTION = if cfg.flashAttention then "1" else "0";
         };
-        rocmOverrideGfx = "10.3.0";
     };
 
     # Allow Docker containers to reach Ollama
