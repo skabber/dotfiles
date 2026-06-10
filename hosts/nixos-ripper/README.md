@@ -53,7 +53,7 @@ GNOME on X11/Wayland via `modules/desktop.nix` (amdgpu driver).
 
 - **Kernel modules**: iwlwifi, ath12k, snd-aloop
 - **inotify limit**: 2,000,000 watches
-- **GPU override**: HSA_OVERRIDE_GFX_VERSION=10.3.0
+- **GPU**: native gfx1030 (RX 6900 XT) — no HSA_OVERRIDE_GFX_VERSION needed; setting it breaks ollama's GPU discovery
 - **vLLM overlay**: Pins outlines-core version, scoped to avoid breaking other Python packages
 - **Docker + Tailscale + ProtonVPN** enabled
 

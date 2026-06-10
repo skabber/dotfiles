@@ -71,5 +71,7 @@
 
     # GNOME extensions
     gnomeExtensions.pano
+    gnomeExtensions.xremap
+    xremap
   ];
 }
