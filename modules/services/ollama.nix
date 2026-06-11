@@ -28,6 +28,12 @@ in
     description = "Whether to enable flash attention for Ollama.";
   };
 
+  options.ollama.igpuEnable = mkOption {
+    type = types.bool;
+    default = false;
+    description = "Allow Ollama to use integrated GPUs (sets OLLAMA_IGPU_ENABLE=1). Required for the Framework 13's Radeon 890M.";
+  };
+
   config = mkIf cfg.enable {
 
     services.ollama = {
@@ -37,6 +43,8 @@ in
         port = 11434;
         environmentVariables = {
             OLLAMA_FLASH_ATTENTION = if cfg.flashAttention then "1" else "0";
+        } // optionalAttrs cfg.igpuEnable {
+            OLLAMA_IGPU_ENABLE = "1";
         };
     };
 

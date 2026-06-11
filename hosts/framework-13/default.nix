@@ -8,6 +8,7 @@
     ../../modules/desktop.nix
     ../../modules/rocm-dev.nix
     ../../modules/services/comfyui.nix
+    ../../modules/services/ollama.nix
   ];
 
   # Hostname
@@ -25,6 +26,10 @@
     gfxVersion = "11.5.0";
     extraArgs = [ "--enable-manager" ];
   };
+
+  # Ollama + Open WebUI
+  ollama.enable = true;
+  ollama.igpuEnable = true;  # Radeon 890M (gfx1150) is an iGPU; ollama drops it by default
 
   # Framework 13 specific kernel params
   boot.kernelParams = [
