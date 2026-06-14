@@ -100,6 +100,9 @@ in
         Restart = "on-failure";
         RestartSec = 5;
       };
+      # The manager shells out to curl (health check), chown (checkout dirs)
+      # and systemctl (template units); give it a PATH that resolves them.
+      path = with pkgs; [ curl coreutils systemd ];
     };
 
     # Per-PR template. %i is the PR number. Builds + serves as user `jay` so the
