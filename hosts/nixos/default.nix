@@ -17,6 +17,7 @@
     ../../modules/services/paperless-ai.nix
     ../../modules/services/paperless-gpt.nix
     ../../modules/services/romm.nix
+    ../../modules/services/show-friends-preview.nix
   ];
 
   # Hostname
@@ -198,6 +199,12 @@
     port = 8070;
     libraryPath = "/run/media/jay/Crucial X8";
     environmentFile = "/home/jay/.secrets/romm.env";
+  };
+
+  show-friends-preview = {
+    enable = true;
+    domain = "nixos.tail69fe1.ts.net";
+    tokenFile = "/home/jay/.secrets/show-friends-preview.env";
   };
 
   # Fingerprint reader (Goodix)
