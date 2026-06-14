@@ -80,4 +80,7 @@ tailscale serve --bg --https="${FPORT}" "http://127.0.0.1:${FPORT}"
 
 echo "==> starting pages (public) on 127.0.0.1:${FPORT}"
 cd crates/frontend
-exec wrangler pages dev dist --port "${FPORT}" --ip 127.0.0.1
+# Pin compatibility date: pages dev otherwise defaults to today, which can be
+# newer than the bundled workerd supports (and newer than the worker's own
+# wrangler.toml date). Match the worker's pinned date.
+exec wrangler pages dev dist --port "${FPORT}" --ip 127.0.0.1 --compatibility-date 2026-01-01
