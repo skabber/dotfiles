@@ -58,6 +58,12 @@
     flatpak
     appimage-run
 
+    # Utilities (local packages)
+    (pkgs.callPackage ../pkgs/proton-drive-cli.nix {})
+
+    # Agent stuff
+    agent-browser
+
     # Utilities
     # trayscale  # FIXME: broken with Go 1.26 in nixpkgs (gvisor build tag conflict)
     yazi

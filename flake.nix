@@ -27,6 +27,8 @@
     }:
     let
       system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
+
       googleCloudSdkModule = { pkgs, ... }: {
         environment.systemPackages = [ pkgs.google-cloud-sdk ];
       };
@@ -52,6 +54,11 @@
         };
     in
     {
+      packages.${system} = {
+        proton-drive-cli = pkgs.callPackage ./pkgs/proton-drive-cli.nix { };
+        default = pkgs.callPackage ./pkgs/proton-drive-cli.nix { };
+      };
+
       nixosConfigurations = {
         nixos-ripper = mkHost { hostname = "nixos-ripper"; };
         framework-13 = mkHost { hostname = "framework-13"; };
