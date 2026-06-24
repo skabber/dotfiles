@@ -182,6 +182,7 @@ in
           port = cfg.runner.cachePort;
         };
         container = {
+          network = "host";  # host network so job containers can reach Gitea via 127.0.0.1
           options = "-m 32g --cpus 32";  # 32GB RAM, 32 CPUs
           valid_volumes = [ ];
         };
