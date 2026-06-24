@@ -50,6 +50,23 @@ SESSION_SECRET=${SESSION_SECRET}
 PAGES_ORIGIN=https://${DOMAIN}:${FPORT}
 EOF
 
+# Seed the per-PR DB from the latest prod backup so previews run against real
+# data instead of an empty DB. Falls back to an empty DB on any failure (bad
+# token, worker down, no backup yet) so previews never block on the restore.
+# --no-mark-migrations preserves the dump's _migrations (prod's applied list)
+# so the turso-migrate.sh run below applies only migrations new to this PR.
+if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
+  echo "==> seeding ${DB_FILE} from latest prod backup"
+  if ./scripts/restore-backup.sh --db-file "${DB_FILE}" --no-mark-migrations; then
+    echo "    restore OK"
+  else
+    echo "    !! restore failed; continuing with an empty DB"
+    rm -f "${DB_FILE}"
+  fi
+else
+  echo "==> no R2 backup token (CLOUDFLARE_API_TOKEN unset); starting with empty DB"
+fi
+
 echo "==> starting sqld on 127.0.0.1:${SQPORT}"
 sqld --db-path "${DB_FILE}" --http-listen-addr "127.0.0.1:${SQPORT}" &
 SQLD_PID=$!
