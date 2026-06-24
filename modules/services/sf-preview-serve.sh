@@ -55,20 +55,26 @@ EOF
 # token, worker down, no backup yet) so previews never block on the restore.
 # --no-mark-migrations preserves the dump's _migrations (prod's applied list)
 # so the turso-migrate.sh run below applies only migrations new to this PR.
+#
+# Always start from a clean file: a previous run may have left ${DB_FILE} as a
+# sqld primary-store *directory* (dbs/, metastore/), which `turso dev --db-file`
+# cannot consume and restore-backup.sh cannot load into. turso dev persists a
+# plain SQLite file at this path.
+rm -rf "${DB_FILE}"
 if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
   echo "==> seeding ${DB_FILE} from latest prod backup"
   if ./scripts/restore-backup.sh --db-file "${DB_FILE}" --no-mark-migrations; then
     echo "    restore OK"
   else
     echo "    !! restore failed; continuing with an empty DB"
-    rm -f "${DB_FILE}"
+    rm -rf "${DB_FILE}"
   fi
 else
   echo "==> no R2 backup token (CLOUDFLARE_API_TOKEN unset); starting with empty DB"
 fi
 
-echo "==> starting sqld on 127.0.0.1:${SQPORT}"
-sqld --db-path "${DB_FILE}" --http-listen-addr "127.0.0.1:${SQPORT}" &
+echo "==> starting libsql (turso dev) on 127.0.0.1:${SQPORT}"
+turso dev --db-file "${DB_FILE}" --port "${SQPORT}" &
 SQLD_PID=$!
 
 cleanup() {
@@ -79,7 +85,7 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-echo "==> waiting for sqld to accept connections"
+echo "==> waiting for libsql to accept connections"
 for _ in $(seq 1 30); do
   if (exec 3<>/dev/tcp/127.0.0.1/${SQPORT}) 2>/dev/null; then exec 3>&- 3<&-; break; fi
   sleep 1
