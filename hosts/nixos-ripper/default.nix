@@ -9,6 +9,7 @@
     ../../modules/rocm-dev.nix
     ../../modules/services/ollama.nix
     ../../modules/services/sunshine.nix
+    ../../modules/services/nixnews.nix
   ];
 
   # Hostname
@@ -113,6 +114,9 @@
   ollama.enable = true;
   ollama.flashAttention = false;
   sunshine.enable = true;
+
+  nixnews.enable = true;
+  nixnews.serve = true;
 
   # Permitted insecure packages
   nixpkgs.config.permittedInsecurePackages = [
