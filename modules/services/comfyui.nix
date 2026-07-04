@@ -115,8 +115,9 @@ in
             ln -sfn "${cfg.dataDir}/$dir" "$REPO/$dir"
           done
 
-          # Create or reuse venv
-          if [ ! -d "$VENV" ]; then
+          # Recreate venv if missing or its interpreter is stale (e.g. after a nixpkgs bump)
+          if [ ! -x "$VENV/bin/python" ] || ! "$VENV/bin/python" --version >/dev/null 2>&1; then
+            rm -rf "$VENV"
             ${pythonEnv}/bin/python -m venv "$VENV"
           fi
           source "$VENV/bin/activate"
