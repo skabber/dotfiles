@@ -15,10 +15,12 @@
   # Hostname
   networking.hostName = "nixos-ripper";
 
-  # ROCm development environment (RDNA 2)
+  # ROCm development environment (RDNA 2). gfx1030 is the real hardware; gfx90a
+  # is included so composable_kernel (pulled in by vLLM/torch rocmSupport) stays
+  # evaluable — CK only builds for gfx9-class MFMA targets.
   rocm-dev = {
     enable = true;
-    architecture = "gfx1030";
+    architecture = [ "gfx1030" "gfx90a" ];
   };
 
   # Flatpak support
