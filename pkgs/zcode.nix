@@ -4,24 +4,24 @@
 # so it works on NixOS) and registers the `zcode://` URI scheme handler so the
 # in-app OAuth login redirect finds its way back to the app.
 #
-# The AppImage is pulled from the ZCode CDN via fetchurl — pure-eval safe and
-# binary-cached, so no local file needs to exist on the build host. When you
-# upgrade, bump `version` and the URL below, then recompute the hash:
-#   nix-prefetch-url --type sha256 <url> | tail -1 | xargs -I{} nix hash to-sri --type sha256 {}
+# The AppImage is fetched from the ZCode CDN by URL + content hash, so eval stays
+# pure (no local file in ~/Downloads or the flake). To upgrade, bump `version`
+# and refresh `hash` with:
+#   nix store prefetch-file --hash-type sha256 <url>
 {
   lib,
   stdenvNoCC,
+  fetchurl,
   writeShellScriptBin,
   appimage-run,
   makeDesktopItem,
   copyDesktopItems,
-  fetchurl,
 }:
 let
-  version = "3.2.4";
+  version = "3.2.5";
   src = fetchurl {
-    url = "https://cdn-zcode.z.ai/zcode/electron/releases/3.2.4/ZCode-3.2.4-linux-x64.AppImage";
-    hash = "sha256-J91o4SgCYOsJ4jUjyA7eVgkRXAQasXljrvLisqe+NeQ=";
+    url = "https://cdn-zcode.z.ai/zcode/electron/releases/${version}/ZCode-${version}-linux-x64.AppImage";
+    hash = "sha256-SulHXiJy4Ez4gJONhBNwb7Kd/anPD+pJQYZ5syXgvtU=";
   };
 
   bin = writeShellScriptBin "zcode" ''
