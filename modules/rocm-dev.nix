@@ -21,6 +21,17 @@ in
     # Enable ROCm support in nixpkgs
     nixpkgs.config.rocmSupport = true;
 
+    # Build ROCm GPU code for ONLY this machine's architecture. nixpkgs exposes a
+    # per-arch rocmPackages scope (e.g. rocmPackages.gfx1150) that pins
+    # clr.localGpuTargets; every ROCm lib (rccl, rocblas, hipblaslt, ...) and
+    # ollama read that to set their AMDGPU_TARGETS. Without it they compile for
+    # the full upstream target matrix (~12 gfx arches), which is enormously slow.
+    nixpkgs.overlays = [
+      (_final: prev: {
+        rocmPackages = prev.rocmPackages.${cfg.architecture};
+      })
+    ];
+
     environment.systemPackages = with pkgs; [
       # ROCm/HIP toolchain
       rocmPackages.clr

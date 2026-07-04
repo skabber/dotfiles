@@ -52,7 +52,10 @@ in
     networking.firewall.interfaces."docker0".allowedTCPPorts = [ 11434 ];
     # Allow other Tailscale peers (e.g. paperless-ai/paperless-gpt on nixos host) to reach Ollama
     networking.firewall.interfaces."tailscale0".allowedTCPPorts = [ 11434 ];
-    # Open-Webui setup
+    # Open-Webui (+ its Tailscale Serve proxy) temporarily disabled: it pulls in
+    # ROCm PyTorch, whose miopen -> composable_kernel is gfx9-only and breaks the
+    # gfx1150 pin. TODO: re-enable later (e.g. CPU-only torch for open-webui).
+    /*
   services.open-webui = {
     enable = true;
     openFirewall = true;
@@ -81,6 +84,7 @@ in
       ExecStop = "${pkgs.tailscale}/bin/tailscale serve --https=8443 off";
     };
   };
+    */
 
   };
 }
