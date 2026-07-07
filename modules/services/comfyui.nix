@@ -122,15 +122,21 @@ in
           fi
           source "$VENV/bin/activate"
 
-          # Install PyTorch with ROCm support
-          pip install --quiet \
-            torch torchvision torchaudio \
-            --index-url https://download.pytorch.org/whl/rocm6.2.4
+          # Install PyTorch with ROCm support (~2.4GB of wheels; skip the
+          # re-download when torch is already importable in the venv).
+          if ! python -c "import torch" 2>/dev/null; then
+            pip install \
+              torch torchvision torchaudio \
+              --index-url https://download.pytorch.org/whl/rocm6.2.4
+          else
+            echo "torch already installed, skipping ROCm wheel download"
+          fi
 
           # Install ComfyUI requirements
-          pip install --quiet -r "$REPO/requirements.txt"
+          pip install -r "$REPO/requirements.txt"
         '';
-        TimeoutStartSec = 600;
+        # PyTorch ROCm wheels are ~2.4GB; first install can exceed 10 minutes.
+        TimeoutStartSec = 1800;
       };
       path = [ pkgs.git ];
     };
