@@ -1,4 +1,4 @@
 result
-flake.lock
+# flake.lock
 __pycache__/
 *.bak
