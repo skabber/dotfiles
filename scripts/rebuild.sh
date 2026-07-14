@@ -13,9 +13,16 @@ done
 
 cd "$(dirname "$0")/.."
 
-# Cap at 8 to avoid OOM on high-core-count machines with large services loaded
+# Per-build core cap. cores=0 (the Nix default) lets each build use ALL cores,
+# so a single ROCm kernel build (rocblas/miopen) OOMs regardless of --max-jobs.
+# Must be passed on the CLI too: the running system's nix.conf still has
+# cores=0 until this rebuild succeeds, so nix.settings alone can't save it.
+CORES=4
+
+# Cap concurrent builds. With CORES above, total parallel compile jobs ~=
+# JOBS*CORES (4*4=16) keeps peak RAM bounded on memory-heavy ROCm builds.
 JOBS=$(( $(nproc) / 2 ))
-[ "$JOBS" -gt 8 ] && JOBS=8
+[ "$JOBS" -gt 4 ] && JOBS=4
 [ "$JOBS" -lt 1 ] && JOBS=1
 
 if [ "$UPGRADE" = true ]; then
@@ -41,4 +48,4 @@ restore_services() {
 }
 trap restore_services EXIT
 
-sudo nixos-rebuild switch --flake ".#${HOST:-$(hostname)}" --max-jobs "$JOBS"
+sudo nixos-rebuild switch --flake ".#${HOST:-$(hostname)}" --max-jobs "$JOBS" --cores "$CORES"

@@ -26,11 +26,16 @@
   # Flatpak support
   services.flatpak.enable = true;
 
-  # Zram swap (helps with memory-heavy builds like ROCm)
+  # Zram swap (fast, compressed RAM, priority 5) is used first; the disk swap
+  # file below is a lower-priority overflow net for ROCm build spikes that
+  # exceed physical RAM. On root (separate NVMe from /nix -> no I/O contention).
   zramSwap = {
     enable = true;
     memoryPercent = 50;
   };
+  swapDevices = [
+    { device = "/swapfile"; size = 32 * 1024; priority = 1; }
+  ];
 
   # Kernel settings
   boot.kernel.sysctl = {
