@@ -43,7 +43,7 @@ def active_count():
     return len([ln for ln in r.stdout.splitlines() if ln.strip()])
 
 
-def write_env(pr, ref):
+def write_env(pr, ref, backup=None):
     p = ports_for(pr)
     d = os.path.join(PREVIEW_ROOT, str(pr))
     os.makedirs(d, exist_ok=True)
@@ -57,6 +57,17 @@ def write_env(pr, ref):
         "SESSION_SECRET": secrets.token_urlsafe(32),
         **p,
     }
+    # R2 backup-seed credentials for sf-preview-serve.sh. The R2 read token is
+    # the only secret; account id + worker url are project constants sent by
+    # the workflow. All optional: when absent, the serve script falls back to
+    # an empty DB.
+    if backup:
+        for src, dst in (("r2_token", "CLOUDFLARE_API_TOKEN"),
+                         ("cf_account_id", "CLOUDFLARE_ACCOUNT_ID"),
+                         ("backup_worker_url", "BACKUP_WORKER_URL")):
+            val = backup.get(src)
+            if val:
+                env[dst] = str(val)
     with open(os.path.join(d, "preview.env"), "w") as f:
         for k, v in env.items():
             f.write(f"{k}={v}\n")
@@ -130,7 +141,12 @@ class Handler(BaseHTTPRequestHandler):
         if active_count() >= MAX_PREVIEWS:
             self._send(409, {"error": f"max {MAX_PREVIEWS} previews reached; close one first"})
             return
-        p = write_env(pr, ref)
+        backup = {
+            "r2_token": payload.get("r2_token"),
+            "cf_account_id": payload.get("cf_account_id"),
+            "backup_worker_url": payload.get("backup_worker_url"),
+        }
+        p = write_env(pr, ref, backup)
         r = sh("systemctl", "restart", f"show-friends-preview@{pr}.service")
         if r.returncode != 0:
             self._send(500, {"error": "start failed", "stderr": r.stderr, "stdout": r.stdout})
@@ -138,7 +154,7 @@ class Handler(BaseHTTPRequestHandler):
         url = f"https://{DOMAIN}:{p['FPORT']}"
         healthy = wait_healthy(p["FPORT"])
         if healthy:
-            post_comment(pr, f"**Preview ready:** {url}\n\nPer-PR local libSQL DB; the first account registered in an empty DB is invite-exempt. Logs: `journalctl -u show-friends-preview@{pr} -f`.")
+            post_comment(pr, f"**Preview ready:** {url}\n\nPer-PR libSQL DB seeded from the latest prod backup (empty DB fallback if the backup download fails). Logs: `journalctl -u show-friends-preview@{pr} -f`.")
             self._send(200, {"ok": True, "url": url})
         else:
             post_comment(pr, f"**Preview started but health check timed out.** Check `journalctl -u show-friends-preview@{pr}`. Intended URL: {url}")

@@ -1,0 +1,117 @@
+{
+  "nodes": {
+    "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1783525612,
+        "narHash": "sha256-OEFYdbtG6Qy04KGteknnrx15Uo2XXkYVuUvBvFNEn+Q=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "1aac8895fea6fcabc6a0184c63a80fb2f99fd208",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "kokoro-fastapi-nix": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1756063986,
+        "narHash": "sha256-2T1blMdeG8APPD59fLeMafIW+U6UFX2R9hOz8O3Tc5U=",
+        "owner": "mndfcked",
+        "repo": "kokoro-fastapi-nix",
+        "rev": "ad1a52c2f7a54c6a9af2e8f857c0eb8a36963282",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mndfcked",
+        "repo": "kokoro-fastapi-nix",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1755615617,
+        "narHash": "sha256-HMwfAJBdrr8wXAkbGhtcby1zGFvs+StOp19xNsbqdOg=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "20075955deac2583bb12f07151c2df830ef346b4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-libreoffice": {
+      "locked": {
+        "lastModified": 1782723713,
+        "narHash": "sha256-oPXCU/SSUokcGaJREHibG1CBX3+s/W7orDWQOZDsEeQ=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "b5aa0fbd538984f6e3d201be0005b4463d8b09f8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "b5aa0fbd538984f6e3d201be0005b4463d8b09f8",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1783224372,
+        "narHash": "sha256-8i/87eeoqiGE4yOTjwSA3Eh/ziJRQEmd/unYU+K27sk=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "d407951447dcd00442e97087bf374aad70c04cea",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "home-manager": "home-manager",
+        "kokoro-fastapi-nix": "kokoro-fastapi-nix",
+        "nixpkgs": "nixpkgs_2",
+        "nixpkgs-libreoffice": "nixpkgs-libreoffice",
+        "wallbag-rust": "wallbag-rust"
+      }
+    },
+    "wallbag-rust": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1775165153,
+        "narHash": "sha256-tOwzm2JsZbL0N/8/3k4bu3f4+wEu1vy4G1/NMuZO1Qo=",
+        "ref": "refs/heads/main",
+        "rev": "3ddd6c93b8ec87aa038b9ea717f96cc14759778a",
+        "revCount": 11,
+        "type": "git",
+        "url": "https://nixos.tail69fe1.ts.net:3000/skabber/wallbag-rust.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://nixos.tail69fe1.ts.net:3000/skabber/wallbag-rust.git"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

@@ -13,6 +13,7 @@
 
   # Framework 16 specific packages
   home.packages = with pkgs; [
+    (pkgs.callPackage ../pkgs/zcode.nix { })
     # Development tools
     postgresql
     go

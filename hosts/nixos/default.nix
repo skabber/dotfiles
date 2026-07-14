@@ -71,6 +71,7 @@
     };
     runner = {
       enable = true;
+      url = "http://127.0.0.1:3000";
       token = "07XSNFqRI37Y91ikvcJ8eUjT3F5z4G3NKSZdatfm";
       labels = [ "ubuntu-latest:docker://catthehacker/ubuntu:act-latest" ];
     };

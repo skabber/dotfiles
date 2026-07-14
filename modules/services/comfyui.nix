@@ -115,21 +115,28 @@ in
             ln -sfn "${cfg.dataDir}/$dir" "$REPO/$dir"
           done
 
-          # Create or reuse venv
-          if [ ! -d "$VENV" ]; then
+          # Recreate venv if missing or its interpreter is stale (e.g. after a nixpkgs bump)
+          if [ ! -x "$VENV/bin/python" ] || ! "$VENV/bin/python" --version >/dev/null 2>&1; then
+            rm -rf "$VENV"
             ${pythonEnv}/bin/python -m venv "$VENV"
           fi
           source "$VENV/bin/activate"
 
-          # Install PyTorch with ROCm support
-          pip install --quiet \
-            torch torchvision torchaudio \
-            --index-url https://download.pytorch.org/whl/rocm6.2.4
+          # Install PyTorch with ROCm support (~2.4GB of wheels; skip the
+          # re-download when torch is already importable in the venv).
+          if ! python -c "import torch" 2>/dev/null; then
+            pip install \
+              torch torchvision torchaudio \
+              --index-url https://download.pytorch.org/whl/rocm6.2.4
+          else
+            echo "torch already installed, skipping ROCm wheel download"
+          fi
 
           # Install ComfyUI requirements
-          pip install --quiet -r "$REPO/requirements.txt"
+          pip install -r "$REPO/requirements.txt"
         '';
-        TimeoutStartSec = 600;
+        # PyTorch ROCm wheels are ~2.4GB; first install can exceed 10 minutes.
+        TimeoutStartSec = 1800;
       };
       path = [ pkgs.git ];
     };

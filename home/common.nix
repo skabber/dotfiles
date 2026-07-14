@@ -60,6 +60,7 @@
 
     # Utilities (local packages)
     (pkgs.callPackage ../pkgs/proton-drive-cli.nix {})
+    (pkgs.callPackage ../pkgs/hermes.nix { })
 
     # Agent stuff
     agent-browser

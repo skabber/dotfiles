@@ -11,7 +11,7 @@ for arg in "$@"; do
   esac
 done
 
-cd ~/dotfiles
+cd "$(dirname "$0")/.."
 
 if [ "$UPGRADE" = true ]; then
   nix flake update
