@@ -136,6 +136,16 @@
       whisper-cpp = prev.whisper-cpp.overrideAttrs (old: {
         doBuild = false;
       });
+      # proton-vpn -> proton-core pulls in python-gnupg, whose test_no_such_key
+      # races gpg-agent socket teardown (S.gpg-agent.ssh vanishes mid-cleanup)
+      # and fails nondeterministically. Skip its checks (upstream test bug).
+      pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+        (pyFinal: pyPrev: {
+          python-gnupg = pyPrev.python-gnupg.overridePythonAttrs (_: {
+            doCheck = false;
+          });
+        })
+      ];
       vllm-rocm = let
         python3 = prev.python3.override {
           packageOverrides = pyFinal: pyPrev: {
