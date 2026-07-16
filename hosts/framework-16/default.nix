@@ -7,6 +7,7 @@
     ../../modules/common.nix
     ../../modules/desktop.nix
     ../../modules/rocm-dev.nix
+    ../../modules/services/ollama.nix
   ];
 
   # Hostname
@@ -18,11 +19,17 @@
     architecture = "gfx1150";
   };
 
+  # Ollama + Open WebUI
+  ollama.enable = true;
+
   # Custom geolocation provider
   services.geoclue2.geoProviderUrl = "https://api.beacondb.net/v1/geolocate";
 
   # Power management
   powerManagement.enable = true;
+
+  # Disable WiFi power save (mt7921e/MT7922 latency + throughput fix)
+  networking.networkmanager.wifi.powersave = false;
 
   # Framework udev rules
   services.udev.packages = [ pkgs.via ];

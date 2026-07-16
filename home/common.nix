@@ -60,9 +60,11 @@
 
     # Utilities (local packages)
     (pkgs.callPackage ../pkgs/proton-drive-cli.nix {})
+    (pkgs.callPackage ../pkgs/hermes.nix { })
 
     # Agent stuff
     agent-browser
+    herdr
 
     # Utilities
     # trayscale  # FIXME: broken with Go 1.26 in nixpkgs (gvisor build tag conflict)
@@ -108,6 +110,13 @@
     settings = {
       add_newline = false;
       package.disabled = true;
+    };
+  };
+
+  # GNOME — show Log Out in the system menu (hidden by default on single-user systems)
+  dconf.settings = {
+    "org/gnome/shell" = {
+      always-show-log-out = true;
     };
   };
 }

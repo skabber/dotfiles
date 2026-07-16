@@ -9,25 +9,33 @@
     ../../modules/rocm-dev.nix
     ../../modules/services/ollama.nix
     ../../modules/services/sunshine.nix
+    ../../modules/services/nixnews.nix
   ];
 
   # Hostname
   networking.hostName = "nixos-ripper";
 
-  # ROCm development environment (RDNA 2)
+  # ROCm development environment (RDNA 2). gfx1030 is the real hardware; gfx90a
+  # is included so composable_kernel (pulled in by vLLM/torch rocmSupport) stays
+  # evaluable — CK only builds for gfx9-class MFMA targets.
   rocm-dev = {
     enable = true;
-    architecture = "gfx1030";
+    architecture = [ "gfx1030" "gfx90a" ];
   };
 
   # Flatpak support
   services.flatpak.enable = true;
 
-  # Zram swap (helps with memory-heavy builds like ROCm)
+  # Zram swap (fast, compressed RAM, priority 5) is used first; the disk swap
+  # file below is a lower-priority overflow net for ROCm build spikes that
+  # exceed physical RAM. On root (separate NVMe from /nix -> no I/O contention).
   zramSwap = {
     enable = true;
     memoryPercent = 50;
   };
+  swapDevices = [
+    { device = "/swapfile"; size = 32 * 1024; priority = 1; }
+  ];
 
   # Kernel settings
   boot.kernel.sysctl = {
@@ -114,6 +122,9 @@
   ollama.flashAttention = false;
   sunshine.enable = true;
 
+  nixnews.enable = true;
+  nixnews.serve = true;
+
   # Permitted insecure packages
   nixpkgs.config.permittedInsecurePackages = [
     "electron-25.9.0"
@@ -125,6 +136,16 @@
       whisper-cpp = prev.whisper-cpp.overrideAttrs (old: {
         doBuild = false;
       });
+      # proton-vpn -> proton-core pulls in python-gnupg, whose test_no_such_key
+      # races gpg-agent socket teardown (S.gpg-agent.ssh vanishes mid-cleanup)
+      # and fails nondeterministically. Skip its checks (upstream test bug).
+      pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+        (pyFinal: pyPrev: {
+          python-gnupg = pyPrev.python-gnupg.overridePythonAttrs (_: {
+            doCheck = false;
+          });
+        })
+      ];
       vllm-rocm = let
         python3 = prev.python3.override {
           packageOverrides = pyFinal: pyPrev: {
