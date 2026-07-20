@@ -112,4 +112,11 @@
       package.disabled = true;
     };
   };
+
+  # GNOME — show Log Out in the system menu (hidden by default on single-user systems)
+  dconf.settings = {
+    "org/gnome/shell" = {
+      always-show-log-out = true;
+    };
+  };
 }
