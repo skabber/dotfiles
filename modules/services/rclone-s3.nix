@@ -49,7 +49,14 @@ in
   config = mkIf cfg.enable {
     programs.fuse.userAllowOther = true;
 
-    environment.systemPackages = [ pkgs.rclone ];
+    security.wrappers.fusermount3 = {
+      source = "${pkgs.fuse3}/bin/fusermount3";
+      owner = "root";
+      group = "root";
+      setuid = true;
+    };
+
+    environment.systemPackages = [ pkgs.rclone pkgs.fuse3 ];
 
     systemd.tmpfiles.rules = [
       "d ${cfg.mountPoint} 0755 ${cfg.user} users -"
@@ -74,7 +81,7 @@ in
             --vfs-cache-mode ${cfg.vfsCacheMode} \
             --allow-other
         '';
-        ExecStop = "${pkgs.fuse}/bin/fusermount -u ${cfg.mountPoint}";
+        ExecStop = "/run/wrappers/bin/fusermount3 -u ${cfg.mountPoint}";
       };
     };
   };
