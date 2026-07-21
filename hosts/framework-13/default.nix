@@ -9,6 +9,7 @@
     ../../modules/rocm-dev.nix
     ../../modules/services/comfyui.nix
     ../../modules/services/ollama.nix
+    ../../modules/services/rclone-s3.nix
   ];
 
   # Hostname
@@ -18,6 +19,12 @@
   rocm-dev = {
     enable = true;
     architecture = "gfx1150";
+  };
+
+  # S3 bucket mount via rclone
+  rclone-s3 = {
+    enable = true;
+    bucket = "crumpet-jay";
   };
 
   # ComfyUI - Stable Diffusion node-based UI (ROCm, Python venv)

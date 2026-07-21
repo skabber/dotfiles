@@ -48,4 +48,12 @@ restore_services() {
 }
 trap restore_services EXIT
 
-sudo nixos-rebuild switch --flake ".#${HOST:-$(hostname)}" --max-jobs "$JOBS" --cores "$CORES"
+# Map system hostname -> flake config name. They differ for the Framework
+# laptops (e.g. flake framework-13 lives on host nixos-framework-13).
+case "$(hostname)" in
+  nixos-framework-13) DEFAULT_HOST="framework-13" ;;
+  nixos-framework)    DEFAULT_HOST="framework-16" ;;
+  *)                  DEFAULT_HOST="$(hostname)" ;;
+esac
+
+sudo nixos-rebuild switch --flake ".#${HOST:-$DEFAULT_HOST}" --max-jobs "$JOBS" --cores "$CORES"

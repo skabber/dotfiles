@@ -98,6 +98,18 @@
   home.file.".gitconfig".source = ../gitconfig;
   home.file.".zshrc".source = ../zshconfig;
 
+  programs.ssh = {
+    enable = true;
+    enableDefaultConfig = false;
+    settings."*" = {
+      IdentityAgent = "${config.home.homeDirectory}/.1password/agent.sock";
+    };
+  };
+
+  home.sessionVariables = {
+    SSH_AUTH_SOCK = "${config.home.homeDirectory}/.1password/agent.sock";
+  };
+
   # Direnv
   programs.direnv = {
     enable = true;

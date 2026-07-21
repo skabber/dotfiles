@@ -53,11 +53,21 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  # Skip openldap's flaky test017-syncreplication-refresh (timing-sensitive,
-  # fails intermittently on loaded build hosts). Pulled in transitively via bottles.
+  # Overrides scoped to packages pulled in transitively via bottles.
+  # - openldap: skip the flaky test017-syncreplication-refresh (timing-sensitive,
+  #   fails intermittently on loaded build hosts).
+  # - patool: 4.0.5's test suite breaks under Python 3.14 (bzip2/xz/lzma list_*
+  #   lookups and MIME detection). bottles depends on python3.14.patool, so the
+  #   override must go through pythonPackagesExtensions to reach every interpreter
+  #   rather than just the top-level patool application.
   nixpkgs.overlays = [
     (final: prev: {
       openldap = prev.openldap.overrideAttrs (_: { doCheck = false; });
+      pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+        (python-final: python-prev: {
+          patool = python-prev.patool.overridePythonAttrs (_: { doCheck = false; });
+        })
+      ];
     })
   ];
 
