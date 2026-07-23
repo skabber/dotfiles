@@ -31,6 +31,17 @@ in
     '';
   };
 
+  options.gitea.rootUrl = mkOption {
+    type = types.str;
+    default = "http://${cfg.domain}:${toString cfg.httpPort}/";
+    defaultText = literalExpression ''"http://\${cfg.domain}:\${toString cfg.httpPort}/"'';
+    description = ''
+      The public ROOT_URL Gitea uses to generate links. When Gitea sits behind
+      a TLS-terminating reverse proxy (e.g. Tailscale Serve), set this to the
+      https:// URL that users actually see.
+    '';
+  };
+
   options.gitea.openFirewall = mkOption {
     type = types.bool;
     default = false;
@@ -148,7 +159,7 @@ in
           DOMAIN = cfg.domain;
           HTTP_ADDR = cfg.httpAddr;
           HTTP_PORT = cfg.httpPort;
-          ROOT_URL = "http://${cfg.domain}:${toString cfg.httpPort}/";
+          ROOT_URL = cfg.rootUrl;
         };
         mailer = mkIf cfg.mailer.enable {
           ENABLED = true;

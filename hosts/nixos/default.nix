@@ -18,6 +18,7 @@
     ../../modules/services/paperless-gpt.nix
     ../../modules/services/romm.nix
     ../../modules/services/show-friends-preview.nix
+    ../../modules/services/samba.nix
   ];
 
   # Hostname
@@ -51,6 +52,7 @@
     enable = true;
     openFirewall = true;
     domain = "nixos.tail69fe1.ts.net";
+    rootUrl = "https://nixos.tail69fe1.ts.net:3000/";
     mailer = {
       enable = true;
       protocol = "dummy";
@@ -186,6 +188,14 @@
     port = 8070;
     libraryPath = "/run/media/jay/Crucial X8";
     environmentFile = "/home/jay/.secrets/romm.env";
+  };
+
+  samba-share = {
+    enable = true;
+    shares."Crucial X8" = {
+      path = "/run/media/jay/Crucial X8";
+      comment = "Crucial X8 external drive";
+    };
   };
 
   show-friends-preview = {
