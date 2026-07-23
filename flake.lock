@@ -1,5 +1,61 @@
 {
   "nodes": {
+    "crane": {
+      "locked": {
+        "lastModified": 1784564969,
+        "narHash": "sha256-TkTWNhJV/8Wk3czlbz4bwHZkFCaCHPsOy+oJe4PUiXg=",
+        "owner": "ipetkov",
+        "repo": "crane",
+        "rev": "7930f6c291de6f83c257839d434592aa085f290a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ipetkov",
+        "repo": "crane",
+        "type": "github"
+      }
+    },
+    "flake-utils": {
+      "inputs": {
+        "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "gtk-flash": {
+      "inputs": {
+        "crane": "crane",
+        "flake-utils": "flake-utils",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "rust-overlay": "rust-overlay"
+      },
+      "locked": {
+        "lastModified": 1784665947,
+        "narHash": "sha256-crMUPCawTY2D6nAdzRZGvAWa1o/pQscty7IGddA8cTM=",
+        "ref": "refs/heads/main",
+        "rev": "cae63e02ad2692f0d2ab84a8a7ca59c084077df0",
+        "revCount": 6,
+        "type": "git",
+        "url": "https://nixos.tail69fe1.ts.net:3000/skabber/gtk-flash.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://nixos.tail69fe1.ts.net:3000/skabber/gtk-flash.git"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -88,11 +144,48 @@
     },
     "root": {
       "inputs": {
+        "gtk-flash": "gtk-flash",
         "home-manager": "home-manager",
         "kokoro-fastapi-nix": "kokoro-fastapi-nix",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-libreoffice": "nixpkgs-libreoffice",
         "wallbag-rust": "wallbag-rust"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "gtk-flash",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1784611586,
+        "narHash": "sha256-OfqgY+0hp/zseZB7uyH0U8kIDPS4scZZCyAurEplvG0=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "14f58845249f3552a89b07772626b8d3c632fa86",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
       }
     },
     "wallbag-rust": {

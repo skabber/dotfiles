@@ -20,6 +20,10 @@
       url = "git+https://nixos.tail69fe1.ts.net:3000/skabber/wallbag-rust.git";
       flake = false;
     };
+    gtk-flash = {
+      url = "git+https://nixos.tail69fe1.ts.net:3000/skabber/gtk-flash.git";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -30,6 +34,7 @@
       home-manager,
       kokoro-fastapi-nix,
       wallbag-rust,
+      gtk-flash,
       ...
     }:
     let
@@ -60,6 +65,7 @@
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "backup";
               home-manager.users.jay = import ./home/${hostname}.nix;
             }
           ] ++ extraModules;
@@ -73,16 +79,18 @@
 
       nixosConfigurations = {
         nixos-ripper = mkHost { hostname = "nixos-ripper"; };
-        framework-13 = mkHost { hostname = "framework-13"; };
+        framework-13 = mkHost {
+          hostname = "framework-13";
+          extraModules = [
+            gtk-flash.nixosModules.default
+          ];
+        };
         framework-16 = mkHost { hostname = "framework-16"; };
         nixos = mkHost {
           hostname = "nixos";
           extraSpecialArgs = { inherit wallbag-rust; };
           extraModules = [
             kokoro-fastapi-nix.nixosModules.default
-            {
-              home-manager.backupFileExtension = "backup";
-            }
           ];
         };
       };

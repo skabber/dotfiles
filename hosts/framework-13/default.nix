@@ -38,6 +38,11 @@
   ollama.enable = true;
   ollama.igpuEnable = true;  # Radeon 890M (gfx1150) is an iGPU; ollama drops it by default
 
+  # Image Flasher — GNOME disk-image flasher (USB sticks). The module
+  # enables udisks2 + polkit via mkDefault; polkit is already enabled
+  # explicitly below, so only udisks2 will be newly turned on.
+  programs.gtk-flash.enable = true;
+
   # Framework 13 specific kernel params
   boot.kernelParams = [
     "ttm.pages_limit=22369536"

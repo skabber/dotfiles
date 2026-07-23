@@ -57,6 +57,7 @@
     obsidian
     flatpak
     appimage-run
+    impression
 
     # Utilities (local packages)
     (pkgs.callPackage ../pkgs/proton-drive-cli.nix {})
@@ -101,8 +102,18 @@
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
-    settings."*" = {
-      IdentityAgent = "${config.home.homeDirectory}/.1password/agent.sock";
+    settings = {
+      "*" = {
+        IdentityAgent = "${config.home.homeDirectory}/.1password/agent.sock";
+      };
+      "nixos" = {
+        HostName = "nixos.tail69fe1.ts.net";
+        User = "jay";
+      };
+      "nixos-ripper" = {
+        HostName = "nixos-ripper.tail69fe1.ts.net";
+        User = "jay";
+      };
     };
   };
 
