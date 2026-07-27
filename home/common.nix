@@ -78,7 +78,8 @@
 
     # GNOME extensions
     gnomeExtensions.tailscale-qs
-    gnomeExtensions.pano
+    # gnomeExtensions.pano
+    gnomeExtensions.gsconnect
   ];
 
   # Git configuration
@@ -141,6 +142,7 @@
   dconf.settings = {
     "org/gnome/shell" = {
       always-show-log-out = true;
+      enabled-extensions = [ "gsconnect@andyholmes.github.io" ];
     };
   };
 }

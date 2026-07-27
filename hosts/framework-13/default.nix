@@ -43,6 +43,11 @@
   # explicitly below, so only udisks2 will be newly turned on.
   programs.gtk-flash.enable = true;
 
+  programs.kdeconnect = {
+    enable = true;
+    package = null;
+  };
+
   # Framework 13 specific kernel params
   boot.kernelParams = [
     "ttm.pages_limit=22369536"
