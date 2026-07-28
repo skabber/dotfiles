@@ -7,23 +7,30 @@ HOST=""
 for arg in "$@"; do
   case "$arg" in
     --upgrade) UPGRADE=true ;;
+    --*) echo "error: unknown option '$arg'" >&2; exit 1 ;;
     *) HOST="$arg" ;;
   esac
 done
 
 cd "$(dirname "$0")/.."
 
+if [ -n "$HOST" ] && [ ! -d "hosts/$HOST" ]; then
+  echo "error: unknown host '$HOST' (expected one of: $(ls hosts))" >&2
+  exit 1
+fi
+
 # Per-build core cap. cores=0 (the Nix default) lets each build use ALL cores,
 # so a single ROCm kernel build (rocblas/miopen) OOMs regardless of --max-jobs.
-# Must be passed on the CLI too: the running system's nix.conf still has
-# cores=0 until this rebuild succeeds, so nix.settings alone can't save it.
-CORES=4
+# Passed on the CLI because the running system's nix.conf cap only takes
+# effect after a successful rebuild. Override with CORES=/JOBS= env vars.
+CORES=${CORES:-8}
 
-# Cap concurrent builds. With CORES above, total parallel compile jobs ~=
-# JOBS*CORES (4*4=16) keeps peak RAM bounded on memory-heavy ROCm builds.
-JOBS=$(( $(nproc) / 2 ))
+# Cap concurrent builds. Total parallel compile jobs ~= JOBS*CORES; on the
+# 64-core ripper this gives 4*8=32 (~half the machine), keeping peak RAM
+# bounded while leaving big ROCm builds 8 cores to work with.
+JOBS=${JOBS:-$(( $(nproc) / CORES / 2 ))}
 [ "$JOBS" -gt 4 ] && JOBS=4
-[ "$JOBS" -lt 1 ] && JOBS=1
+[ "$JOBS" -lt 2 ] && JOBS=2
 
 if [ "$UPGRADE" = true ]; then
   nix flake update
