@@ -75,6 +75,22 @@
   # Fingerprint
   services.fprintd.enable = true;
 
+  # Crucial X8 CIFS share (served by nixos). nofail + noauto +
+  # x-systemd.automount means it mounts on first access and doesn't block
+  # boot if the server is unreachable.
+  fileSystems."/mnt/crucial-x8" = {
+    device = "//nixos/Crucial X8";
+    fsType = "cifs";
+    options = [
+      "guest"
+      "uid=1000"
+      "gid=100"
+      "nofail"
+      "noauto"
+      "x-systemd.automount"
+      "x-systemd.idle-timeout=60"
+    ];
+  };
 
   # Security
   security.polkit.enable = true;
@@ -96,6 +112,7 @@
 
   # Framework-specific packages
   environment.systemPackages = with pkgs; [
+    cifs-utils
     (btop.override { rocmSupport = true; })
     pulseaudio
     dwarfs

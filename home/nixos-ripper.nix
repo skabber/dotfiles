@@ -71,7 +71,7 @@
     code-cursor
 
     # GNOME extensions
-    gnomeExtensions.pano
+    # gnomeExtensions.pano
     gnomeExtensions.xremap
     xremap
   ];

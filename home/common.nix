@@ -29,6 +29,7 @@
     tmux
     alsa-utils
     ffmpeg
+    superfile
 
     # Development
     nodejs_22
