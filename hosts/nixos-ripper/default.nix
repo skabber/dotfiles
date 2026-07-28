@@ -153,6 +153,21 @@
       whisper-cpp = prev.whisper-cpp.overrideAttrs (old: {
         doBuild = false;
       });
+      # lact 0.9.1's vendored libdisplay-info-sys 0.3.0 requires
+      # libdisplay-info < 0.4.0, but nixpkgs now ships 0.4.0. Pin 0.3.0 for
+      # lact, mirroring upstream's libdisplay-info_0_3 fix.
+      lact = prev.lact.override {
+        libdisplay-info = prev.libdisplay-info.overrideAttrs (finalAttrs: _: {
+          version = "0.3.0";
+          src = prev.fetchFromGitLab {
+            domain = "gitlab.freedesktop.org";
+            owner = "emersion";
+            repo = "libdisplay-info";
+            rev = finalAttrs.version;
+            hash = "sha256-nXf2KGovNKvcchlHlzKBkAOeySMJXgxMpbi5z9gLrdc=";
+          };
+        });
+      };
       # proton-vpn -> proton-core pulls in python-gnupg, whose test_no_such_key
       # races gpg-agent socket teardown (S.gpg-agent.ssh vanishes mid-cleanup)
       # and fails nondeterministically. Skip its checks (upstream test bug).
