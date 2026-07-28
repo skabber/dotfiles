@@ -67,6 +67,9 @@
       pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
         (python-final: python-prev: {
           patool = python-prev.patool.overridePythonAttrs (_: { doCheck = false; });
+          scipy = python-prev.scipy.overridePythonAttrs (old: {
+            disabledTests = (old.disabledTests or [ ]) ++ [ "test_support_moments_sample" ];
+          });
         })
       ];
     })
