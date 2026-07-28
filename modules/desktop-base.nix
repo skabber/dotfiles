@@ -27,5 +27,7 @@
     wayland-utils
     wl-clipboard
     wlroots
+    glycin-thumbnailer
+    libheif
   ];
 }

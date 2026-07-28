@@ -29,6 +29,7 @@
     tmux
     alsa-utils
     ffmpeg
+    superfile
 
     # Development
     nodejs_22
@@ -78,7 +79,7 @@
 
     # GNOME extensions
     gnomeExtensions.tailscale-qs
-    gnomeExtensions.pano
+    # gnomeExtensions.pano
   ];
 
   # Git configuration
