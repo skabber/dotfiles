@@ -24,6 +24,10 @@
       url = "git+https://nixos.tail69fe1.ts.net:3000/skabber/gtk-flash.git";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    pain = {
+      url = "github:skabber/pain";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -35,6 +39,7 @@
       kokoro-fastapi-nix,
       wallbag-rust,
       gtk-flash,
+      pain,
       ...
     }:
     let
@@ -78,7 +83,12 @@
       };
 
       nixosConfigurations = {
-        nixos-ripper = mkHost { hostname = "nixos-ripper"; };
+        nixos-ripper = mkHost {
+          hostname = "nixos-ripper";
+          extraModules = [
+            (_: { environment.systemPackages = [ pain.packages.${system}.default ]; })
+          ];
+        };
         framework-13 = mkHost {
           hostname = "framework-13";
           extraModules = [

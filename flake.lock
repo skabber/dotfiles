@@ -213,6 +213,26 @@
         "type": "github"
       }
     },
+    "pain": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785343385,
+        "narHash": "sha256-Bsz75nYwLtCrKiyPSXkdFFVz5i7bcsX+yHCp+bgBKDc=",
+        "owner": "skabber",
+        "repo": "pain",
+        "rev": "78aacbf7ab98f57e362c901d4410b27f9a95fb96",
+        "type": "github"
+      },
+      "original": {
+        "owner": "skabber",
+        "repo": "pain",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "gtk-flash": "gtk-flash",
@@ -220,6 +240,7 @@
         "kokoro-fastapi-nix": "kokoro-fastapi-nix",
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-libreoffice": "nixpkgs-libreoffice",
+        "pain": "pain",
         "wallbag-rust": "wallbag-rust"
       }
     },
