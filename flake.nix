@@ -44,7 +44,10 @@
     }:
     let
       system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
+      # import (not legacyPackages) so the unfree proton-drive-cli in `packages`
+      # evaluates under `nix flake check`; system configs get allowUnfree from
+      # modules/common.nix separately.
+      pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
 
       libreofficeOverlay = _final: _prev: {
         libreoffice = nixpkgs-libreoffice.legacyPackages.${system}.libreoffice;
