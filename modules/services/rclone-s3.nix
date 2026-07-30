@@ -73,6 +73,7 @@ in
         User = cfg.user;
         Restart = "on-failure";
         RestartSec = "15s";
+        Environment = "PATH=${config.security.wrapperDir}:/run/current-system/sw/bin";
         EnvironmentFile = cfg.environmentFile;
         ExecStart = ''
           ${pkgs.rclone}/bin/rclone mount \

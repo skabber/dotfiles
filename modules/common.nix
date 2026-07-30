@@ -61,6 +61,8 @@
   #   lookups and MIME detection). bottles depends on python3.14.patool, so the
   #   override must go through pythonPackagesExtensions to reach every interpreter
   #   rather than just the top-level patool application.
+  # - python-gnupg: test_no_such_key races gpg-agent socket cleanup (S.gpg-agent.*
+  #   vanishes between os.walk and os.remove). Needed by proton-core/proton-vpn.
   nixpkgs.overlays = [
     (final: prev: {
       openldap = prev.openldap.overrideAttrs (_: { doCheck = false; });
@@ -69,6 +71,9 @@
           patool = python-prev.patool.overridePythonAttrs (_: { doCheck = false; });
           scipy = python-prev.scipy.overridePythonAttrs (old: {
             disabledTests = (old.disabledTests or [ ]) ++ [ "test_support_moments_sample" ];
+          });
+          python-gnupg = python-prev.python-gnupg.overridePythonAttrs (old: {
+            disabledTests = (old.disabledTests or [ ]) ++ [ "test_no_such_key" ];
           });
         })
       ];
