@@ -30,6 +30,7 @@
     alsa-utils
     ffmpeg
     superfile
+    proton-vpn
 
     # Development
     nodejs_22
@@ -38,6 +39,7 @@
     vim
     neovim
     fresh-editor
+    nsz
 
     # Language servers
     typescript-language-server
