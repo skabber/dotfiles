@@ -2,6 +2,12 @@
 { config, pkgs, lib, ... }:
 
 {
+  programs.gdk-pixbuf.modulePackages = [
+    pkgs.librsvg
+    pkgs.webp-pixbuf-loader
+    pkgs.libheif.lib
+  ];
+
   services.xserver.enable = true;
 
   services.displayManager.gdm.enable = true;
