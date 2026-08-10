@@ -8,6 +8,24 @@
     pkgs.libheif.lib
   ];
 
+  # programs.gdk-pixbuf.modulePackages generates a merged loaders.cache and
+  # exposes it via environment.sessionVariables, but wrapGAppsHook bakes
+  # GDK_PIXBUF_MODULE_FILE into each app's binary wrapper at build time —
+  # using whichever cache the gdk-pixbuf setup-hook finds longest (librsvg's
+  # internal cache wins, which lacks webp/heif). Override sushi so its build
+  # sees the full merged cache and bakes the correct path into the wrapper.
+  nixpkgs.overlays = [
+    (final: prev: {
+      gdkPixbufLoadersCache = prev.gnome._gdkPixbufCacheBuilder_DO_NOT_USE {
+        extraLoaders = [ prev.librsvg prev.webp-pixbuf-loader prev.libheif.lib ];
+      };
+
+      sushi = prev.sushi.overrideAttrs (_: {
+        GDK_PIXBUF_MODULE_FILE = final.gdkPixbufLoadersCache;
+      });
+    })
+  ];
+
   services.xserver.enable = true;
 
   services.displayManager.gdm.enable = true;
