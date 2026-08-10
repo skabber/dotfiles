@@ -19,6 +19,7 @@
     ../../modules/services/romm.nix
     ../../modules/services/show-friends-preview.nix
     ../../modules/services/samba.nix
+    ../../modules/services/flatpak.nix
   ];
 
   # Hostname
@@ -39,7 +40,14 @@
   };
 
   # Flatpak support
-  services.flatpak.enable = true;
+  flatpak = {
+    enable = true;
+    remotes = {
+      "orion-beta" = {
+        url = "https://flatpak.orionbrowser.com/orion-beta.flatpakrepo";
+      };
+    };
+  };
   xdg.portal.enable = true;
 
   # Prevent GDM from suspending before user login

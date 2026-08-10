@@ -10,6 +10,7 @@
     ../../modules/services/comfyui.nix
     ../../modules/services/ollama.nix
     ../../modules/services/rclone-s3.nix
+    ../../modules/services/flatpak.nix
   ];
 
   # Hostname
@@ -37,6 +38,16 @@
   # Ollama + Open WebUI
   ollama.enable = true;
   ollama.igpuEnable = true;  # Radeon 890M (gfx1150) is an iGPU; ollama drops it by default
+
+  # Flatpak support
+  flatpak = {
+    enable = true;
+    remotes = {
+      "orion-beta" = {
+        url = "https://flatpak.orionbrowser.com/orion-beta.flatpakrepo";
+      };
+    };
+  };
 
   # Image Flasher — GNOME disk-image flasher (USB sticks). The module
   # enables udisks2 + polkit via mkDefault; polkit is already enabled

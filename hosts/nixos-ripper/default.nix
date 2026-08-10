@@ -10,6 +10,7 @@
     ../../modules/services/ollama.nix
     ../../modules/services/sunshine.nix
     ../../modules/services/nixnews.nix
+    ../../modules/services/flatpak.nix
   ];
 
   # Hostname
@@ -24,7 +25,14 @@
   };
 
   # Flatpak support
-  services.flatpak.enable = true;
+  flatpak = {
+    enable = true;
+    remotes = {
+      "orion-beta" = {
+        url = "https://flatpak.orionbrowser.com/orion-beta.flatpakrepo";
+      };
+    };
+  };
 
   # Zram swap (fast, compressed RAM, priority 5) is used first; the disk swap
   # file below is a lower-priority overflow net for ROCm build spikes that
