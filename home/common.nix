@@ -14,7 +14,8 @@
     # Core tools
     ghostty.terminfo
     lsof
-    # cemu
+    cemu
+    file-roller
     htop
     git
     git-lfs
@@ -38,6 +39,7 @@
     vim
     neovim
     fresh-editor
+    devenv
 
     # Language servers
     typescript-language-server

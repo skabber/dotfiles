@@ -54,7 +54,6 @@
     vte
 
     # Gaming
-    # cemu
     ryubing
     # API tools
     bruno
