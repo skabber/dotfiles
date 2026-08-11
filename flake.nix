@@ -49,35 +49,9 @@
       # modules/common.nix separately.
       pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
 
-      libreofficeOverlay = _final: _prev: {
-        libreoffice = nixpkgs-libreoffice.legacyPackages.${system}.libreoffice;
-      };
-
-      googleCloudSdkModule = { pkgs, ... }: {
-        environment.systemPackages = [ pkgs.google-cloud-sdk ];
-      };
-      nixLdModule = {
-        programs.nix-ld.enable = true;
-      };
-
-      mkHost = { hostname, extraModules ? [ ], extraSpecialArgs ? { } }:
-        nixpkgs.lib.nixosSystem {
-          specialArgs = extraSpecialArgs;
-          modules = [
-            { nixpkgs.hostPlatform = system; }
-            { nixpkgs.overlays = [ libreofficeOverlay ]; }
-            ./hosts/${hostname}/default.nix
-            googleCloudSdkModule
-            nixLdModule
-            home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "backup";
-              home-manager.users.jay = import ./home/${hostname}.nix;
-            }
-          ] ++ extraModules;
-        };
+      inherit (import ./lib/mkHost.nix {
+        inherit self nixpkgs nixpkgs-libreoffice home-manager system;
+      }) mkHost;
     in
     {
       packages.${system} = {
