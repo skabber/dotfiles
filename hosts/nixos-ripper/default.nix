@@ -11,6 +11,7 @@
     ../../modules/services/sunshine.nix
     ../../modules/services/nixnews.nix
     ../../modules/services/flatpak.nix
+    ../../modules/services/crucial-x8.nix
   ];
 
   # Hostname
@@ -24,15 +25,8 @@
     architecture = [ "gfx1030" "gfx90a" ];
   };
 
-  # Flatpak support
-  flatpak = {
-    enable = true;
-    remotes = {
-      "orion-beta" = {
-        url = "https://flatpak.orionbrowser.com/orion-beta.flatpakrepo";
-      };
-    };
-  };
+  # Flatpak support (orion-beta remote is set by the flatpak module by default)
+  flatpak.enable = true;
 
   # Zram swap (fast, compressed RAM, priority 5) is used first; the disk swap
   # file below is a lower-priority overflow net for ROCm build spikes that
@@ -67,22 +61,8 @@
     "d /mnt/external 0777 root root - -"
   ];
 
-  # Crucial X8 CIFS share (served by nixos). nofail + noauto +
-  # x-systemd.automount means it mounts on first access and doesn't block
-  # boot if the server is unreachable.
-  fileSystems."/mnt/crucial-x8" = {
-    device = "//nixos/Crucial X8";
-    fsType = "cifs";
-    options = [
-      "guest"
-      "uid=1000"
-      "gid=100"
-      "nofail"
-      "noauto"
-      "x-systemd.automount"
-      "x-systemd.idle-timeout=60"
-    ];
-  };
+  # Crucial X8 CIFS share (served by nixos)
+  crucial-x8.enable = true;
 
   # LACT (AMD GPU control)
   systemd.packages = with pkgs; [ lact ];
@@ -194,7 +174,6 @@
 
   # Threadripper-specific packages
   environment.systemPackages = with pkgs; [
-    cifs-utils
     (btop.override { rocmSupport = true; })
     wirelesstools
     iw

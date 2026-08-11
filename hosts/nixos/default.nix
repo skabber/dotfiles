@@ -39,15 +39,8 @@
     options = [ "nofail" "noauto" "x-systemd.automount" "x-systemd.idle-timeout=600" "uid=1000" "gid=100" "iocharset=utf8" "errors=remount-ro" ];
   };
 
-  # Flatpak support
-  flatpak = {
-    enable = true;
-    remotes = {
-      "orion-beta" = {
-        url = "https://flatpak.orionbrowser.com/orion-beta.flatpakrepo";
-      };
-    };
-  };
+  # Flatpak support (orion-beta remote is set by the flatpak module by default)
+  flatpak.enable = true;
   xdg.portal.enable = true;
 
   # Prevent GDM from suspending before user login
