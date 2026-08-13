@@ -42,6 +42,7 @@
     fresh-editor
     devenv
     nsz
+    awscli2
 
     # Language servers
     typescript-language-server
