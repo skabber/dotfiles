@@ -32,23 +32,6 @@ let
     libreoffice = nixpkgs-libreoffice.legacyPackages.${system}.libreoffice;
   };
 
-  # Temporary: nixpkgs lags upstream. Override until 0.32.9 lands in unstable.
-  # nixpkgs has no `ollama` base attr — only ollama-cpu / -rocm / -cuda / -vulkan,
-  # each a separate callPackage of the same package.nix. This flake only uses
-  # ollama-rocm, so override that one. The vendorHash is wrong on first eval;
-  # Nix prints the right one — paste it in and rebuild.
-  ollamaBump = oldAttrs: {
-    version = "0.32.9";
-    src = oldAttrs.src.override {
-      tag = "v0.32.9";
-      hash = "sha256-6BDUXDF5pXL3stffvtNJOnhC0A1xjPv43ZpsxegXm4w=";
-    };
-    vendorHash = "sha256-HMwoaFBMbpoy8f0I+O+i7kIa9BslLu3FcVWeaIOkpvs=";
-  };
-  ollamaOverlay = _final: prev: {
-    ollama-rocm = prev.ollama-rocm.overrideAttrs ollamaBump;
-  };
-
   # Small inline modules baked into every host.
   googleCloudSdkModule = { pkgs, ... }: {
     environment.systemPackages = [ pkgs.google-cloud-sdk ];
@@ -69,10 +52,7 @@ in
       specialArgs = extraSpecialArgs;
       modules = [
         { nixpkgs.hostPlatform = system; }
-        { nixpkgs.overlays = [
-          libreofficeOverlay
-          ollamaOverlay
-        ]; }
+        { nixpkgs.overlays = [ libreofficeOverlay ]; }
         "${root}/hosts/${hostname}/default.nix"
         googleCloudSdkModule
         nixLdModule
