@@ -48,6 +48,13 @@ in
         };
     };
 
+    # Order after the AMD compute node: ollama discovers GPUs once at startup and
+    # would otherwise race amdgpu/kfd init at boot and silently fall back to CPU
+    systemd.services.ollama = {
+      after = [ "dev-kfd.device" ];
+      wants = [ "dev-kfd.device" ];
+    };
+
     # Allow Docker containers to reach Ollama
     networking.firewall.interfaces."docker0".allowedTCPPorts = [ 11434 ];
     # Allow other Tailscale peers (e.g. paperless-ai/paperless-gpt on nixos host) to reach Ollama
