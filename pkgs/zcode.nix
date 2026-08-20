@@ -83,8 +83,9 @@ stdenvNoCC.mkDerivation {
   '';
 
   meta = {
+    lib = lib;  # inherit platforms
     description = "ZCode desktop AppImage, wrapped for NixOS";
     mainProgram = "zcode";
-    platforms = platforms.linux;
+    platforms = lib.platforms.linux;
   };
 }
