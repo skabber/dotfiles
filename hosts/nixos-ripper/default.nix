@@ -75,11 +75,11 @@
   security.pam.services = {
     login.u2fAuth = true;
     sudo.u2fAuth = true;
+    sudo.yubicoAuth = false;
   };
 
   security.pam.yubico = {
     enable = true;
-    debug = true;
     mode = "challenge-response";
     id = [ "31141322" ];
   };
