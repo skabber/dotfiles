@@ -1,12 +1,12 @@
 # ZCode desktop AppImage wrapper.
 #
-# Runs the prebuilt AppImage through appimage-run (FHS env + Electron --no-sandbox
-# so it works on NixOS) and registers the `zcode://` URI scheme handler so the
-# in-app OAuth login redirect finds its way back to the app.
+# Runs the prebuilt AppImage through appimage-run (FHS env + Electron
+# `--no-sandbox` so it works on NixOS) and registers the `zcode://` URI scheme
+# handler so the in-app OAuth login redirect finds its way back to the app.
 #
-# The AppImage is fetched from the ZCode CDN by URL + content hash, so eval stays
-# pure (no local file in ~/Downloads or the flake). To upgrade, bump `version`
-# and refresh `hash` with:
+# The AppImage is fetched from the ZCode CDN by URL + content hash, so eval
+# stays pure (no local file in ~/Downloads or the flake). To upgrade, bump
+# `version` and refresh `hash` with:
 #   nix store prefetch-file --hash-type sha256 <url>
 {
   lib,
@@ -18,10 +18,10 @@
   copyDesktopItems,
 }:
 let
-  version = "3.7.7";
+  version = "3.8.1";
   src = fetchurl {
     url = "https://cdn-zcode.z.ai/zcode/electron/releases/${version}/linux-x64/ZCode-${version}-linux-x64.AppImage";
-    hash = "sha256-TrHHWaodupIwRcjNi8OsA1Tpn2vjx/qzYkNywd+UDmI=";
+    hash = "sha256-b420dea50961b77d5c75b08b924da41ab529c720a7ec32eacbe95a6d843199e0=";
   };
 
   bin = writeShellScriptBin "zcode" ''
@@ -82,7 +82,7 @@ stdenvNoCC.mkDerivation {
     runHook postInstall
   '';
 
-  meta = with lib; {
+  meta = {
     description = "ZCode desktop AppImage, wrapped for NixOS";
     mainProgram = "zcode";
     platforms = platforms.linux;
