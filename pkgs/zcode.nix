@@ -21,7 +21,7 @@ let
   version = "3.8.1";
   src = fetchurl {
     url = "https://cdn-zcode.z.ai/zcode/electron/releases/${version}/linux-x64/ZCode-${version}-linux-x64.AppImage";
-    hash = "sha256-b420dea50961b77d5c75b08b924da41ab529c720a7ec32eacbe95a6d843199e0=";
+    hash = "sha256-tCDepQlht31cdbCLkk2kGrUpxyCn7DLqy+labYQxmeA=";
   };
 
   bin = writeShellScriptBin "zcode" ''
