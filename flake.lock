@@ -199,11 +199,19 @@
     },
     "nixpkgs_3": {
       "locked": {
+<<<<<<< HEAD
         "lastModified": 1786862985,
         "narHash": "sha256-FBJRXmbGXiSUDvYEbfLYRkckayyZ6SK1UEqhCrIZ2Cs=",
         "owner": "NixOS",
         "repo": "nixpkgs",
         "rev": "e5bdc4a41d4c072fe1e3787eaa0320a384741d44",
+=======
+        "lastModified": 1787001381,
+        "narHash": "sha256-Ue1Yo8gfHdD4TMtNewhA4tkSYeFqXThju0nCyJc3ALo=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "ec2d622de0773551768cf98f3fc50cbcc003b9c5",
+>>>>>>> e0b4022 (refactor(mkHost): pin dwarfs to clean nixpkgs instance)
         "type": "github"
       },
       "original": {

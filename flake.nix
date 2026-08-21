@@ -7,7 +7,9 @@
     # it must come from a nixpkgs instance free of the openldap override in
     # modules/common.nix (LibreOffice depends on openldap, and overriding it
     # invalidates the binary cache for both). Bump when you actually want a
-    # newer LibreOffice.
+    # newer LibreOffice. This instance also pins dwarfs, which is broken on
+    # unstable (bundled folly/fbthrift vs current fmt/GCC) — see
+    # lib/mkHost.nix. Verify a green hydra window for dwarfs when bumping.
     nixpkgs-libreoffice.url = "github:NixOS/nixpkgs/b5aa0fbd538984f6e3d201be0005b4463d8b09f8";
     home-manager = {
       url = "github:nix-community/home-manager";

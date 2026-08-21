@@ -26,10 +26,15 @@ let
   # Root of the flake (self) — paths below are resolved relative to this.
   root = self;
 
-  # Pin LibreOffice to a separate nixpkgs instance so the openldap override in
-  # modules/common.nix doesn't invalidate its binary cache.
-  libreofficeOverlay = _final: _prev: {
+  # Packages pinned to a second, older nixpkgs instance:
+  # - libreoffice: the openldap override in modules/common.nix invalidates its
+  #   binary cache, so it comes from a clean instance (see flake.nix).
+  # - dwarfs: 0.14.0 bundles 2023-era folly/fbthrift that no longer builds
+  #   against current fmt/GCC (broken on hydra repeatedly since 2026-06,
+  #  no upstream commits since). Drop when nixpkgs fixes it.
+  pinnedPackagesOverlay = _final: _prev: {
     libreoffice = nixpkgs-libreoffice.legacyPackages.${system}.libreoffice;
+    dwarfs = nixpkgs-libreoffice.legacyPackages.${system}.dwarfs;
   };
 
   # Small inline modules baked into every host.
@@ -52,7 +57,7 @@ in
       specialArgs = extraSpecialArgs;
       modules = [
         { nixpkgs.hostPlatform = system; }
-        { nixpkgs.overlays = [ libreofficeOverlay ]; }
+        { nixpkgs.overlays = [ pinnedPackagesOverlay ]; }
         "${root}/hosts/${hostname}/default.nix"
         googleCloudSdkModule
         nixLdModule
