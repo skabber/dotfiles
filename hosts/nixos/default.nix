@@ -11,6 +11,7 @@
     ../../modules/services/wallabag.nix
     ../../modules/services/syncthing.nix
     ../../modules/services/whisperx.nix
+    ../../modules/services/moss-transcribe.nix
     ../../modules/services/wallabag-tts.nix
     ../../modules/services/defuddle.nix
     ../../modules/services/paperless.nix
@@ -144,6 +145,13 @@
     port = 8007;
     openFirewall = true;
     # hfTokenFile = "/run/secrets/hf-token";  # uncomment to enable diarization
+  };
+
+  moss-transcribe = {
+    enable = true;
+    port = 8010;
+    openFirewall = true;
+    tailscaleServe = true;
   };
 
   defuddle = {
