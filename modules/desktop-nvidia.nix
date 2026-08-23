@@ -21,7 +21,10 @@
     powerManagement.finegrained = false;
     open = false;
     nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.vulkan_beta;
+    # vulkan_beta 595.44.09 fails to compile against kernel 7.2 (implicit
+    # strncpy declaration is now a hard error); stable 595.91.07 is newer
+    # anyway and substitutes from cache.
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
   environment.sessionVariables = {
