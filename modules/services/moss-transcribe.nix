@@ -46,6 +46,12 @@ in
       description = "Maximum sequence length. Audio is ~375 tokens per 30s, so 32768 covers ~40 minutes per request. Must fit in the KV cache budget.";
     };
 
+    maxBatchedTokens = mkOption {
+      type = types.int;
+      default = 16384;
+      description = "Scheduler token budget; also sizes the encoder cache, which caps audio length per request (~12.5 tokens/s of audio). 16384 ≈ 22 minutes.";
+    };
+
     vllmIndexUrl = mkOption {
       type = types.str;
       default = "https://wheels.vllm.ai/68b4a1d582818e67adc903bf1b8fc5a5447da2fa/cu130";
@@ -125,6 +131,8 @@ in
         VLLM_USE_FLASHINFER_SAMPLER = "0";
         # Keep torch.compile/triton caches in the state dir instead of /root.
         VLLM_CACHE_ROOT = "/var/lib/moss-transcribe/cache";
+        # Allow decoding files up to 22 min (default 600s guard would reject them).
+        VLLM_MAX_AUDIO_DECODE_DURATION_S = toString (cfg.maxBatchedTokens * 60 / 750);
       };
 
       serviceConfig = {
@@ -139,6 +147,7 @@ in
             --trust-remote-code \
             --gpu-memory-utilization ${toString cfg.gpuMemoryUtilization} \
             --max-model-len ${toString cfg.maxModelLen} \
+            --max-num-batched-tokens ${toString cfg.maxBatchedTokens} \
             ${concatStringsSep " " cfg.extraArgs}
         '';
         Restart = "on-failure";
