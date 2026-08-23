@@ -52,6 +52,9 @@ let
     mossPackage
     (torch.override { rocmSupport = true; })
   ]);
+  # When serve is enabled, bind loopback only so tailscaled owns the tailnet
+  # IP:port and terminates TLS; a 0.0.0.0 bind would shadow the serve proxy.
+  bindHost = if cfg.serve then "127.0.0.1" else cfg.host;
 in
 {
   options.moss-transcribe = {
@@ -98,6 +101,12 @@ in
       default = false;
       description = "Whether to open the firewall port.";
     };
+
+    serve = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Expose over HTTPS via Tailscale Serve (https://<host>.tail69fe1.ts.net:<port>).";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -118,7 +127,7 @@ in
           "${pythonEnv}/bin/mtd-subtitle-web"
           "--model ${cfg.modelPath}"
           "--runs-dir /var/lib/moss-transcribe/runs"
-          "--host ${cfg.host}"
+          "--host ${bindHost}"
           "--port ${toString cfg.port}"
           "--device ${cfg.device}"
           "--dtype ${cfg.dtype}"
@@ -132,5 +141,20 @@ in
     };
 
     networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [ cfg.port ];
+
+    systemd.services.tailscale-serve-moss-transcribe = mkIf cfg.serve {
+      description = "Tailscale Serve for MOSS-Transcribe-Diarize";
+      after = [ "tailscaled.service" "moss-transcribe.service" ];
+      wants = [ "tailscaled.service" "moss-transcribe.service" ];
+      wantedBy = [ "multi-user.target" ];
+      path = [ pkgs.tailscale ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStartPre = "${pkgs.bash}/bin/bash -c 'for i in $(seq 1 30); do tailscale status >/dev/null 2>&1 && exit 0; sleep 1; done; exit 1'";
+        ExecStart = "${pkgs.tailscale}/bin/tailscale serve --bg --https=${toString cfg.port} http://127.0.0.1:${toString cfg.port}";
+        ExecStop = "${pkgs.tailscale}/bin/tailscale serve --https=${toString cfg.port} off";
+      };
+    };
   };
 }

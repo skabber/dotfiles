@@ -132,7 +132,10 @@
   nixnews.serve = true;
 
   # MOSS-Transcribe-Diarize (speaker-diarized transcription, ROCm)
-  moss-transcribe.enable = true;
+  moss-transcribe = {
+    enable = true;
+    serve = true;
+  };
 
   # Permitted insecure packages
   nixpkgs.config.permittedInsecurePackages = [
