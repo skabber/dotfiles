@@ -12,6 +12,7 @@
     ../../modules/services/nixnews.nix
     ../../modules/services/flatpak.nix
     ../../modules/services/crucial-x8.nix
+    ../../modules/services/moss-transcribe.nix
   ];
 
   # Hostname
@@ -129,6 +130,9 @@
 
   nixnews.enable = true;
   nixnews.serve = true;
+
+  # MOSS-Transcribe-Diarize (speaker-diarized transcription, ROCm)
+  moss-transcribe.enable = true;
 
   # Permitted insecure packages
   nixpkgs.config.permittedInsecurePackages = [
