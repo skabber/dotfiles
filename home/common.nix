@@ -15,6 +15,7 @@
     ghostty.terminfo
     lsof
     cemu
+    rpcs3
     file-roller
     htop
     git
