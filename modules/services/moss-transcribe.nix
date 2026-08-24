@@ -22,6 +22,12 @@ in
       description = "Port for the OpenAI-compatible transcription API.";
     };
 
+    host = mkOption {
+      type = types.str;
+      default = "127.0.0.1";
+      description = "Address to bind. Loopback by default so Tailscale Serve owns the public listener (a 0.0.0.0 bind conflicts with the serve proxy on the tailscale IPs).";
+    };
+
     modelPath = mkOption {
       type = types.str;
       default = "/home/jay/dotfiles/models/MOSS-Transcribe-Diarize";
@@ -142,7 +148,7 @@ in
           source /var/lib/moss-transcribe/venv/bin/activate
           exec vllm serve ${cfg.modelPath} \
             --served-model-name ${cfg.modelName} \
-            --host 0.0.0.0 \
+            --host ${cfg.host} \
             --port ${toString cfg.port} \
             --trust-remote-code \
             --gpu-memory-utilization ${toString cfg.gpuMemoryUtilization} \
