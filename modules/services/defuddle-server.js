@@ -6,6 +6,7 @@ const path = require('path');
 
 const DEFUDDLE_DIR = process.env.DEFUDDLE_DIR || '/home/jay/Projects/defuddle';
 const PORT = parseInt(process.env.DEFUDDLE_PORT || '3002', 10);
+const HOST = process.env.DEFUDDLE_HOST || '127.0.0.1';
 
 // Load defuddle from its build output
 const { Defuddle } = require(path.join(DEFUDDLE_DIR, 'dist/node.js'));
@@ -149,6 +150,6 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, () => {
-  console.log(`Defuddle server listening on port ${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`Defuddle server listening on ${HOST}:${PORT}`);
 });

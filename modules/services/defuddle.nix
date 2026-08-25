@@ -19,6 +19,12 @@ in
       description = "Port for the Defuddle HTTP server.";
     };
 
+    host = mkOption {
+      type = types.str;
+      default = "127.0.0.1";
+      description = "Address to bind. Loopback by default so Tailscale Serve owns the public listener.";
+    };
+
     sourceDir = mkOption {
       type = types.str;
       default = "/home/jay/Projects/defuddle";
@@ -59,6 +65,7 @@ in
       environment = {
         DEFUDDLE_DIR = cfg.sourceDir;
         DEFUDDLE_PORT = toString cfg.port;
+        DEFUDDLE_HOST = cfg.host;
         NODE_ENV = "production";
       };
 
