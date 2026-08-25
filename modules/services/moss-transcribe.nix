@@ -107,6 +107,17 @@ in
       default = false;
       description = "Expose over HTTPS via Tailscale Serve (https://<host>.tail69fe1.ts.net:<port>).";
     };
+
+    idleUnloadMinutes = mkOption {
+      type = types.ints.unsigned;
+      default = 30;
+      description = ''
+        Restart the service after this many idle minutes so the resident
+        model releases its ~2 GB of VRAM (the service lazy-loads on the
+        first job and has no unload API; a restart costs ~7 s on the next
+        job). 0 disables the idle unload.
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -154,6 +165,45 @@ in
         ExecStartPre = "${pkgs.bash}/bin/bash -c 'for i in $(seq 1 30); do tailscale status >/dev/null 2>&1 && exit 0; sleep 1; done; exit 1'";
         ExecStart = "${pkgs.tailscale}/bin/tailscale serve --bg --https=${toString cfg.port} http://127.0.0.1:${toString cfg.port}";
         ExecStop = "${pkgs.tailscale}/bin/tailscale serve --https=${toString cfg.port} off";
+      };
+    };
+
+    # Idle unload: the service lazy-loads its model on the first job and then
+    # holds ~2 GB of VRAM forever (no unload API). When nothing has touched
+    # it for idleUnloadMinutes, restart the unit to hand the VRAM back to
+    # Ollama summarization. A model load always emits the "MOSS attention"
+    # probe lines to the journal, so their presence since the unit started
+    # means the model is still resident.
+    systemd.services.moss-idle-unload = mkIf (cfg.idleUnloadMinutes > 0) {
+      description = "Release the resident MOSS model's VRAM after idle";
+      serviceConfig.Type = "oneshot";
+      path = [ pkgs.curl pkgs.jq pkgs.findutils pkgs.systemd ];
+      script = ''
+        base="http://127.0.0.1:${toString cfg.port}"
+        # A queued/running/rendering job means the GPU is (about to be) busy.
+        if curl -sf "$base/api/jobs" \
+            | jq -e '[.jobs[] | select(.status == "queued" or .status == "running" or .status == "rendering")] | length > 0' \
+            >/dev/null 2>&1; then
+          exit 0
+        fi
+        # Recent job activity (run files still being written)? Keep it warm.
+        if [ -n "$(find /var/lib/moss-transcribe/runs -type f -newermt '${toString cfg.idleUnloadMinutes} minutes ago' -print -quit 2>/dev/null)" ]; then
+          exit 0
+        fi
+        # Model still loaded in the current process?
+        started="$(systemctl show -p ActiveEnterTimestamp --value moss-transcribe.service)"
+        if journalctl -u moss-transcribe --since "$started" --no-pager 2>/dev/null | grep -q "MOSS attention"; then
+          echo "moss idle for ${toString cfg.idleUnloadMinutes}m with the model loaded — restarting to release VRAM"
+          systemctl try-restart moss-transcribe.service
+        fi
+      '';
+    };
+
+    systemd.timers.moss-idle-unload = mkIf (cfg.idleUnloadMinutes > 0) {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnCalendar = "*:0/10";
+        Persistent = true;
       };
     };
   };

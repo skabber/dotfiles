@@ -8,11 +8,13 @@
     ../../modules/desktop.nix
     ../../modules/rocm-dev.nix
     ../../modules/services/ollama.nix
+    ../../modules/services/gpu-status.nix
     ../../modules/services/sunshine.nix
     ../../modules/services/nixnews.nix
     ../../modules/services/flatpak.nix
     ../../modules/services/crucial-x8.nix
     ../../modules/services/moss-transcribe.nix
+    ../../modules/services/minidlna.nix
   ];
 
   # Hostname
@@ -125,7 +127,14 @@
 
   # Service toggles
   ollama.enable = true;
-  ollama.flashAttention = false;
+  # Re-enabled 2026-08-24 (Ollama 0.32): FA was disabled in Feb (b0ecfd0) over
+  # a gfx1030 bug; it is required for q8_0 KV cache, which halves the 32k
+  # context footprint so the 14B meeting summarizer fits alongside the
+  # desktop. Verify output sanity on a known transcript after upgrades.
+  ollama.flashAttention = true;
+  ollama.kvCacheType = "q8_0";
+  # Read-only VRAM endpoint for crumpet's GPU steward (remote/tailnet use)
+  gpu-status.enable = true;
   sunshine.enable = true;
 
   nixnews.enable = true;
@@ -136,6 +145,16 @@
     enable = true;
     serve = true;
   };
+
+  # Video streaming (VLC/UPnP) — superseded by Jellyfin below
+  minidlna.enable = false;
+
+  # Jellyfin media server (password auth, web/app clients on the LAN)
+  services.jellyfin = {
+    enable = true;
+    openFirewall = true;
+  };
+  users.users.jellyfin.extraGroups = [ "users" ];
 
   # Permitted insecure packages
   nixpkgs.config.permittedInsecurePackages = [
