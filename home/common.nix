@@ -33,6 +33,7 @@
     ffmpeg
     superfile
     proton-vpn
+    vlc
 
     # Development
     nodejs_22
