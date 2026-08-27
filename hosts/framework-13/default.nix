@@ -12,15 +12,18 @@
     ../../modules/services/rclone-s3.nix
     ../../modules/services/flatpak.nix
     ../../modules/services/crucial-x8.nix
+    ../../modules/services/moss-transcribe.nix
   ];
 
   # Hostname
   networking.hostName = "nixos-framework-13";
 
-  # ROCm development environment (RDNA 3.5)
+  # ROCm development environment (RDNA 3.5). gfx90a is included so
+  # composable_kernel (pulled in by torch rocmSupport via moss-transcribe)
+  # stays evaluable — CK only builds for gfx9-class MFMA targets.
   rocm-dev = {
     enable = true;
-    architecture = "gfx1150";
+    architecture = [ "gfx1150" "gfx90a" ];
   };
 
   # S3 bucket mount via rclone
@@ -39,6 +42,14 @@
   # Ollama + Open WebUI
   ollama.enable = true;
   ollama.igpuEnable = true;  # Radeon 890M (gfx1150) is an iGPU; ollama drops it by default
+
+  # MOSS-Transcribe-Diarize (speaker-diarized transcription, ROCm)
+  # rocm-dev pins native gfx1150 kernels, so no HSA masquerade is needed
+  moss-transcribe = {
+    enable = true;
+    serve = true;
+    gfxVersion = null;
+  };
 
   # Flatpak support (orion-beta remote is set by the flatpak module by default)
   flatpak.enable = true;

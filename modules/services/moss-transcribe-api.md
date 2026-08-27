@@ -240,6 +240,7 @@ moss-transcribe = {
   port = 7860;
   modelPath = "/home/jay/models/MOSS-Transcribe-Diarize";
   dtype = "bf16";       # fp16 | fp32 if bf16 misbehaves on RDNA 2
+  gfxVersion = "10.3.0";  # HSA override (RDNA 2); null when rocm-dev pins native kernels
   maxNewTokens = 2048;  # service default; override per-request
 };
 ```

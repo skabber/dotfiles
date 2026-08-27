@@ -90,6 +90,12 @@ in
       description = "Model dtype. If bf16 misbehaves on RDNA 2, try fp16 or fp32.";
     };
 
+    gfxVersion = mkOption {
+      type = types.nullOr types.str;
+      default = "10.3.0";
+      description = "HSA_OVERRIDE_GFX_VERSION for AMD GPU compatibility. Set to null when rocm-dev pins native kernels for this host's arch.";
+    };
+
     maxNewTokens = mkOption {
       type = types.int;
       default = 2048;
@@ -126,8 +132,9 @@ in
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
 
-      environment = {
-        HSA_OVERRIDE_GFX_VERSION = "10.3.0";
+      environment = (optionalAttrs (cfg.gfxVersion != null) {
+        HSA_OVERRIDE_GFX_VERSION = cfg.gfxVersion;
+      }) // {
         HF_HUB_OFFLINE = "1";
       };
 
