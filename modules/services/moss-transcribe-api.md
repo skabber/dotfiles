@@ -1,16 +1,25 @@
 # MOSS-Transcribe-Diarize API
 
-Speaker-diarized transcription service running on `nixos-ripper` (RX 6800 / ROCm).
-Uploads any audio/video file and returns timestamped, speaker-labeled segments
-(`S01`, `S02`, …) plus SRT/ASS/JSON exports and optional MP4 burn-in.
+Speaker-diarized transcription service exposing the same jobs API on every host
+that enables it. Uploads any audio/video file and returns timestamped,
+speaker-labeled segments (`S01`, `S02`, …) plus SRT/ASS/JSON exports and optional
+MP4 burn-in. The backend differs per host but the API does not: `nixos-ripper`
+and `framework-13` run the HF/ROCm backend in-process; `nixos` runs a loopback
+vLLM engine (CUDA) that the web app proxies to.
 
-- Base URL: `https://nixos-ripper.tail69fe1.ts.net:7860` (Tailscale Serve, tailnet only —
-  requires `moss-transcribe.serve = true`; binds loopback so all access goes
-  through the HTTPS proxy). Raw `http://nixos-ripper:7860` works when serve is
-  disabled. Physical-LAN access needs `moss-transcribe.openFirewall = true`
+- Base URLs (Tailscale Serve, tailnet only — requires `moss-transcribe.serve =
+true`; binds loopback so all access goes through the HTTPS proxy):
+  - `https://nixos-ripper.tail69fe1.ts.net:7860`
+  - `https://nixos.tail69fe1.ts.net:7860`
+
+  Raw `http://<host>:7860` works when serve is disabled. Physical-LAN access
+  needs `moss-transcribe.openFirewall = true`
 - Web UI: the same URL — upload, review, and export in the browser
-- Service: `systemctl status moss-transcribe`
-- Model: `/home/jay/models/MOSS-Transcribe-Diarize` (0.9B, lazy-loaded on first job, stays resident ~4 GB VRAM)
+- Service: `systemctl status moss-transcribe` (inference; on `nixos` also
+  `moss-transcribe-web`, the jobs API front end)
+- Model: `/home/jay/models/MOSS-Transcribe-Diarize` (`nixos`:
+  `/home/jay/dotfiles/models/…`; 0.9B, lazy-loaded on first job on hf, resident
+  ~4 GB VRAM)
 - Storage: `/var/lib/moss-transcribe/runs/<job-id>/`
 
 ## Quickstart
@@ -219,7 +228,7 @@ for s in segments:
 Jobs are processed one at a time (single GPU lock) — submit in a loop and
 poll; the queue serializes them.
 
-## Measured on this machine
+## Measured on nixos-ripper (hf/ROCm)
 
 | | |
 |---|---|
@@ -231,17 +240,31 @@ poll; the queue serializes them.
 
 ## Nix configuration
 
-In `hosts/nixos-ripper/default.nix` / `modules/services/moss-transcribe.nix`:
+In `hosts/*/default.nix` / `modules/services/moss-transcribe.nix`.
+AMD hosts (in-process HF/ROCm inference):
 
 ```nix
 moss-transcribe = {
   enable = true;
   serve = true;         # Tailscale Serve HTTPS + loopback-only bind
-  port = 7860;
+  port = 7860;          # default; same jobs API on every host
   modelPath = "/home/jay/models/MOSS-Transcribe-Diarize";
   dtype = "bf16";       # fp16 | fp32 if bf16 misbehaves on RDNA 2
   gfxVersion = "10.3.0";  # HSA override (RDNA 2); null when rocm-dev pins native kernels
   maxNewTokens = 2048;  # service default; override per-request
+};
+```
+
+NVIDIA host (vLLM engine behind the same jobs API):
+
+```nix
+moss-transcribe = {
+  enable = true;
+  backend = "vllm";     # default is "hf"
+  serve = true;
+  vllmPort = 8010;      # loopback-only engine port (default)
+  gpuMemoryUtilization = 0.6;
+  maxBatchedTokens = 16384;  # caps audio length per request (~22 min)
 };
 ```
 

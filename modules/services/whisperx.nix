@@ -8,7 +8,9 @@ with lib;
 let
   cfg = config.whisperx;
 
-  pythonEnv = pkgs.python3.withPackages (ps: with ps; [ pip virtualenv ]);
+  # Pin to 3.13: whisperx requires Python >=3.10,<3.14, and pkgs.python3 on
+  # unstable is now 3.14. Pinning keeps the venv stable across python bumps.
+  pythonEnv = pkgs.python313.withPackages (ps: with ps; [ pip virtualenv ]);
 
   cudaLibPath = lib.makeLibraryPath [
     pkgs.cudaPackages.cudatoolkit
@@ -72,8 +74,17 @@ in
         ExecStart = pkgs.writeShellScript "whisperx-setup" ''
           set -e
           VENV="/var/lib/whisperx/venv"
-          if [ ! -d "$VENV" ]; then
-            ${pythonEnv}/bin/python -m venv "$VENV"
+          PY="${pythonEnv}/bin/python"
+          want="$("$PY" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
+          have=""
+          if [ -x "$VENV/bin/python" ]; then
+            have="$("$VENV/bin/python" -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || true)"
+          fi
+          # Recreate when missing, stale (symlink into a GC'd nix store path),
+          # or built against a different python minor than the pinned one.
+          if [ "$have" != "$want" ]; then
+            rm -rf "$VENV"
+            "$PY" -m venv "$VENV"
           fi
           source "$VENV/bin/activate"
           pip install --quiet -r ${cfg.sourceDir}/requirements.txt
