@@ -157,6 +157,12 @@ in
       description = "Pinned vLLM nightly wheel index that includes the MOSS-Transcribe-Diarize model registration.";
     };
 
+    vllmMaxAudioFileMb = mkOption {
+      type = types.ints.positive;
+      default = 200;
+      description = "VLLM_MAX_AUDIO_CLIP_FILESIZE_MB for the engine. The web app re-encodes uploads to uncompressed 16 kHz WAV (~32 KB/s) before proxying, so a small compressed file expands ~10-40x; vLLM's 25 MB default rejects anything over ~13 minutes. 200 MB covers ~1.7 h of WAV.";
+    };
+
     extraArgs = mkOption {
       type = types.listOf types.str;
       default = [ ];
@@ -260,6 +266,9 @@ in
           VLLM_CACHE_ROOT = "/var/lib/moss-transcribe/cache";
           # Allow decoding files up to 22 min (default 600s guard would reject them).
           VLLM_MAX_AUDIO_DECODE_DURATION_S = toString (cfg.maxBatchedTokens * 60 / 750);
+          # The web proxy sends uncompressed 16 kHz WAV, which expands ~10-40x
+          # vs the uploaded file; vLLM's 25 MB default rejects >13 min of audio.
+          VLLM_MAX_AUDIO_CLIP_FILESIZE_MB = toString cfg.vllmMaxAudioFileMb;
         };
 
       serviceConfig = {
