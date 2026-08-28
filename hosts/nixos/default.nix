@@ -155,9 +155,10 @@
 
   moss-transcribe = {
     enable = true;
+    backend = "vllm";
     port = 8010;
     openFirewall = true;
-    tailscaleServe = true;
+    serve = true;
   };
 
   defuddle = {

@@ -34,6 +34,24 @@ in
     description = "Allow Ollama to use integrated GPUs (sets OLLAMA_IGPU_ENABLE=1). Required for the Framework 13's Radeon 890M.";
   };
 
+  options.ollama.kvCacheType = mkOption {
+    type = types.enum [ "f16" "q8_0" "q4_0" ];
+    default = "f16";
+    description = "KV cache quantization (OLLAMA_KV_CACHE_TYPE). q8_0 halves context memory; requires flash attention.";
+  };
+
+  options.ollama.keepAlive = mkOption {
+    type = types.str;
+    default = "5m";
+    description = "How long models stay loaded after a request (OLLAMA_KEEP_ALIVE). Short values keep VRAM free for the MOSS transcription service; -1 keeps models resident forever.";
+  };
+
+  options.ollama.numParallel = mkOption {
+    type = types.int;
+    default = 1;
+    description = "Concurrent requests Ollama processes (OLLAMA_NUM_PARALLEL). 1 serializes GPU work so one request's KV cache can't starve another.";
+  };
+
   config = mkIf cfg.enable {
 
     services.ollama = {
@@ -43,6 +61,9 @@ in
         port = 11434;
         environmentVariables = {
             OLLAMA_FLASH_ATTENTION = if cfg.flashAttention then "1" else "0";
+            OLLAMA_KV_CACHE_TYPE = cfg.kvCacheType;
+            OLLAMA_KEEP_ALIVE = cfg.keepAlive;
+            OLLAMA_NUM_PARALLEL = toString cfg.numParallel;
         } // optionalAttrs cfg.igpuEnable {
             OLLAMA_IGPU_ENABLE = "1";
         };

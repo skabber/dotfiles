@@ -15,6 +15,7 @@
     ghostty.terminfo
     lsof
     cemu
+    rpcs3
     file-roller
     htop
     git
@@ -32,6 +33,7 @@
     ffmpeg
     superfile
     proton-vpn
+    vlc
 
     # Development
     nodejs_22
