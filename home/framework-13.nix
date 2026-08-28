@@ -65,7 +65,7 @@
     cosmic-settings
     cosmic-launcher
     cosmic-screenshot
-    cosmic-applibrary
+    cosmic-app-library
     cosmic-design-demo
     cosmic-notifications
     cosmic-settings-daemon
