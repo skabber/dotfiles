@@ -78,11 +78,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1784673063,
-        "narHash": "sha256-UMpktyJx4E5vz0uZm+7Cb9nfuZQtIJwVMFhqFQKeH90=",
+        "lastModified": 1787944435,
+        "narHash": "sha256-oe7JU4u5SWCHsXk5GA5w+SHBa2yxDWZAPOIvGdrwuZI=",
         "ref": "refs/heads/main",
-        "rev": "16d3ff614caf308ff69a230ad8add5ba32ae3129",
-        "revCount": 12,
+        "rev": "00d7073dab268f28bc3401af779f375363e95e08",
+        "revCount": 14,
         "type": "git",
         "url": "https://nixos.tail69fe1.ts.net:3000/skabber/gtk-flash.git"
       },
@@ -252,11 +252,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1784611586,
-        "narHash": "sha256-OfqgY+0hp/zseZB7uyH0U8kIDPS4scZZCyAurEplvG0=",
+        "lastModified": 1787926460,
+        "narHash": "sha256-Rf2+5+ACRsI0xBicCraxsBtfSaQ93Br0Nr22nWimkS4=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "14f58845249f3552a89b07772626b8d3c632fa86",
+        "rev": "04ceec130b3a935d01584d4b1a68a366919674a9",
         "type": "github"
       },
       "original": {
