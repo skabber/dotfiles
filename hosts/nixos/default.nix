@@ -7,6 +7,7 @@
     ../../modules/common.nix
     ../../modules/desktop-nvidia.nix
     ../../modules/services/sunshine.nix
+    ../../modules/services/gnome-remote-desktop.nix
     ../../modules/services/gitea.nix
     ../../modules/services/wallabag.nix
     ../../modules/services/syncthing.nix
@@ -49,6 +50,11 @@
 
   # Enable services
   sunshine.enable = false;
+
+  gnome-remote-desktop = {
+    enable = true;
+    credentialsFile = "/home/jay/.secrets/grd-rdp.env";
+  };
 
   gitea = {
     enable = true;
