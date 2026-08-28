@@ -1,7 +1,9 @@
 # MOSS-Transcribe-Diarize service
-# Speaker-diarized transcription, two backends:
-#  - "vllm" (CUDA/NVIDIA): OpenAI-compatible /v1/audio/transcriptions via vllm serve
-#  - "hf" (ROCm/AMD): mtd-subtitle-web jobs API + web UI on /, /api/jobs
+# Speaker-diarized transcription behind one consistent API: the mtd-subtitle-web
+# jobs API + web UI (/api/jobs, segments, SRT/ASS export, MP4 burn-in).
+#  - "vllm" (CUDA/NVIDIA): vLLM engine on loopback does the inference; the web
+#    app proxies to it via the OpenAI-compatible /v1/audio/transcriptions endpoint
+#  - "hf" (ROCm/AMD): the web app runs inference in-process via transformers
 
 { config, pkgs, lib, ... }:
 
@@ -59,6 +61,14 @@ let
     (ps.torch.override { rocmSupport = true; })
   ]);
 
+  # vllm backend: the web app only proxies to the engine, but its imports pull
+  # in torch/transformers, so it needs a CPU-torch env (the engine venv holds
+  # the CUDA stack).
+  webPython = pkgs.python3.withPackages (ps: with ps; [
+    mossPackage
+    torch
+  ]);
+
   # When serve is enabled, bind loopback only so tailscaled owns the tailnet
   # IP:port and terminates TLS; a 0.0.0.0 bind would shadow the serve proxy.
   bindHost = if cfg.serve then "127.0.0.1" else cfg.host;
@@ -79,13 +89,19 @@ in
 
     port = mkOption {
       type = types.port;
-      default = if isVllm then 8010 else 7860;
-      description = "Port for the transcription API (vllm) or the web UI and jobs API (hf).";
+      default = 7860;
+      description = "Public port for the jobs API and web UI (same surface on both backends).";
+    };
+
+    vllmPort = mkOption {
+      type = types.port;
+      default = 8010;
+      description = "Loopback-only port for the vLLM inference engine (vllm backend); the web app proxies to it.";
     };
 
     host = mkOption {
       type = types.str;
-      default = if isVllm then "127.0.0.1" else "0.0.0.0";
+      default = "0.0.0.0";
       description = ''
         Address to bind. When serve is enabled the service always binds
         loopback so Tailscale Serve owns the public listener (a 0.0.0.0 bind
@@ -218,7 +234,7 @@ in
     };
 
     systemd.services.moss-transcribe = {
-      description = "MOSS-Transcribe-Diarize ${optionalString isVllm "vLLM server"}transcription service";
+      description = "MOSS-Transcribe-Diarize ${if isVllm then "vLLM engine" else "transcription service"}";
       after = [ "network.target" ] ++ optionals isVllm [ "moss-transcribe-setup.service" ];
       requires = optionals isVllm [ "moss-transcribe-setup.service" ];
       wantedBy = [ "multi-user.target" ];
@@ -256,8 +272,8 @@ in
               source /var/lib/moss-transcribe/venv/bin/activate
               exec vllm serve ${cfg.modelPath} \
                 --served-model-name ${cfg.modelName} \
-                --host ${bindHost} \
-                --port ${toString cfg.port} \
+                --host 127.0.0.1 \
+                --port ${toString cfg.vllmPort} \
                 --trust-remote-code \
                 --gpu-memory-utilization ${toString cfg.gpuMemoryUtilization} \
                 --max-model-len ${toString cfg.maxModelLen} \
@@ -280,6 +296,35 @@ in
       };
 
       path = if isVllm then [ pkgs.stdenv.cc ] else [ pkgs.ffmpeg ];
+    };
+
+    # vllm backend: same jobs API + web UI as the hf backend, proxying
+    # inference to the loopback vLLM engine.
+    systemd.services.moss-transcribe-web = mkIf isVllm {
+      description = "MOSS-Transcribe-Diarize jobs API (vllm backend)";
+      after = [ "network.target" "moss-transcribe.service" ];
+      wants = [ "moss-transcribe.service" ];
+      wantedBy = [ "multi-user.target" ];
+
+      serviceConfig = {
+        StateDirectory = "moss-transcribe";
+        WorkingDirectory = "/var/lib/moss-transcribe";
+        ExecStart = concatStringsSep " " [
+          "${webPython}/bin/mtd-subtitle-web"
+          "--backend vllm"
+          "--vllm-base-url http://127.0.0.1:${toString cfg.vllmPort}/v1"
+          "--vllm-model ${cfg.modelName}"
+          "--model ${cfg.modelName}"
+          "--runs-dir /var/lib/moss-transcribe/runs"
+          "--host ${bindHost}"
+          "--port ${toString cfg.port}"
+          "--max-new-tokens ${toString cfg.maxNewTokens}"
+        ];
+        Restart = "on-failure";
+        RestartSec = 10;
+      };
+
+      path = [ pkgs.ffmpeg ];
     };
 
     networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [ cfg.port ];

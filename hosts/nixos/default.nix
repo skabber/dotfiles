@@ -153,10 +153,11 @@
     # hfTokenFile = "/run/secrets/hf-token";  # uncomment to enable diarization
   };
 
+  # MOSS-Transcribe-Diarize: same jobs API as the AMD hosts (:7860) backed by
+  # a loopback vLLM engine (:8010, vllmPort default)
   moss-transcribe = {
     enable = true;
     backend = "vllm";
-    port = 8010;
     openFirewall = true;
     serve = true;
   };
