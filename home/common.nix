@@ -36,7 +36,7 @@
     vlc
 
     # Development
-    nodejs_22
+    nodejs_24
     direnv
     starship
     vim
