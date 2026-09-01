@@ -192,6 +192,10 @@
     enable = true;
     openFirewall = true;
     domain = "nixos.tail69fe1.ts.net";
+    # Serve owns <ts-ip>:28981 externally; paperless must not wildcard-bind the
+    # same port or it races tailscaled at boot and dies with EADDRINUSE (Aug 23).
+    # Containers reach it via host.docker.internal:28982 below.
+    port = 28982;
     passwordFile = "/home/jay/.secrets/paperless-admin-password";
   };
 
@@ -202,12 +206,14 @@
   paperless-ai = {
     enable = true;
     openFirewall = true;
+    paperlessApiUrl = "http://host.docker.internal:28982/api";
     environmentFile = "/home/jay/.secrets/paperless-ai.env";
   };
 
   paperless-gpt = {
     enable = true;
     openFirewall = true;
+    paperlessBaseUrl = "http://host.docker.internal:28982";
     enableLlmOcr = true;
     environmentFile = "/home/jay/.secrets/paperless-gpt.env";
   };

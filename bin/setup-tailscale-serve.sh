@@ -10,11 +10,14 @@
 #   - https://nixos.tail69fe1.ts.net:8182/    -> Playwright MCP
 #   - https://nixos.tail69fe1.ts.net:8000/    -> WhisperX transcription
 #   - https://nixos.tail69fe1.ts.net:8880/    -> Kokoro TTS
+#   - https://nixos.tail69fe1.ts.net:7860/    -> MOSS-Transcribe jobs API
+
+# NOTE: Do NOT `tailscale serve reset` here — it wipes declarative serve rules
+# owned by per-service systemd units (moss-transcribe :7860, romm, nixnews,
+# ollama ...). This script only ADDS rules; remove stale ones individually.
+# Idempotent: re-adding an existing rule is a no-op.
 
 set -euo pipefail
-
-echo "Resetting Tailscale Serve configuration..."
-tailscale serve reset
 
 echo "Configuring Tailscale Serve..."
 
@@ -33,8 +36,8 @@ tailscale serve --bg --https=8182 http://127.0.0.1:8182
 # Port 8444 -> IronClaw gateway
 tailscale serve --bg --https=8444 http://127.0.0.1:8444
 
-# Port 8000 -> WhisperX transcription
-tailscale serve --bg --https=8000 http://127.0.0.1:8000
+# Port 8000 -> WhisperX transcription (whisperx runs on 8007, see hosts/nixos)
+tailscale serve --bg --https=8000 http://127.0.0.1:8007
 
 # Port 8880 -> Kokoro TTS (internal port 8881 to avoid Docker bind conflict)
 tailscale serve --bg --https=8880 http://127.0.0.1:8881
@@ -48,8 +51,15 @@ tailscale serve --bg --https=3002 http://127.0.0.1:3002
 # Port 9000 -> RustFS (S3 API + Console)
 tailscale serve --bg --https=9000 http://127.0.0.1:9000
 
-# Port 28981 -> Paperless-ngx
-tailscale serve --bg --https=28981 http://127.0.0.1:28981
+# Port 28981 -> Paperless-ngx (paperless itself listens on 28982 so its
+# wildcard bind never collides with tailscaled's ts-ip:28981 listener —
+# that collision killed paperless-web at boot on Aug 23 with EADDRINUSE)
+tailscale serve --bg --https=28981 http://127.0.0.1:28982
+
+# Port 7860 -> MOSS-Transcribe jobs API (also managed declaratively by
+# tailscale-serve-moss-transcribe.service; listed here so a reset never
+# leaves it missing)
+tailscale serve --bg --https=7860 http://127.0.0.1:7860
 
 # Port 3003 -> Paperless-AI
 tailscale serve --bg --https=3003 http://127.0.0.1:3003
