@@ -45,7 +45,7 @@ home/<hostname>.nix    # host-specific user packages
 4. Service modules from `../../modules/services/`
 
 ### Services on `nixos` (server host)
-Docker Compose: Gitea Actions runner, Kokoro FastAPI TTS. NixOS services: Gitea, Wallabag, Syncthing, Ollama, WhisperX, Defuddle. External via Tailscale Serve at `nixos.tail69fe1.ts.net`.
+Docker Compose: Gitea Actions runner, Kokoro FastAPI TTS. NixOS services: Gitea, Wallabag, Syncthing, Ollama, WhisperX, Defuddle, FreeToken. External via Tailscale Serve at `nixos.tail69fe1.ts.net`.
 
 ## Key Gotchas
 

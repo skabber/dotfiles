@@ -82,6 +82,7 @@ All under `modules/services/`, each with `enable` and configuration options:
 - **ollama** — LLM server with ROCm GPU acceleration, Open-WebUI
 - **vllm** — Quantized LLM inference with ROCm
 - **whisperx** — Speech recognition/transcription service with CUDA/ROCm support
+- **freetoken** — Edge-native MoE LLM serving engine (NVIDIA/CUDA 13, uv-managed venv, JIT kernels) with OpenAI/Anthropic-compatible APIs
 - **comfyui** — Stable Diffusion node-based UI with ROCm GPU acceleration
 - **sunshine** — Remote desktop streaming
 - **retroarch** — Emulation platform with pre-configured cores

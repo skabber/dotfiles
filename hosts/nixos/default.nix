@@ -15,6 +15,7 @@
     ../../modules/services/moss-transcribe.nix
     ../../modules/services/wallabag-tts.nix
     ../../modules/services/defuddle.nix
+    ../../modules/services/freetoken.nix
     ../../modules/services/paperless.nix
     ../../modules/services/paperless-ai.nix
     ../../modules/services/paperless-gpt.nix
@@ -161,6 +162,17 @@
     openFirewall = true;
     serve = true;
   };
+
+  # FreeToken: MoE serving engine on the RTX 3080. FP8 35B (~35 GB of experts
+  # in host RAM via the offload backend) fits the 62 GiB; BF16 would not.
+  freetoken = {
+    enable = true;
+    model = "Qwen/Qwen3.6-35B-A3B-FP8";
+    host = "0.0.0.0";
+  };
+
+  # FreeToken API for tailnet clients (e.g. `ft shell --server` on the ripper)
+  networking.firewall.interfaces."tailscale0".allowedTCPPorts = [ config.freetoken.port ];
 
   defuddle = {
     enable = true;

@@ -58,7 +58,7 @@ The `mkHost` helper in `flake.nix` wires Home Manager into every host with a sha
 Services use different deployment patterns:
 
 - **Docker Compose**: Gitea Actions runner, Kokoro FastAPI TTS
-- **NixOS services**: Gitea, Wallabag (PHP/nginx), Syncthing, Ollama, Open-WebUI
+- **NixOS services**: Gitea, Wallabag (PHP/nginx), Syncthing, Ollama, Open-WebUI, FreeToken (uv venv in `/var/lib/freetoken`, CUDA JIT)
 - **Python venvs** (set up by one-shot systemd units): WhisperX (`~/Projects/whisperx-service`), ComfyUI
 - **Systemd user services** (on `nixos` host): `ironclaw`, `playwright-mcp`, `rustfs` — source dirs expected at `~/Projects/<name>`
 
