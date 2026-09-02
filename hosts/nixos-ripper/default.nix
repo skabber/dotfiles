@@ -15,6 +15,7 @@
     ../../modules/services/crucial-x8.nix
     ../../modules/services/moss-transcribe.nix
     ../../modules/services/minidlna.nix
+    ../../modules/services/service-panel.nix
   ];
 
   # Hostname
@@ -155,6 +156,18 @@
     openFirewall = true;
   };
   users.users.jellyfin.extraGroups = [ "users" ];
+
+  # Admin panel for the GPU/media services on this host (same UI as nixos)
+  service-panel = {
+    enable = true;
+    units = [
+      "moss-transcribe.service"
+      "tailscale-serve-moss-transcribe.service"
+      "ollama.service"
+      "sunshine.service"
+      "jellyfin.service"
+    ];
+  };
 
   # Permitted insecure packages
   nixpkgs.config.permittedInsecurePackages = [
