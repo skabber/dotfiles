@@ -29,6 +29,7 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from starlette.background import BackgroundTask
+from starlette.requests import ClientDisconnect
 
 log = logging.getLogger("gpu-gateway")
 logging.basicConfig(
@@ -342,11 +343,19 @@ async def read_body(request: Request):
     return gen(), lambda: held.close()
 
 
-async def wait_until(pred, timeout):
+async def wait_until(pred, timeout, request=None):
+    """Wait for the gate, bailing on client disconnect so held-request
+    counters never count dead connections (phantom demand)."""
     deadline = time.monotonic() + timeout
     while not pred():
         if time.monotonic() >= deadline:
             return False
+        if request is not None:
+            try:
+                if await request.is_disconnected():
+                    return False
+            except Exception:
+                pass
         await asyncio.sleep(0.25)
     return True
 
@@ -366,7 +375,11 @@ async def proxy_pass(request: Request, backend: str, *, spool: bool, on_done=Non
     if request.url.query:
         url += "?" + request.url.query
     if spool:
-        content, cleanup = await read_body(request)
+        try:
+            content, cleanup = await read_body(request)
+        except ClientDisconnect:
+            return JSONResponse(status_code=499,
+                                content={"error": "client disconnected while held"})
     else:
         content, cleanup = request.stream(), None
 
@@ -435,7 +448,7 @@ async def ft_proxy(request: Request, path: str):
         gate = lambda: gw.state == "FREETOKEN" and gw.ft_healthy
         spool = not gate()
         if spool:
-            ok = await wait_until(gate, MAX_HOLD)
+            ok = await wait_until(gate, MAX_HOLD, request)
             if not ok:
                 return hold_timeout()
     finally:
@@ -463,7 +476,7 @@ async def moss_proxy(request: Request, path: str):
             gate = lambda: gw.state == "MOSS" and gw.moss_healthy
             spool = not gate()
             if spool:
-                ok = await wait_until(gate, MAX_HOLD)
+                ok = await wait_until(gate, MAX_HOLD, request)
                 if not ok:
                     return hold_timeout()
         finally:
