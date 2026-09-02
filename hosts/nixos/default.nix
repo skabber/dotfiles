@@ -16,6 +16,7 @@
     ../../modules/services/defuddle.nix
     ../../modules/services/freetoken.nix
     ../../modules/services/service-panel.nix
+    ../../modules/services/gpu-gateway.nix
     ../../modules/services/paperless.nix
     ../../modules/services/paperless-ai.nix
     ../../modules/services/paperless-gpt.nix
@@ -148,14 +149,16 @@
     guiAddress = "0.0.0.0:8384";
   };
 
-  # MOSS-Transcribe-Diarize: same jobs API as the AMD hosts (:7860) backed by
-  # a loopback vLLM engine (:8010, vllmPort default)
+  # MOSS-Transcribe-Diarize: same jobs API as the AMD hosts backed by a
+  # loopback vLLM engine. gpu-gateway fronts :7860 and owns the engine
+  # lifecycle; only the web unit starts at boot.
   moss-transcribe = {
     enable = true;
     backend = "vllm";
-    openFirewall = true;
-    serve = true;
-    autoStart = true;
+    host = "127.0.0.1";
+    openFirewall = false;
+    serve = false;
+    autoStart = false;
     # 24576-token batch budget grows the encoder cache; the remaining 3.37 GiB
     # KV cache can't fit the 32768 default (needs 3.5 GiB). 30720 ≈ 41 min
     # audio, still above the ~33 min single-pass window.
@@ -168,7 +171,7 @@
   freetoken = {
     enable = true;
     model = "Qwen/Qwen3.6-35B-A3B-FP8";
-    host = "0.0.0.0";
+    host = "127.0.0.1";
     autoStart = false;
     # 10 GB card, ~9.1 GiB free: ~2.9 weights + 3.1 expert cache (0.10 of the
     # 31.4G bank) + ~1.1 GDN pool (bf16 SSM halves the fp32 default) — engine
@@ -185,17 +188,17 @@
     extraEnvironment.FREETOKEN_MAMBA_SSM_DTYPE = "bfloat16";
   };
 
-  # FreeToken API for tailnet clients (e.g. `ft shell --server` on the ripper)
-  networking.firewall.interfaces."tailscale0".allowedTCPPorts = [ config.freetoken.port ];
+  # Time-share the GPU between the two engines: moss is the preferred tenant,
+  # freetoken runs on demand once moss is idle. Publishes both APIs on the
+  # tailnet under their original port numbers (7860 moss, 1919 freetoken).
+  gpu-gateway.enable = true;
 
   service-panel = {
     enable = true;
     units = [
-      "moss-transcribe.service"
+      "gpu-gateway.service"
       "moss-transcribe-web.service"
-      "tailscale-serve-moss-transcribe.service"
       "kokoro-fastapi.service"
-      "freetoken.service"
     ];
   };
 

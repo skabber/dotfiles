@@ -319,7 +319,9 @@ in
       description = "MOSS-Transcribe-Diarize jobs API (vllm backend)";
       after = [ "network.target" "moss-transcribe.service" ];
       wants = [ "moss-transcribe.service" ];
-      wantedBy = optionals cfg.autoStart [ "multi-user.target" ];
+      # Always-on in vllm mode: the web app is the front door (gpu-gateway
+      # fronts it and gates engine lifecycle); autoStart gates engines only.
+      wantedBy = optionals (isVllm || cfg.autoStart) [ "multi-user.target" ];
 
       serviceConfig = {
         StateDirectory = "moss-transcribe";
