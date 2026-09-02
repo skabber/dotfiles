@@ -11,11 +11,11 @@
     ../../modules/services/gitea.nix
     ../../modules/services/wallabag.nix
     ../../modules/services/syncthing.nix
-    ../../modules/services/whisperx.nix
     ../../modules/services/moss-transcribe.nix
     ../../modules/services/wallabag-tts.nix
     ../../modules/services/defuddle.nix
     ../../modules/services/freetoken.nix
+    ../../modules/services/service-panel.nix
     ../../modules/services/paperless.nix
     ../../modules/services/paperless-ai.nix
     ../../modules/services/paperless-gpt.nix
@@ -113,6 +113,7 @@
 
   # Override kokoro-fastapi to use docker compose v2 (has buildx support)
   # The upstream Dockerfile uses --platform=$BUILDPLATFORM which requires buildx
+  systemd.services.kokoro-fastapi.wantedBy = lib.mkForce [ ];
   systemd.services.kokoro-fastapi.serviceConfig = let
     dataDir = "/var/lib/kokoro-fastapi";
     dockerDir = "${dataDir}/Kokoro-FastAPI/docker/gpu";
@@ -147,13 +148,6 @@
     guiAddress = "0.0.0.0:8384";
   };
 
-  whisperx = {
-    enable = true;
-    port = 8007;
-    openFirewall = true;
-    # hfTokenFile = "/run/secrets/hf-token";  # uncomment to enable diarization
-  };
-
   # MOSS-Transcribe-Diarize: same jobs API as the AMD hosts (:7860) backed by
   # a loopback vLLM engine (:8010, vllmPort default)
   moss-transcribe = {
@@ -161,6 +155,7 @@
     backend = "vllm";
     openFirewall = true;
     serve = true;
+    autoStart = false;
   };
 
   # FreeToken: MoE serving engine on the RTX 3080. FP8 35B (~35 GB of experts
@@ -187,6 +182,17 @@
 
   # FreeToken API for tailnet clients (e.g. `ft shell --server` on the ripper)
   networking.firewall.interfaces."tailscale0".allowedTCPPorts = [ config.freetoken.port ];
+
+  service-panel = {
+    enable = true;
+    units = [
+      "moss-transcribe.service"
+      "moss-transcribe-web.service"
+      "tailscale-serve-moss-transcribe.service"
+      "kokoro-fastapi.service"
+      "freetoken.service"
+    ];
+  };
 
   defuddle = {
     enable = true;
