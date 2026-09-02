@@ -27,7 +27,7 @@ import time
 import httpx
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, Response, StreamingResponse
 from starlette.background import BackgroundTask
 from starlette.requests import ClientDisconnect
 
@@ -66,6 +66,8 @@ VRAM_FREE_MIB = env_float("GW_VRAM_FREE_MIB", 2000)
 VRAM_TIMEOUT = env_float("GW_VRAM_TIMEOUT_SEC", 90)
 SPOOL_THRESHOLD = 8 << 20
 
+UI_HTML_PATH = os.environ.get("GW_UI_HTML")
+
 SYSTEMCTL = shutil.which("systemctl") or "/run/current-system/sw/bin/systemctl"
 NVIDIA_SMI = shutil.which("nvidia-smi") or "/run/current-system/sw/bin/nvidia-smi"
 
@@ -90,9 +92,21 @@ class GW:
     last_switch = 0.0
     switches = 0
     degraded = None
+    moss_unit_state = ""
+    ft_unit_state = ""
+    gpu = None
 
 
 gw = GW()
+
+EVENTS = []
+EVENTS_MAX = 60
+
+
+def event(msg):
+    EVENTS.append({"t": round(time.time(), 3), "msg": msg})
+    del EVENTS[:-EVENTS_MAX]
+    log.info("event: %s", msg)
 
 
 async def sh(args, timeout=120):
@@ -104,8 +118,10 @@ async def sh(args, timeout=120):
     except asyncio.TimeoutError:
         proc.kill()
         await proc.communicate()
-        return subprocess.CompletedProcess(args, 124, b"", b"timeout")
-    return subprocess.CompletedProcess(args, proc.returncode, out, err)
+        return subprocess.CompletedProcess(args, 124, "", "timeout")
+    return subprocess.CompletedProcess(args, proc.returncode,
+                                      out.decode(errors="replace"),
+                                      err.decode(errors="replace"))
 
 
 async def systemctl(*args, timeout=180):
@@ -173,14 +189,14 @@ async def wait_health(url, timeout):
 async def start_engine(unit, health_url):
     r = await systemctl("start", unit)
     if r.returncode != 0:
-        log.error("systemctl start %s failed: %s", unit, (r.stderr or b"").decode()[-300:])
+        log.error("systemctl start %s failed: %s", unit, (r.stderr or "")[-300:])
     return await wait_health(health_url, HEALTH_TIMEOUT)
 
 
 async def stop_engine(unit):
     r = await systemctl("stop", unit)
     if r.returncode != 0:
-        log.warning("systemctl stop %s failed: %s", unit, (r.stderr or b"").decode()[-300:])
+        log.warning("systemctl stop %s failed: %s", unit, (r.stderr or "")[-300:])
     await wait_unit_inactive(unit, 150)
 
 
@@ -190,6 +206,7 @@ async def transition(target):
     gw.transitioning = True
     origin = gw.state
     log.info("switching %s -> %s", origin, target)
+    event(f"switching {origin} -> {target}")
     try:
         await stop_engine(MOSS_UNIT if origin == "MOSS" else FT_UNIT)
         await wait_vram()
@@ -200,6 +217,7 @@ async def transition(target):
         if not ok:
             log.error("%s engine failed health check within %ss; reverting to %s",
                       target, HEALTH_TIMEOUT, origin)
+            event(f"{target} failed health check — reverting to {origin}")
             gw.degraded = f"{target} failed to start"
             await stop_engine(target == "FREETOKEN" and FT_UNIT or MOSS_UNIT)
             await wait_vram()
@@ -212,9 +230,63 @@ async def transition(target):
         gw.ft_demand_since = gw.want_moss_since = gw.ft_idle_since = None
         gw.degraded = None
         log.info("now resident: %s", target)
+        event(f"now resident: {target}")
         return True
     finally:
         gw.transitioning = False
+
+
+async def unit_state(unit):
+    r = await systemctl("show", unit, "--property=ActiveState", "--property=SubState",
+                        "--value", timeout=15)
+    if r.returncode != 0:
+        return "unknown"
+    lines = r.stdout.strip().splitlines()
+    if len(lines) < 2:
+        return lines[0] if lines else "unknown"
+    active, sub = lines[0], lines[1]
+    return f"{active} ({sub})" if sub else active
+
+
+def parse_csv(stdout):
+    rows = []
+    for line in stdout.strip().splitlines():
+        f = [p.strip() for p in line.split(",")]
+        if f and f[0]:
+            rows.append(f)
+    return rows
+
+
+async def gpu_stats():
+    if not os.access(NVIDIA_SMI, os.X_OK):
+        return None
+    r = await sh([NVIDIA_SMI,
+                  "--query-gpu=memory.used,memory.total,utilization.gpu",
+                  "--format=csv,noheader,nounits"], timeout=10)
+    if r.returncode != 0:
+        return None
+    rows = parse_csv(r.stdout)
+    if not rows:
+        return None
+    try:
+        out = {"memUsedMiB": int(float(rows[0][0])),
+               "memTotalMiB": int(float(rows[0][1])),
+               "utilPct": int(float(rows[0][2])), "processes": []}
+    except (ValueError, IndexError):
+        return None
+    r = await sh([NVIDIA_SMI,
+                  "--query-compute-apps=pid,process_name,used_memory",
+                  "--format=csv,noheader,nounits"], timeout=10)
+    if r.returncode == 0:
+        for f in parse_csv(r.stdout):
+            if len(f) >= 3 and f[0].isdigit():
+                try:
+                    out["processes"].append({"pid": int(f[0]), "name": f[1] or f"pid {f[0]}",
+                                             "vramMiB": int(float(f[2]))})
+                except ValueError:
+                    continue
+        out["processes"].sort(key=lambda p: p["vramMiB"], reverse=True)
+    return out
 
 
 async def moss_active_jobs():
@@ -245,6 +317,7 @@ async def governor():
         gw.state = "MOSS"
     gw.last_switch = time.monotonic()
     log.info("startup reconcile complete: state=%s", gw.state)
+    event(f"startup reconcile: state={gw.state}")
     while True:
         try:
             await cycle()
@@ -257,6 +330,9 @@ async def cycle():
     gw.ft_healthy = await probe(FT_HEALTH)
     gw.moss_healthy = await probe(MOSS_HEALTH)
     gw.moss_jobs = await moss_active_jobs()
+    gw.moss_unit_state = await unit_state(MOSS_UNIT)
+    gw.ft_unit_state = await unit_state(FT_UNIT)
+    gw.gpu = await gpu_stats()
     if gw.transitioning:
         return
     now = time.monotonic()
@@ -270,6 +346,7 @@ async def cycle():
             if (aged >= COALESCE and now - gw.last_switch >= COOLDOWN
                     and gw.moss_healthy):
                 log.info("ft demand coalesced (%.0fs), moss idle: switching", aged)
+                event(f"ft demand coalesced ({aged:.0f}s), moss idle — switching")
                 await transition("FREETOKEN")
         else:
             gw.ft_demand_since = None
@@ -281,8 +358,8 @@ async def cycle():
             gw.want_moss_since = gw.want_moss_since or now
             forced = now - gw.want_moss_since >= DRAIN
             if (ft_idle and now - gw.last_switch >= COOLDOWN) or forced:
-                log.info("returning to MOSS%s",
-                         " (drain timeout, cutting in-flight)" if not ft_idle else "")
+                event("returning to MOSS" +
+                      (" — drain timeout, cutting in-flight" if not ft_idle else " — ft drained"))
                 await transition("MOSS")
         else:
             gw.want_moss_since = None
@@ -290,7 +367,7 @@ async def cycle():
                 gw.ft_idle_since = gw.ft_idle_since or now
                 if (now - gw.ft_idle_since >= FT_IDLE
                         and now - gw.last_switch >= COOLDOWN):
-                    log.info("freetoken idle for %.0fs: returning to MOSS", FT_IDLE)
+                    event(f"freetoken idle for {FT_IDLE:.0f}s — returning to MOSS")
                     await transition("MOSS")
             else:
                 gw.ft_idle_since = None
@@ -420,9 +497,13 @@ def status_payload():
         "degraded": gw.degraded,
         "switches": gw.switches,
         "ft": {"pending": gw.ft_pending, "inflight": gw.ft_inflight,
-               "healthy": gw.ft_healthy, "unit": FT_UNIT},
+               "healthy": gw.ft_healthy, "unit": FT_UNIT,
+               "unitState": gw.ft_unit_state},
         "moss": {"held": gw.moss_held, "jobs": gw.moss_jobs,
-                 "healthy": gw.moss_healthy, "unit": MOSS_UNIT},
+                 "healthy": gw.moss_healthy, "unit": MOSS_UNIT,
+                 "unitState": gw.moss_unit_state},
+        "gpu": gw.gpu,
+        "events": EVENTS[-30:],
         "policy": {"coalesceSec": COALESCE, "ftIdleSec": FT_IDLE,
                    "drainTimeoutSec": DRAIN, "maxHoldSec": MAX_HOLD,
                    "switchCooldownSec": COOLDOWN},
@@ -431,6 +512,20 @@ def status_payload():
 
 app_ft = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 app_moss = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+
+
+@app_ft.get("/__gw")
+@app_ft.get("/__gw/")
+@app_moss.get("/__gw")
+@app_moss.get("/__gw/")
+async def ui():
+    if not UI_HTML_PATH:
+        return PlainTextResponse("gpu-gateway: UI not configured", status_code=503)
+    try:
+        with open(UI_HTML_PATH, "rb") as f:
+            return Response(content=f.read(), media_type="text/html")
+    except OSError:
+        return PlainTextResponse("gpu-gateway: UI html missing", status_code=503)
 
 
 @app_ft.get("/__gw/status")

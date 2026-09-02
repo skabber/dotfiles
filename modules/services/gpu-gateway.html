@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gpu-gateway</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 20px; font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+         background: #0e1116; color: #c9d1d9; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 16px; margin: 0 0 4px; color: #e6edf3; letter-spacing: .5px; }
+  .sub { color: #768390; font-size: 12px; margin-bottom: 18px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .card { background: #161b22; border: 1px solid #21262d; border-radius: 8px; padding: 14px 16px; }
+  .card h2 { font-size: 13px; margin: 0 0 10px; color: #e6edf3; display: flex; align-items: center; gap: 8px; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .badge.moss { background: #1f6f3f; color: #d8ffe3; }
+  .badge.freetoken { background: #1f4b7a; color: #cfe6ff; }
+  .badge.off { background: #3d2b00; color: #ffd88a; }
+  .badge.switching { background: #5a3a00; color: #ffe0a3; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .5; } }
+  .row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 13px; }
+  .row .k { color: #768390; }
+  .num { color: #e6edf3; font-weight: 600; }
+  .num.hot { color: #ff9b4a; }
+  .bar { height: 8px; background: #21262d; border-radius: 4px; overflow: hidden; margin: 8px 0 4px; }
+  .bar > div { height: 100%; background: linear-gradient(90deg, #2f81f7, #9e6a03); }
+  .wide { grid-column: 1 / -1; }
+  .procs { font-size: 12px; color: #9aa4b2; }
+  .procs div { padding: 1px 0; border-bottom: 1px solid #1c2129; }
+  .events { font-size: 12px; max-height: 240px; overflow-y: auto; }
+  .events div { padding: 2px 0; border-bottom: 1px solid #1c2129; }
+  .events .t { color: #768390; margin-right: 8px; }
+  .err { color: #ff7b72; }
+  .policy { color: #768390; font-size: 11px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>gpu-gateway <span id="state" class="badge off">…</span></h1>
+  <div class="sub" id="headline">single-GPU scheduler — moss-transcribe ⇄ freetoken</div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>MOSS-Transcribe <span id="moss-live" class="badge off"></span></h2>
+      <div class="row"><span class="k">systemd unit</span><span class="num" id="moss-unit">—</span></div>
+      <div class="row"><span class="k">engine health</span><span class="num" id="moss-health">—</span></div>
+      <div class="row"><span class="k">active jobs (queued/running)</span><span class="num" id="moss-jobs">—</span></div>
+      <div class="row"><span class="k">held submissions</span><span class="num" id="moss-held">—</span></div>
+    </div>
+
+    <div class="card">
+      <h2>FreeToken <span id="ft-live" class="badge off"></span></h2>
+      <div class="row"><span class="k">systemd unit</span><span class="num" id="ft-unit">—</span></div>
+      <div class="row"><span class="k">engine health</span><span class="num" id="ft-health">—</span></div>
+      <div class="row"><span class="k">queued requests</span><span class="num" id="ft-pending">—</span></div>
+      <div class="row"><span class="k">in flight</span><span class="num" id="ft-inflight">—</span></div>
+    </div>
+
+    <div class="card wide">
+      <h2>GPU</h2>
+      <div class="bar"><div id="gpu-bar" style="width:0%"></div></div>
+      <div class="row"><span class="k">VRAM</span><span class="num" id="gpu-mem">—</span></div>
+      <div class="row"><span class="k">utilization</span><span class="num" id="gpu-util">—</span></div>
+      <div class="procs" id="gpu-procs"></div>
+    </div>
+
+    <div class="card wide">
+      <h2>Events</h2>
+      <div class="events" id="events"><div>…</div></div>
+      <div class="policy" id="policy"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const fmtT = (t) => new Date(t * 1000).toLocaleTimeString();
+const yn = (b) => b ? "✓" : "✗";
+const cls = (n, hot) => $(n).className = "num" + (hot ? " hot" : "");
+
+function badge(el, text, kind) {
+  el.textContent = text;
+  el.className = "badge " + (kind || "off");
+}
+
+async function refresh() {
+  let d;
+  try {
+    d = await (await fetch("/__gw/status")).json();
+  } catch (e) {
+    badge($("state"), "unreachable", "off");
+    return;
+  }
+  const switching = d.transitioning;
+  badge($("state"), switching ? "switching…" : d.state,
+        switching ? "switching" : d.state.toLowerCase());
+  if (d.degraded) {
+    $("headline").innerHTML = '<span class="err">degraded: ' + d.degraded + "</span>";
+  } else {
+    $("headline").textContent =
+      "single-GPU scheduler — " + d.switches + " switch" + (d.switches == 1 ? "" : "es") +
+      " this session";
+  }
+
+  badge($("moss-live"), d.moss.unitState || "—", d.moss.healthy ? "moss" : "off");
+  $("moss-unit").textContent = d.moss.unitState || "—";
+  $("moss-health").textContent = yn(d.moss.healthy);
+  $("moss-jobs").textContent = d.moss.jobs;
+  $("moss-held").textContent = d.moss.held;
+  cls("moss-jobs", d.moss.jobs > 0);
+  cls("moss-held", d.moss.held > 0);
+
+  badge($("ft-live"), d.ft.unitState || "—", d.ft.healthy ? "freetoken" : "off");
+  $("ft-unit").textContent = d.ft.unitState || "—";
+  $("ft-health").textContent = yn(d.ft.healthy);
+  $("ft-pending").textContent = d.ft.pending;
+  $("ft-inflight").textContent = d.ft.inflight;
+  cls("ft-pending", d.ft.pending > 0);
+  cls("ft-inflight", d.ft.inflight > 0);
+
+  const g = d.gpu;
+  if (g) {
+    $("gpu-bar").style.width = Math.min(100, 100 * g.memUsedMiB / g.memTotalMiB) + "%";
+    $("gpu-mem").textContent = g.memUsedMiB + " / " + g.memTotalMiB + " MiB";
+    $("gpu-util").textContent = (g.utilPct === null ? "—" : g.utilPct + "%");
+    $("gpu-procs").innerHTML = (g.processes || [])
+      .map(p => "<div>pid " + p.pid + " · " + p.name + " · " + p.vramMiB + " MiB</div>")
+      .join("") || "<div>no compute processes</div>";
+  } else {
+    $("gpu-mem").textContent = "n/a";
+    $("gpu-procs").textContent = "";
+  }
+
+  $("events").innerHTML = (d.events || []).slice(-30).reverse()
+    .map(e => "<div><span class='t'>" + fmtT(e.t) + "</span>" + e.msg + "</div>")
+    .join("");
+  const p = d.policy || {};
+  $("policy").textContent =
+    "coalesce " + p.coalesceSec + "s · ft idle " + p.ftIdleSec + "s · " +
+    "drain cap " + p.drainTimeoutSec + "s · hold cap " + p.maxHoldSec + "s · " +
+    "cooldown " + p.switchCooldownSec + "s";
+}
+
+refresh();
+setInterval(refresh, 2000);
+</script>
+</body>
+</html>

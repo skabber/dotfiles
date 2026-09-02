@@ -120,6 +120,7 @@ in
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
       environment = {
+        GW_UI_HTML = "${./gpu-gateway.html}";
         GW_FT_FRONT_PORT = toString cfg.ftFrontPort;
         GW_MOSS_FRONT_PORT = toString cfg.mossFrontPort;
         GW_FT_BACKEND = "http://127.0.0.1:${toString config.freetoken.port}";
