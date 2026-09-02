@@ -14,6 +14,7 @@
     alacritty
     system76-keyboard-configurator
     playwright-mcp
+    nvtopPackages.nvidia
   ];
 
   # Bash configuration (sources local profile)
