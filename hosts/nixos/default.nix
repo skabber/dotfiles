@@ -156,6 +156,10 @@
     openFirewall = true;
     serve = true;
     autoStart = true;
+    # 24576-token batch budget grows the encoder cache; the remaining 3.37 GiB
+    # KV cache can't fit the 32768 default (needs 3.5 GiB). 30720 ≈ 41 min
+    # audio, still above the ~33 min single-pass window.
+    maxModelLen = 30720;
     maxBatchedTokens = 24576;
   };
 
