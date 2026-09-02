@@ -145,6 +145,7 @@
   moss-transcribe = {
     enable = true;
     serve = true;
+    autoStart = false;
   };
 
   # Video streaming (VLC/UPnP) — superseded by Jellyfin below

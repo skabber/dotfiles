@@ -155,7 +155,8 @@
     backend = "vllm";
     openFirewall = true;
     serve = true;
-    autoStart = false;
+    autoStart = true;
+    maxBatchedTokens = 24576;
   };
 
   # FreeToken: MoE serving engine on the RTX 3080. FP8 35B (~35 GB of experts
