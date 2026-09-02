@@ -4,6 +4,8 @@ units. Loopback-only HTTP; publish over the tailnet via `tailscale serve`
 (TLS + tailnet identity). Optional bearer token when PANEL_TOKEN is set."""
 import json
 import os
+import pwd
+import re
 import shutil
 import socket
 import subprocess
@@ -26,12 +28,47 @@ def run(cmd, timeout=15):
     return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
 
 
+def read_file(path):
+    try:
+        with open(path) as f:
+            return f.read().strip()
+    except OSError:
+        return None
+
+
 def read_int(path):
     try:
         with open(path) as f:
             return int(f.read().strip())
     except OSError:
         return None
+
+
+def nvidia_processes(smi):
+    r = run([smi, "--query-compute-apps=pid,process_name,used_memory",
+             "--format=csv,noheader,nounits"], timeout=10)
+    if r.returncode != 0:
+        return None
+    out = []
+    for line in r.stdout.strip().splitlines():
+        f = [p.strip() for p in line.split(",")]
+        if len(f) < 3 or not f[0].isdigit():
+            continue
+        try:
+            pid, mem = int(f[0]), int(float(f[2]))
+        except ValueError:
+            continue
+        out.append({"pid": pid, "name": f[1] or f"pid {pid}",
+                    "vramMiB": mem, "gttMiB": 0, "user": user_of(pid)})
+    out.sort(key=lambda e: e["vramMiB"], reverse=True)
+    return out
+
+
+def user_of(pid):
+    try:
+        return pwd.getpwuid(os.stat(f"/proc/{pid}").st_uid).pw_name
+    except (KeyError, OSError):
+        return "?"
 
 
 def gpu_stats():
@@ -50,6 +87,7 @@ def gpu_stats():
                         "memTotalMiB": int(parts[2]),
                         "utilPct": int(parts[3]),
                         "tempC": int(parts[4]),
+                        "processes": nvidia_processes(smi),
                     }
                 except ValueError:
                     pass
@@ -64,14 +102,65 @@ def gpu_stats():
         d, total = best
         used = read_int(os.path.join(d, "mem_info_vram_used"))
         if used is not None:
+            util = read_int(os.path.join(d, "gpu_busy_percent"))
+            import glob as g
+            temp = None
+            for h in g.glob(os.path.join(d, "hwmon", "hwmon*")):
+                temp = read_int(os.path.join(h, "temp1_input"))
+                if temp is not None:
+                    break
             return {
-                "name": "amdgpu",
+                "name": read_file(os.path.join(d, "product_name")) or "amdgpu",
                 "memUsedMiB": used // 1048576,
                 "memTotalMiB": total // 1048576,
-                "utilPct": None,
-                "tempC": None,
+                "utilPct": util,
+                "tempC": None if temp is None else temp // 1000,
+                "processes": amdgpu_processes(d),
             }
     return None
+
+
+def amdgpu_processes(card_dir):
+    """Per-process VRAM via the kernel's amdgpu_fdinfo (debugfs, root-only).
+    Merge by pid and resolve the command line (kernel gives only comm)."""
+    m = re.search(r"card(\d+)$", card_dir.rstrip("/"))
+    if not m:
+        return None
+    path = f"/sys/kernel/debug/dri/{m.group(1)}/amdgpu_fdinfo"
+    try:
+        with open(path) as f:
+            text = f.read()
+    except OSError:
+        return None
+    pids = {}
+    for block in text.split("\n\n"):
+        m_pid = re.search(r"^pid\s+(\d+)", block, re.M)
+        if not m_pid:
+            continue
+        pid = int(m_pid.group(1))
+        vram = re.search(r"^vram mem=(\d+)", block, re.M)
+        gtt = re.search(r"^gtt mem=(\d+)", block, re.M)
+        e = pids.setdefault(pid, {"pid": pid, "vramMiB": 0, "gttMiB": 0})
+        if vram:
+            e["vramMiB"] += int(vram.group(1)) // 1024
+        if gtt:
+            e["gttMiB"] += int(gtt.group(1)) // 1024
+    out = []
+    for e in pids.values():
+        cmd = read_file(f"/proc/{e['pid']}/cmdline")
+        if cmd:
+            parts = cmd.split("\0")
+            e["name"] = (os.path.basename(parts[0]) + " " +
+                          " ".join(p for p in parts[1:] if p)[:60])[:72]
+        else:
+            e["name"] = read_file(f"/proc/{e['pid']}/comm") or f"pid {e['pid']}"
+        try:
+            e["user"] = user_of(e["pid"])
+        except OSError:
+            e["user"] = "?"
+        out.append(e)
+    out.sort(key=lambda e: e["vramMiB"], reverse=True)
+    return out
 
 
 def service_status():

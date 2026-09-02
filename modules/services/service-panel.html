@@ -23,8 +23,15 @@
   }
   header h1 { margin: 0; font-size: 16px; font-weight: 600; }
   header h1 .at { color: var(--dim); font-weight: 400; }
-  #gpu { display: flex; align-items: center; gap: 10px; color: var(--dim); }
+  #gpu {
+    display: flex; align-items: center; gap: 10px; color: var(--dim);
+    cursor: pointer; padding: 4px 6px; border-radius: 7px; margin: -4px -6px;
+    transition: background .15s;
+  }
+  #gpu:hover { background: #89b4fa14; }
   #gpu .name { color: var(--fg); }
+  #gpu .chev { transition: transform .2s; font-size: 10px; }
+  #gpu.open .chev { transform: rotate(90deg); }
   .bar { width: 120px; height: 6px; border-radius: 3px; background: #00000060; overflow: hidden; }
   .bar > div { height: 100%; background: var(--accent); transition: width .6s; }
   .bar > div.hot { background: var(--yellow); }
@@ -34,6 +41,46 @@
     grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
     max-width: 1280px; margin: 0 auto;
   }
+  #gpu-detail {
+    max-width: 1280px; margin: 0 auto; padding: 0 20px 4px;
+    display: none;
+  }
+  #gpu-detail.open { display: block; }
+  .gpu-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .gpu-stats { display: flex; gap: 28px; flex-wrap: wrap; }
+  .gpu-stat { display: flex; flex-direction: column; gap: 2px; }
+  .gpu-stat .k { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .gpu-stat .v { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .gpu-stat .v small { font-size: 11px; font-weight: 400; color: var(--dim); }
+  .vram-track {
+    display: flex; height: 26px; border-radius: 7px; overflow: hidden;
+    background: #00000060; border: 1px solid var(--line);
+  }
+  .vram-track .seg { transition: width .6s; position: relative; }
+  .vram-track .seg.ghost { background: #89b4fa30; }
+  .vram-legend {
+    display: flex; gap: 16px; flex-wrap: wrap; color: var(--dim); font-size: 12px;
+  }
+  .vram-legend .key { display: flex; align-items: center; gap: 6px; }
+  .vram-legend .swatch { width: 10px; height: 10px; border-radius: 3px; }
+  table.procs {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  table.procs th {
+    text-align: left; color: var(--dim); font-weight: 500; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .04em;
+    padding: 4px 10px 6px 0; border-bottom: 1px solid var(--line);
+  }
+  table.procs td { padding: 6px 10px 6px 0; border-bottom: 1px solid #31314530; }
+  table.procs tr:last-child td { border-bottom: none; }
+  table.procs td.proc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 460px; }
+  table.procs td.num, table.procs th.num { text-align: right; padding-right: 14px; }
+  table.procs .pid { color: var(--dim); font: 11px/1 ui-monospace, monospace; }
+  .gpu-note { color: var(--dim); font-size: 12px; }
   .card {
     background: var(--card); border: 1px solid var(--line); border-radius: 10px;
     padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
@@ -104,12 +151,26 @@
 <header>
   <h1>services <span class="at" id="hostname"></span></h1>
   <div id="gpu" hidden>
+    <span class="chev">&#9656;</span>
     <span class="name"></span>
     <div class="bar"><div></div></div>
     <span class="txt"></span>
   </div>
   <span id="ts"></span>
 </header>
+<div id="gpu-detail">
+  <div class="gpu-card">
+    <div class="gpu-stats">
+      <div class="gpu-stat"><span class="k">VRAM</span><span class="v" id="g-mem"></span></div>
+      <div class="gpu-stat"><span class="k">Compute</span><span class="v" id="g-util"></span></div>
+      <div class="gpu-stat"><span class="k">Temp</span><span class="v" id="g-temp"></span></div>
+    </div>
+    <div class="vram-track" id="g-track"></div>
+    <div class="vram-legend" id="g-legend"></div>
+    <div id="g-procs"></div>
+    <div class="gpu-note" id="g-note"></div>
+  </div>
+</div>
 <main></main>
 
 <div id="drawer" hidden>
@@ -237,9 +298,23 @@ async function act(unit, action) {
   refresh();
 }
 
+const PROC_COLORS = ["#89b4fa", "#a6e3a1", "#f5c2e7", "#f9e2af", "#94e2d5",
+                     "#cba6f7", "#89dceb", "#eba0ac"];
+const GHOST_COLOR = "rgba(137,180,250,0.19)";
+let gpuOpen = false;
+let lastGpu = null;
+
+function fmtMiB(miB) {
+  return miB >= 1024 ? (miB / 1024).toFixed(2) + " GiB" : miB + " MiB";
+}
+
+function esc(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+}
+
 function renderGpu(gpu) {
-  const el = $("#gpu");
-  if (!gpu) { el.hidden = true; return; }
+  const el = $("#gpu"), detail = $("#gpu-detail");
+  if (!gpu) { el.hidden = true; detail.classList.remove("open"); return; }
   el.hidden = false;
   el.querySelector(".name").textContent = gpu.name;
   const pct = gpu.memTotalMiB ? gpu.memUsedMiB / gpu.memTotalMiB : 0;
@@ -250,7 +325,91 @@ function renderGpu(gpu) {
   if (gpu.utilPct != null) parts.push(gpu.utilPct + "%");
   if (gpu.tempC != null) parts.push(gpu.tempC + "\u00b0C");
   el.querySelector(".txt").textContent = parts.join(" \u00b7 ");
+  lastGpu = gpu;
+  detail.classList.toggle("open", gpuOpen);
+  el.classList.toggle("open", gpuOpen);
+  if (gpuOpen) renderGpuDetail(gpu);
 }
+
+function renderGpuDetail(gpu) {
+  $("#g-mem").innerHTML =
+    `${(gpu.memUsedMiB / 1024).toFixed(2)}<small> / ${(gpu.memTotalMiB / 1024).toFixed(2)} GiB</small>`;
+  $("#g-util").innerHTML =
+    gpu.utilPct == null ? "\u2014" : `${gpu.utilPct}<small>%</small>`;
+  $("#g-temp").innerHTML =
+    gpu.tempC == null ? "\u2014" : `${gpu.tempC}<small>\u00b0C</small>`;
+
+  const procs = (gpu.processes || []).filter(p => p.vramMiB > 0);
+  const known = procs.reduce((a, p) => a + p.vramMiB, 0);
+  const ghost = Math.max(0, gpu.memUsedMiB - known);
+  const total = gpu.memTotalMiB || 1;
+
+  // Segmented VRAM bar: one colored segment per process, plus a ghost
+  // segment for kernel/display/unattributed usage.
+  const segs = procs.map((p, i) => ({
+    label: `${p.name} (${p.user})`, miB: p.vramMiB,
+    color: PROC_COLORS[i % PROC_COLORS.length],
+  }));
+  if (ghost > 1) {
+    segs.push({ label: "system / display / unattributed", miB: ghost,
+                color: GHOST_COLOR });
+  }
+  const track = $("#g-track");
+  track.innerHTML = "";
+  for (const s of segs) {
+    const d = document.createElement("div");
+    d.className = "seg" + (s.color === GHOST_COLOR ? " ghost" : "");
+    d.style.width = Math.min(100, s.miB / total * 100).toFixed(2) + "%";
+    d.style.background = s.color;
+    d.title = `${s.label}: ${fmtMiB(s.miB)}`;
+    track.appendChild(d);
+  }
+
+  const legend = $("#g-legend");
+  legend.innerHTML = "";
+  for (const s of segs) {
+    const k = document.createElement("span");
+    k.className = "key";
+    k.title = fmtMiB(s.miB);
+    const sw = document.createElement("span");
+    sw.className = "swatch";
+    sw.style.background = s.color;
+    k.appendChild(sw);
+    k.appendChild(document.createTextNode(s.label));
+    legend.appendChild(k);
+  }
+
+  const wrap = $("#g-procs");
+  if (!procs.length) {
+    wrap.innerHTML = "<div class=\"gpu-note\">No processes reporting VRAM usage" +
+      (gpu.processes ? "" : " (per-process stats unavailable)") + "</div>";
+  } else {
+    let rows = "";
+    for (const p of procs) {
+      rows += `<tr><td class="pid">${p.pid}</td>` +
+        `<td class="proc" title="${esc(p.name)}">${esc(p.name)}</td>` +
+        `<td>${esc(p.user)}</td>` +
+        `<td class="num">${fmtMiB(p.vramMiB)}${p.gttMiB ?
+          ` <span style="color:var(--dim)">(+${fmtMiB(p.gttMiB)} GTT)</span>` : ""}</td>` +
+        `<td class="num">${(p.vramMiB / total * 100).toFixed(1)}%</td></tr>`;
+    }
+    wrap.innerHTML = `<table class="procs"><thead><tr>` +
+      `<th>PID</th><th>Process</th><th>User</th><th class="num">VRAM</th>` +
+      `<th class="num">% of total</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  $("#g-note").textContent = procs.length
+    ? `${procs.length} process${procs.length > 1 ? "es" : ""} \u00b7 attributed ${fmtMiB(known)}` +
+      (ghost > 1 ? ` \u00b7 other ${fmtMiB(ghost)}` : "")
+    : "";
+}
+
+$("#gpu").addEventListener("click", () => {
+  gpuOpen = !gpuOpen;
+  $("#gpu").classList.toggle("open", gpuOpen);
+  $("#gpu-detail").classList.toggle("open", gpuOpen);
+  if (gpuOpen && lastGpu) renderGpuDetail(lastGpu);
+});
 
 async function refresh() {
   try {
