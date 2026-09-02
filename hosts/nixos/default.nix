@@ -169,6 +169,20 @@
     enable = true;
     model = "Qwen/Qwen3.6-35B-A3B-FP8";
     host = "0.0.0.0";
+    autoStart = false;
+    # 10 GB card, ~9.1 GiB free: ~2.9 weights + 3.1 expert cache (0.10 of the
+    # 31.4G bank) + ~1.1 GDN pool (bf16 SSM halves the fp32 default) — engine
+    # self-fits the KV pool into the rest, keeping ~0.9 GiB (memory_ratio)
+    # for the FlashInfer workspace and CUDA graphs. --num-tokens overrides
+    # skip the memory-fit solver and OOM. 4096-token prefill chunks
+    # (--max-prefill-length) keep the transient GDN/MoE activation peak under
+    # the ~0.6 GiB post-init headroom (8192 OOM'd mid-prefill); drop to 2048
+    # if it recurs.
+    extraArgs = [
+      "--moe-cache-rate 0.10"
+      "--max-prefill-length 4096"
+    ];
+    extraEnvironment.FREETOKEN_MAMBA_SSM_DTYPE = "bfloat16";
   };
 
   # FreeToken API for tailnet clients (e.g. `ft shell --server` on the ripper)

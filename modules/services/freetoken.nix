@@ -29,6 +29,12 @@ in
   options.freetoken = {
     enable = mkEnableOption "FreeToken MoE inference server (CUDA)";
 
+    autoStart = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Start the service automatically at boot.";
+    };
+
     model = mkOption {
       type = types.str;
       example = "Qwen/Qwen3.6-35B-A3B-FP8";
@@ -58,6 +64,13 @@ in
       default = [ ];
       example = [ "--moe-backend hybrid" ];
       description = "Extra ft serve flags.";
+    };
+
+    extraEnvironment = mkOption {
+      type = types.attrsOf types.str;
+      default = { };
+      example = { FREETOKEN_MAMBA_SSM_DTYPE = "bfloat16"; };
+      description = "Extra environment variables for the ft serve process.";
     };
 
     user = mkOption {
@@ -92,16 +105,33 @@ in
       description = "FreeToken MoE inference server";
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
-      wantedBy = [ "multi-user.target" ];
+      wantedBy = optionals cfg.autoStart [ "multi-user.target" ];
 
-      path = [ cudatoolkit pkgs.ninja ];
+      # bash provides `sh`; ninja runs every command through sh -c
+      # nvidia-x11 bin provides nvidia-smi for JIT arch detection (tvm_ffi)
+      path = [ cudatoolkit pkgs.ninja pkgs.stdenv.cc pkgs.bash config.boot.kernelPackages.nvidia_x11.bin ];
       environment = {
         CUDA_HOME = "${cudatoolkit}";
         HF_HOME = "${cfg.dataDir}/hf";
         UV_CACHE_DIR = "/var/cache/freetoken";
         UV_PYTHON_DOWNLOADS = "never";
         UV_LINK_MODE = "copy";
-      };
+        LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib:/run/opengl-driver/lib";
+        # triton's libcuda discovery shells out to /sbin/ldconfig, which
+        # doesn't exist on NixOS; this knob short-circuits it to the driver dir
+        TRITON_LIBCUDA_PATH = "/run/opengl-driver/lib";
+        # triton's runtime JIT needs a host C compiler to build its driver stub;
+        # flashinfer's JIT defaults CXX to bare `c++`, which no NixOS unit has
+        CC = "${pkgs.stdenv.cc}/bin/cc";
+        CXX = "${pkgs.stdenv.cc}/bin/c++";
+        # flashinfer's JIT links against upstream CUDA's lib64 layout, which
+        # NixOS's cuda-merged doesn't have (libs live in lib/, driver stub in
+        # lib/stubs); gcc's LIBRARY_PATH injects the right -L dirs
+        LIBRARY_PATH = "${cudatoolkit}/lib:${cudatoolkit}/lib/stubs";
+        # tvm_ffi's JIT never passes -I$CUDA_HOME/include for .cu compiles
+        # (upstream nvcc finds its own headers implicitly); CPATH injects it
+        CPATH = "${cudatoolkit}/include";
+      } // cfg.extraEnvironment;
 
       serviceConfig = {
         Type = "exec";
