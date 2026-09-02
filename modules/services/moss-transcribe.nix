@@ -87,6 +87,12 @@ in
 
     enable = mkEnableOption "MOSS-Transcribe-Diarize transcription service";
 
+    autoStart = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Start the service automatically at boot.";
+    };
+
     port = mkOption {
       type = types.port;
       default = 7860;
@@ -210,7 +216,7 @@ in
     # vLLM nightly with CUDA torch
     systemd.services.moss-transcribe-setup = mkIf isVllm {
       description = "MOSS-Transcribe-Diarize venv setup";
-      wantedBy = [ "multi-user.target" ];
+      wantedBy = optionals cfg.autoStart [ "multi-user.target" ];
       path = [ pkgs.uv pkgs.bash pkgs.coreutils ];
       serviceConfig = {
         Type = "oneshot";
@@ -243,7 +249,7 @@ in
       description = "MOSS-Transcribe-Diarize ${if isVllm then "vLLM engine" else "transcription service"}";
       after = [ "network.target" ] ++ optionals isVllm [ "moss-transcribe-setup.service" ];
       requires = optionals isVllm [ "moss-transcribe-setup.service" ];
-      wantedBy = [ "multi-user.target" ];
+      wantedBy = optionals cfg.autoStart [ "multi-user.target" ];
 
       environment =
         (optionalAttrs (!isVllm && cfg.gfxVersion != null) {
@@ -313,7 +319,7 @@ in
       description = "MOSS-Transcribe-Diarize jobs API (vllm backend)";
       after = [ "network.target" "moss-transcribe.service" ];
       wants = [ "moss-transcribe.service" ];
-      wantedBy = [ "multi-user.target" ];
+      wantedBy = optionals cfg.autoStart [ "multi-user.target" ];
 
       serviceConfig = {
         StateDirectory = "moss-transcribe";
@@ -342,7 +348,7 @@ in
       description = "Tailscale Serve for MOSS-Transcribe-Diarize";
       after = [ "tailscaled.service" "moss-transcribe.service" ];
       wants = [ "tailscaled.service" "moss-transcribe.service" ];
-      wantedBy = [ "multi-user.target" ];
+      wantedBy = optionals cfg.autoStart [ "multi-user.target" ];
       path = [ pkgs.tailscale ];
       serviceConfig = {
         Type = "oneshot";
