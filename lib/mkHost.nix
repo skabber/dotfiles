@@ -37,6 +37,23 @@ let
     dwarfs = nixpkgs-libreoffice.legacyPackages.${system}.dwarfs;
   };
 
+  # spacy 3.8.16 fails its test suite on Python 3.14
+  # (test_span_ruler_multiprocessing: multiprocessing can't pickle a local
+  # lambda), which blocks paperless-ngx and the whole system build. Upstream
+  # already deselects other 3.14-only failures; drop this when nixpkgs ships
+  # the same fix.
+  spacyTestFixOverlay = _final: prev: {
+    python314 = prev.python314.override {
+      packageOverrides = _pyFinal: pyPrev: {
+        spacy = pyPrev.spacy.overridePythonAttrs (old: {
+          disabledTests = (old.disabledTests or [ ]) ++ [
+            "test_span_ruler_multiprocessing"
+          ];
+        });
+      };
+    };
+  };
+
   # Small inline modules baked into every host.
   googleCloudSdkModule = { pkgs, ... }: {
     environment.systemPackages = [ pkgs.google-cloud-sdk ];
@@ -57,7 +74,7 @@ in
       specialArgs = extraSpecialArgs;
       modules = [
         { nixpkgs.hostPlatform = system; }
-        { nixpkgs.overlays = [ pinnedPackagesOverlay ]; }
+        { nixpkgs.overlays = [ pinnedPackagesOverlay spacyTestFixOverlay ]; }
         "${root}/hosts/${hostname}/default.nix"
         googleCloudSdkModule
         nixLdModule
