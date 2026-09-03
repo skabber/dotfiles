@@ -26,6 +26,15 @@
     })
   ];
 
+  # GNOME Shell creates its Power Mode quick-settings toggle once at session
+  # start with no retry. ppd 0.30 is dbus-activated only and ordered after
+  # multi-user/display-manager, so on slow boots the activation times out and
+  # the toggle never appears. Start it eagerly at boot instead.
+  systemd.services.power-profiles-daemon = {
+    after = lib.mkForce [ "dbus.socket" ];
+    wantedBy = [ "multi-user.target" ];
+  };
+
   services.xserver.enable = true;
 
   services.displayManager.gdm.enable = true;
