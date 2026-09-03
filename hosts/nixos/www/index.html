@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tailnet · services</title>
+<style>
+  :root {
+    --bg: #16161e; --panel: #1e1e2a; --card: #22222f; --line: #31314580;
+    --fg: #e6e6f0; --dim: #9a9ab0; --accent: #89b4fa;
+    --green: #a6e3a1; --red: #f38ba8; --yellow: #f9e2af; --gray: #6c7086;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 14px/1.5 ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+    padding-bottom: 64px;
+  }
+  header.top {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 12px 22px; background: #1e1e2ae6; backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .brand h1 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: .02em; }
+  .brand .sub { color: var(--dim); font-size: 12px; }
+  #q {
+    flex: 1 1 220px; max-width: 340px; font: inherit; color: var(--fg);
+    background: #00000050; border: 1px solid var(--line); border-radius: 8px;
+    padding: 6px 12px; outline: none; transition: border-color .15s;
+  }
+  #q:focus { border-color: #89b4fa80; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    font-size: 12px; padding: 4px 12px; border-radius: 99px; cursor: pointer;
+    color: var(--dim); background: #00000040; border: 1px solid var(--line);
+    transition: all .15s; user-select: none;
+  }
+  .chip:hover { color: var(--fg); border-color: #89b4fa60; }
+  .chip.on { color: #16161e; background: var(--accent); border-color: var(--accent); font-weight: 600; }
+  #meta { margin-left: auto; color: var(--dim); font-size: 12px; white-space: nowrap; }
+  #meta b { color: var(--green); font-weight: 600; }
+  main { max-width: 1320px; margin: 0 auto; padding: 18px 22px 0; }
+
+  .host { margin-bottom: 30px; }
+  .host-head {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 14px 18px; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 12px; margin-bottom: 12px;
+  }
+  .host-id { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .host-id .name { font-size: 15px; font-weight: 700; }
+  .host-id .name .tld { color: var(--dim); font-weight: 400; }
+  .host-id .hw { color: var(--dim); font-size: 12px; }
+  .gpu { margin-left: auto; display: flex; align-items: center; gap: 12px; min-width: 240px; }
+  .gpu .label { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+  .gpu .gname { font-size: 12px; font-weight: 600; }
+  .gpu .stats { color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .gpu .bar { width: 140px; height: 6px; border-radius: 3px; background: #00000060; overflow: hidden; }
+  .gpu .bar > div { height: 100%; background: var(--accent); transition: width .6s; }
+  .gpu .bar > div.hot { background: var(--yellow); }
+
+  .grid {
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 11px;
+    padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+    transition: border-color .15s, transform .15s;
+  }
+  .card:hover { border-color: #89b4fa50; transform: translateY(-1px); }
+  .card.hidden { display: none; }
+  .card .head { display: flex; align-items: center; gap: 10px; }
+  .card .icon {
+    width: 34px; height: 34px; border-radius: 9px; flex: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; background: #89b4fa14; border: 1px solid #89b4fa26;
+  }
+  .card .title { display: flex; flex-direction: column; gap: 0; min-width: 0; flex: 1; }
+  .card .title a {
+    color: var(--fg); text-decoration: none; font-weight: 650; font-size: 14.5px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .card .title a:hover { color: var(--accent); }
+  .pill {
+    flex: none; font-size: 10.5px; padding: 3px 9px; border-radius: 99px;
+    border: 1px solid; white-space: nowrap; text-transform: capitalize;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .pill.up, .pill.active { color: var(--green); border-color: #a6e3a160; background: #a6e3a114; }
+  .pill.activating { color: var(--yellow); border-color: #f9e2af60; background: #f9e2af14; animation: pulse 1.2s infinite; }
+  .pill.failed, .pill.down { color: var(--red); border-color: #f38ba860; background: #f38ba814; }
+  .pill.inactive, .pill.http { color: var(--gray); border-color: #6c708650; }
+  .pill.checking { color: var(--dim); border-color: var(--line); animation: pulse 1.2s infinite; }
+  @keyframes pulse { 50% { opacity: .45; } }
+  .desc { color: var(--dim); font-size: 12.5px; flex: 1; }
+  .note { color: #f9e2afcc; font-size: 11.5px; }
+  .foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .foot .addr {
+    font: 11px ui-monospace, monospace; color: var(--dim);
+    background: #00000040; padding: 2px 7px; border-radius: 5px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+  }
+  .foot .addr .p { color: var(--accent); }
+  .mini {
+    font: inherit; font-size: 11.5px; color: var(--dim); cursor: pointer;
+    background: #00000040; border: 1px solid var(--line); border-radius: 6px;
+    padding: 3px 9px; transition: all .15s;
+  }
+  .mini:hover { color: var(--fg); border-color: #89b4fa80; background: #89b4fa14; }
+  .foot .open { margin-left: auto; color: var(--accent); text-decoration: none; font-size: 12px; }
+  .foot .open:hover { text-decoration: underline; }
+  details.io { margin-top: 2px; }
+  details.io summary {
+    cursor: pointer; color: var(--dim); font-size: 11.5px; user-select: none;
+    list-style: none; display: inline-flex; align-items: center; gap: 4px;
+  }
+  details.io summary::before { content: "▸"; transition: transform .15s; font-size: 9px; }
+  details.io[open] summary::before { transform: rotate(90deg); }
+  details.io summary:hover { color: var(--fg); }
+  .io-body { margin-top: 6px; display: flex; flex-direction: column; gap: 6px; }
+  pre.curl {
+    margin: 0; background: #00000050; border: 1px solid #31314540;
+    border-radius: 7px; padding: 9px 11px; overflow-x: auto;
+    font: 11.5px/1.55 ui-monospace, "JetBrains Mono", monospace; color: #cdd6f4;
+  }
+  .try { display: flex; gap: 8px; flex-wrap: wrap; }
+  .try input {
+    font: inherit; font-size: 12px; color: var(--fg); min-width: 60px; flex: 1;
+    background: #00000050; border: 1px solid var(--line); border-radius: 7px;
+    padding: 6px 10px; outline: none;
+  }
+  .try input:focus { border-color: #89b4fa80; }
+  .try button {
+    font: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+    color: #16161e; background: var(--accent); border: none; border-radius: 7px;
+    padding: 6px 14px;
+  }
+  .try button:disabled { opacity: .5; cursor: default; }
+  .links { display: flex; gap: 10px; font-size: 12px; }
+  .links a { color: var(--accent); text-decoration: none; }
+  .links a:hover { text-decoration: underline; }
+  pre.out {
+    display: none; margin: 0; background: #00000050; border: 1px solid #31314540;
+    border-radius: 7px; padding: 9px 11px; max-height: 260px; overflow: auto;
+    white-space: pre-wrap; word-break: break-word;
+    font: 11.5px/1.55 ui-monospace, monospace; color: #cdd6f4;
+  }
+  #noresults { display: none; color: var(--dim); text-align: center; padding: 40px 0; }
+  footer.page {
+    max-width: 1320px; margin: 26px auto 0; padding: 14px 22px;
+    border-top: 1px solid var(--line); color: var(--dim); font-size: 12px;
+    display: flex; gap: 18px; flex-wrap: wrap;
+  }
+  footer.page code { font: 11px ui-monospace, monospace; background: #00000040; padding: 1px 5px; border-radius: 4px; }
+  #toast {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: var(--card); border: 1px solid #89b4fa60; color: var(--fg);
+    padding: 8px 18px; border-radius: 8px; opacity: 0; pointer-events: none;
+    transition: opacity .3s; z-index: 20;
+  }
+  #toast.show { opacity: 1; }
+  @media (max-width: 720px) {
+    header.top { padding: 10px 14px; }
+    main { padding: 12px 14px 0; }
+    #meta { display: none; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <h1>tailnet · services</h1>
+    <span class="sub">*.tail69fe1.ts.net</span>
+  </div>
+  <input id="q" type="search" placeholder="search  ( / )" autocomplete="off">
+  <div class="chips" id="chips"></div>
+  <span id="meta"></span>
+</header>
+<main id="main"></main>
+<div id="noresults">no services match</div>
+<footer class="page">
+  <span>🔒 Everything is tailnet-only — Tailscale Serve terminates TLS with tailnet identity.</span>
+  <span><code>http</code> links bypass Serve and have no status check.</span>
+  <span>Unit-backed pills come from the service panels; others are reachability pings.</span>
+</footer>
+<div id="toast"></div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const CATS = [
+  ["all", "All"], ["admin", "Admin &amp; ops"], ["apps", "Web apps"],
+  ["ai", "AI &amp; APIs"], ["media", "Media"],
+];
+
+const HOSTS = [
+  {
+    id: "nixos", name: "nixos", hw: "Threadripper · RTX 3080 · server",
+    panel: "/panel/nixos/api/status",
+    services: [
+      { cat: "admin", icon: "🧰", name: "service-panel",
+        url: "https://nixos.tail69fe1.ts.net:7980",
+        desc: "Start/stop the GPU-heavy units — gpu-gateway, MOSS web, Kokoro — and tail logs." },
+      { cat: "admin", icon: "🚦", name: "gpu-gateway",
+        url: "https://nixos.tail69fe1.ts.net:7860/__gw",
+        desc: "Single-GPU time-share scheduler between MOSS and FreeToken: engine state, held jobs, VRAM, event log.",
+        unit: "gpu-gateway.service" },
+      { cat: "admin", icon: "🔄", name: "Syncthing",
+        url: "http://nixos.tail69fe1.ts.net:8384",
+        desc: "Folder-sync admin UI." },
+      { cat: "admin", icon: "🪣", name: "RustFS",
+        url: "https://nixos.tail69fe1.ts.net:9000",
+        desc: "S3-compatible object storage + web console (user service)." },
+
+      { cat: "apps", icon: "📚", name: "Wallabag",
+        url: "https://nixos.tail69fe1.ts.net/wallabag/",
+        desc: "Read-it-later: save articles, read, archive." },
+      { cat: "apps", icon: "🌿", name: "Gitea",
+        url: "https://nixos.tail69fe1.ts.net:3000",
+        desc: "Git hosting + Gitea Actions CI (also the local Docker registry)." },
+      { cat: "apps", icon: "📄", name: "Paperless-ngx",
+        url: "https://nixos.tail69fe1.ts.net:28981",
+        desc: "Document archive with OCR, tags and correspondents." },
+      { cat: "apps", icon: "🏷️", name: "Paperless-AI",
+        url: "https://nixos.tail69fe1.ts.net:3003",
+        desc: "LLM auto-tagging, classification and semantic RAG search for Paperless." },
+      { cat: "apps", icon: "🪄", name: "paperless-gpt",
+        url: "https://nixos.tail69fe1.ts.net:8080",
+        desc: "LLM-generated titles/tags and vision-LLM OCR for Paperless." },
+      { cat: "apps", icon: "🎮", name: "Romm",
+        url: "https://nixos.tail69fe1.ts.net:8070",
+        desc: "ROM library manager &amp; web player — scans the Crucial X8 drive, fetches metadata &amp; art." },
+      { cat: "apps", icon: "🦞", name: "OpenClaw",
+        url: "https://nixos.tail69fe1.ts.net:8443",
+        desc: "AI assistant gateway (clawdbot). User service — often restarting." },
+      { cat: "apps", icon: "🤖", name: "IronClaw",
+        url: "https://nixos.tail69fe1.ts.net:8444",
+        desc: "Rust AI assistant. User service — often restarting." },
+
+      { cat: "ai", icon: "🎙️", name: "MOSS-Transcribe",
+        url: "https://nixos.tail69fe1.ts.net:7860",
+        desc: "Speaker-diarized transcription: upload audio/video → segments, SRT/ASS export, MP4 burn-in.",
+        unit: "moss-transcribe-web.service",
+        note: "fronted by gpu-gateway — first request may wake the engine",
+        curl: "# list jobs\n curl https://nixos.tail69fe1.ts.net:7860/api/jobs" },
+      { cat: "ai", icon: "🗣️", name: "Kokoro TTS",
+        url: "https://nixos.tail69fe1.ts.net:8880/docs",
+        desc: "OpenAI-compatible text-to-speech (voices like af_bella, af_heart).",
+        unit: "kokoro-fastapi.service",
+        curl: 'curl https://nixos.tail69fe1.ts.net:8880/v1/audio/speech \\\n  -H "Content-Type: application/json" \\\n  -d \'{"input": "Hello world", "voice": "af_heart"}\' \\\n  --output speech.mp3' },
+      { cat: "ai", icon: "🧠", name: "FreeToken",
+        url: "https://nixos.tail69fe1.ts.net:1919",
+        desc: "OpenAI-compatible MoE LLM (Qwen3.6-35B-A3B FP8) on the RTX 3080.",
+        note: "auto-starts via gpu-gateway on first request; held while MOSS runs",
+        curl: 'curl https://nixos.tail69fe1.ts.net:1919/v1/chat/completions \\\n  -H "Content-Type: application/json" \\\n  -d \'{"model": "Qwen/Qwen3.6-35B-A3B-FP8",\n       "messages": [{"role": "user", "content": "hello"}]}\'' },
+      { cat: "ai", icon: "🎧", name: "Wallabag TTS",
+        url: "https://nixos.tail69fe1.ts.net:3001",
+        desc: "Turns Wallabag articles into a podcast feed read aloud.",
+        links: [["feed.xml", "https://nixos.tail69fe1.ts.net:3001/feed.xml"],
+                ["episodes JSON", "https://nixos.tail69fe1.ts.net:3001/episodes"]],
+        demo: "tts" },
+      { cat: "ai", icon: "🧹", name: "Defuddle",
+        url: "https://nixos.tail69fe1.ts.net:3002",
+        desc: "URL → clean Markdown extraction API.",
+        demo: "defuddle",
+        curl: "curl https://nixos.tail69fe1.ts.net:3002/https://example.com/article" },
+      { cat: "ai", icon: "🎭", name: "Playwright MCP",
+        url: "https://nixos.tail69fe1.ts.net:8182",
+        desc: "Browser automation MCP server (user service)." },
+    ],
+  },
+  {
+    id: "ripper", name: "nixos-ripper", hw: "Threadripper · RDNA 2 · media &amp; ROCm",
+    panel: "/panel/ripper/api/status",
+    services: [
+      { cat: "admin", icon: "🧰", name: "service-panel",
+        url: "https://nixos-ripper.tail69fe1.ts.net:7980",
+        desc: "Controls MOSS, Ollama, Sunshine, Jellyfin and their tailnet proxies." },
+      { cat: "admin", icon: "🎙️", name: "MOSS-Transcribe",
+        url: "https://nixos-ripper.tail69fe1.ts.net:7860",
+        desc: "Transcription UI + jobs API (ROCm backend, on demand).",
+        unit: "moss-transcribe.service",
+        serveUnit: "tailscale-serve-moss-transcribe.service",
+        curl: "curl https://nixos-ripper.tail69fe1.ts.net:7860/api/jobs" },
+      { cat: "admin", icon: "📰", name: "nixnews",
+        url: "https://nixos-ripper.tail69fe1.ts.net:8444",
+        desc: "Daily digest of nixpkgs-unstable commits, packages and security fixes." },
+      { cat: "admin", icon: "📊", name: "gpu-status",
+        url: "http://nixos-ripper.tail69fe1.ts.net:7861/vram",
+        desc: "Read-only VRAM JSON endpoint for crumpet's GPU steward." },
+
+      { cat: "media", icon: "🎬", name: "Jellyfin",
+        url: "http://nixos-ripper.tail69fe1.ts.net:8096",
+        desc: "Movies, series and music streaming.",
+        unit: "jellyfin.service" },
+      { cat: "media", icon: "🌤️", name: "Sunshine",
+        url: "https://nixos-ripper.tail69fe1.ts.net:47990",
+        desc: "Game-streaming host UI (self-signed TLS).",
+        unit: "sunshine.service" },
+
+      { cat: "ai", icon: "🦙", name: "Ollama",
+        url: "http://nixos-ripper.tail69fe1.ts.net:11434",
+        desc: "Local LLM serving — OpenAI-compatible /v1 and native /api.",
+        unit: "ollama.service",
+        curl: "curl http://nixos-ripper.tail69fe1.ts.net:11434/api/tags" },
+    ],
+  },
+];
+
+/* ---------- helpers ---------- */
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2200);
+}
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function addr(u) {
+  try {
+    const a = new URL(u);
+    return esc(a.hostname) + '<span class="p">:' + a.port +
+      (a.pathname !== "/" ? esc(a.pathname.replace(/\/$/, "")) : "") + "</span>";
+  } catch (e) { return esc(u); }
+}
+
+/* ---------- render ---------- */
+let filterCat = "all", filterQ = "";
+const cardEls = []; // {host, svc, root, pill, note}
+
+function render() {
+  const main = $("#main");
+  for (const h of HOSTS) {
+    const host = document.createElement("section");
+    host.className = "host";
+    host.innerHTML = `
+      <div class="host-head">
+        <div class="host-id">
+          <span class="name">${esc(h.name)}<span class="tld">.tail69fe1.ts.net</span></span>
+          <span class="hw">${h.hw}</span>
+        </div>
+        <div class="gpu" id="gpu-${h.id}" hidden>
+          <div>
+            <div class="label">gpu</div>
+            <div class="gname"></div>
+          </div>
+          <div class="bar"><div></div></div>
+          <div class="stats"></div>
+        </div>
+      </div>
+      <div class="grid"></div>`;
+    const grid = host.querySelector(".grid");
+    for (const s of h.services) grid.appendChild(makeCard(h, s));
+    main.appendChild(host);
+  }
+}
+
+function makeCard(h, s) {
+  const el = document.createElement("div");
+  el.className = "card";
+  el.dataset.cat = s.cat;
+
+  let extra = "";
+  if (s.note || s.serveUnit) extra += `<div class="note"></div>`;
+  if (s.links) {
+    extra += `<div class="links">` + s.links.map(l =>
+      `<a href="${esc(l[1])}" target="_blank" rel="noopener">${esc(l[0])}</a>`).join("") + `</div>`;
+  }
+  if (s.curl) {
+    extra += `
+      <details class="io"><summary>curl</summary><div class="io-body">
+        <pre class="curl">${esc(s.curl)}</pre>
+        <div><button class="mini copy-curl">copy</button></div>
+      </div></details>`;
+  }
+  if (s.demo === "defuddle") {
+    extra += `
+      <details class="io"><summary>try it</summary><div class="io-body">
+        <div class="try">
+          <input type="url" placeholder="https://example.com/article" required>
+          <button>Convert</button>
+        </div>
+        <pre class="out"></pre>
+      </div></details>`;
+  }
+  if (s.demo === "tts") {
+    extra += `
+      <details class="io"><summary>try it</summary><div class="io-body">
+        <div class="try">
+          <input type="number" min="1" placeholder="Article ID" required style="max-width:110px">
+          <input type="password" placeholder="API token" style="max-width:150px">
+          <button>Convert</button>
+        </div>
+        <div class="try"><button class="all">Convert all unarchived</button></div>
+        <pre class="out"></pre>
+      </div></details>`;
+  }
+
+  el.innerHTML = `
+    <div class="head">
+      <div class="icon">${s.icon}</div>
+      <div class="title"><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a></div>
+      <span class="pill checking"><span class="dot"></span><span class="t">…</span></span>
+    </div>
+    <div class="desc">${s.desc}</div>
+    ${extra}
+    <div class="foot">
+      <span class="addr">${addr(s.url)}</span>
+      <button class="mini copy-url" title="copy URL">copy</button>
+      <a class="open" href="${esc(s.url)}" target="_blank" rel="noopener">open ↗</a>
+    </div>`;
+
+  el.querySelector(".copy-url").onclick = () => {
+    navigator.clipboard.writeText(s.url).then(
+      () => toast("copied " + s.url), () => toast("copy failed"));
+  };
+  const cc = el.querySelector(".copy-curl");
+  if (cc) cc.onclick = () => {
+    navigator.clipboard.writeText(s.curl).then(() => toast("curl copied"));
+  };
+  wireDemo(el, s);
+
+  cardEls.push({ host: h, svc: s, root: el,
+    pill: el.querySelector(".pill"), note: el.querySelector(".note") });
+  return el;
+}
+
+function wireDemo(el, svc) {
+  if (svc.demo === "defuddle") {
+    const form = el.querySelector(".try"), out = el.querySelector(".out"), btn = form.querySelector("button");
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      const url = form.querySelector("input").value.trim();
+      if (!url) return;
+      out.style.display = "block"; out.textContent = "Converting…"; btn.disabled = true;
+      try {
+        const r = await fetch("https://nixos.tail69fe1.ts.net:3002/" + encodeURIComponent(url));
+        out.textContent = r.ok ? await r.text() : "Error " + r.status + ": " + await r.text();
+      } catch (err) { out.textContent = "Error: " + err.message; }
+      btn.disabled = false;
+    });
+  }
+  if (svc.demo === "tts") {
+    const inputs = el.querySelectorAll(".try input");
+    const [idIn, tokIn] = inputs;
+    const out = el.querySelector(".out");
+    tokIn.value = localStorage.getItem("tts_token") || "";
+    const base = "https://nixos.tail69fe1.ts.net:3001";
+    async function go(url, btn) {
+      localStorage.setItem("tts_token", tokIn.value);
+      out.style.display = "block"; out.textContent = "Processing…"; btn.disabled = true;
+      try {
+        const r = await fetch(url, { method: "POST",
+          headers: { "Authorization": "Bearer " + tokIn.value } });
+        out.textContent = r.ok ? await r.text() : "Error " + r.status + ": " + await r.text();
+      } catch (err) { out.textContent = "Error: " + err.message; }
+      btn.disabled = false;
+    }
+    idIn.closest(".try").addEventListener("submit", e => {
+      e.preventDefault();
+      if (!idIn.value) return;
+      go(base + "/convert/" + idIn.value, e.target.querySelector("button"));
+    });
+    el.querySelector("button.all").onclick = e => go(base + "/convert-all", e.target);
+  }
+}
+
+/* ---------- filtering ---------- */
+function applyFilter() {
+  let visible = 0;
+  const q = filterQ.toLowerCase();
+  for (const c of cardEls) {
+    const hay = (c.svc.name + " " + c.svc.desc + " " + c.svc.cat + " " + c.svc.url).toLowerCase();
+    const ok = (filterCat === "all" || c.svc.cat === filterCat) && (!q || hay.includes(q));
+    c.root.classList.toggle("hidden", !ok);
+    if (ok) visible++;
+  }
+  for (const h of document.querySelectorAll(".host")) {
+    const any = h.querySelectorAll(".card:not(.hidden)").length > 0;
+    h.style.display = any ? "" : "none";
+  }
+  $("#noresults").style.display = visible ? "none" : "block";
+}
+
+function renderChips() {
+  const box = $("#chips");
+  for (const [id, label] of CATS) {
+    const c = document.createElement("span");
+    c.className = "chip" + (id === "all" ? " on" : "");
+    c.innerHTML = label;
+    c.onclick = () => {
+      filterCat = id;
+      box.querySelectorAll(".chip").forEach(x => x.classList.remove("on"));
+      c.classList.add("on");
+      applyFilter();
+    };
+    box.appendChild(c);
+  }
+}
+
+$("#q").addEventListener("input", e => { filterQ = e.target.value; applyFilter(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "/" && document.activeElement !== $("#q")) {
+    e.preventDefault(); $("#q").focus();
+  }
+  if (e.key === "Escape" && document.activeElement === $("#q")) {
+    $("#q").value = ""; filterQ = ""; applyFilter(); $("#q").blur();
+  }
+});
+
+/* ---------- status ---------- */
+const panelState = {}; // hostId -> {units: Map, error}
+
+function setPill(c, cls, text, title) {
+  c.pill.className = "pill " + cls;
+  c.pill.querySelector(".t").textContent = text;
+  if (title) c.pill.title = title; else c.pill.removeAttribute("title");
+}
+function setNote(c, text) { if (c.note) c.note.textContent = text || ""; }
+
+async function fetchPanel(host) {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 6000);
+    const r = await fetch(host.panel, { signal: ctrl.signal, cache: "no-store" });
+    clearTimeout(t);
+    const d = await r.json();
+    panelState[host.id] = { units: new Map(d.services.map(s => [s.unit, s])), gpu: d.gpu };
+  } catch (e) {
+    panelState[host.id] = { error: true };
+  }
+}
+
+function unitPill(state) {
+  if (state.active === "active")
+    return state.sub === "auto-restart" ? ["activating", "restarting"] : ["up", "active"];
+  if (state.active === "activating" || state.active === "reloading") return ["activating", state.active];
+  if (state.active === "failed") return ["failed", "failed"];
+  return ["inactive", "stopped"];
+}
+
+function applyPanel(host) {
+  const st = panelState[host.id];
+  const gw = $("#gpu-" + host.id);
+  if (!st || st.error || !st.gpu) { gw.hidden = true; }
+  else {
+    const g = st.gpu;
+    gw.hidden = false;
+    gw.querySelector(".gname").textContent = g.name || "gpu";
+    const pct = g.memTotalMiB ? g.memUsedMiB / g.memTotalMiB : 0;
+    const fill = gw.querySelector(".bar > div");
+    fill.style.width = Math.min(100, pct * 100).toFixed(1) + "%";
+    fill.className = pct > 0.9 ? "hot" : "";
+    gw.querySelector(".stats").textContent =
+      (g.memUsedMiB / 1024).toFixed(1) + "/" + (g.memTotalMiB / 1024).toFixed(1) + " GiB" +
+      (g.utilPct != null ? " · " + g.utilPct + "%" : "") +
+      (g.tempC != null ? " · " + g.tempC + "°C" : "");
+  }
+  for (const c of cardEls) {
+    if (c.host.id !== host.id) continue;
+    if (c.svc.unit && st && !st.error && st.units.has(c.svc.unit)) {
+      const u = st.units.get(c.svc.unit);
+      const [cls, label] = unitPill(u);
+      setPill(c, cls, label,
+        c.svc.unit + (u.since ? " · since " + u.since : ""));
+      let note = "";
+      if (label === "stopped") note = "stopped — start it from the service panel";
+      else if (label === "failed") note = "failed — check logs in the service panel";
+      if (c.svc.serveUnit && label === "active") {
+        const sv = st.units.get(c.svc.serveUnit);
+        if (!sv || sv.active !== "active")
+          note = "running but tailnet proxy is off — start it in the panel";
+      }
+      setNote(c, note);
+    } else if (c.svc.unit && (!st || st.error)) {
+      setPill(c, "checking", "panel?", "panel unreachable — falling back to ping");
+      pingCard(c);
+    }
+  }
+}
+
+async function pingCard(c) {
+  const u = c.svc.url;
+  if (!u.startsWith("https://")) { setPill(c, "http", "http", "plain http — no status check"); return; }
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 7000);
+    await fetch(u, { mode: "no-cors", cache: "no-store", redirect: "follow", signal: ctrl.signal });
+    clearTimeout(t);
+    setPill(c, "up", "reachable",
+      "tailnet reachable — proxy answered (backend state unknown)");
+  } catch (e) {
+    setPill(c, "down", "unreachable", "no answer (down or firewalled)");
+  }
+}
+
+let upCount = 0;
+function countUp() {
+  upCount = 0;
+  for (const c of cardEls) if (c.pill.classList.contains("up")) upCount++;
+  $("#meta").innerHTML = `<b>${upCount}</b>/${cardEls.length} up · updated ` +
+    new Date().toLocaleTimeString();
+}
+
+async function refreshPanels() {
+  for (const h of HOSTS) await fetchPanel(h);
+  for (const h of HOSTS) applyPanel(h);
+  countUp();
+}
+async function refreshPings() {
+  for (const c of cardEls)
+    if (!c.svc.unit) pingCard(c);
+  setTimeout(countUp, 8000);
+}
+
+/* ---------- boot ---------- */
+render();
+renderChips();
+applyFilter();
+refreshPanels();
+refreshPings();
+setInterval(refreshPanels, 15000);
+setInterval(refreshPings, 60000);
+</script>
+</body>
+</html>

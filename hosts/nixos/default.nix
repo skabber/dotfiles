@@ -84,19 +84,42 @@
     secret = "iWIjQIh9roEBVbTm1ZpZRgjn9jd3CZbuO3YuRQ7IQ4";
   };
 
-  # Static website at root, served via nginx (Tailscale Serve handles HTTPS)
+  # Static homepage at root, served from the flake (store path) via nginx
+  # (Tailscale Serve handles HTTPS). /panel/<host>/ proxies the service panels
+  # same-origin so the page can read real unit states + GPU stats.
   services.nginx.virtualHosts."nixos.tail69fe1.ts.net" = {
-    root = "/var/www/public";
-    locations."/" = {
-      index = "index.html index.htm";
-      tryFiles = "$uri $uri/ =404";
+    root = "${./www}";
+    locations = {
+      "/" = {
+        index = "index.html index.htm";
+        tryFiles = "$uri $uri/ =404";
+      };
+      "/panel/nixos/" = {
+        proxyPass = "http://127.0.0.1:7980/";
+        extraConfig = "proxy_connect_timeout 5s; proxy_read_timeout 10s;";
+      };
+      # Ripper's panel binds loopback on that host; its only tailnet
+      # listener is the Tailscale Serve HTTPS endpoint (hostname SNI
+      # required). proxy_pass via a variable + MagicDNS resolver resolves at
+      # request time — nginx startup never blocks on DNS, and a missing host
+      # only 502s the panel (the homepage falls back to pings). Its
+      # Let's Encrypt cert is verified against the system CA bundle.
+      "/panel/ripper/" = {
+        extraConfig = ''
+          resolver 100.100.100.100 valid=30s ipv6=off;
+          set $ripper_panel https://nixos-ripper.tail69fe1.ts.net:7980;
+          rewrite ^/panel/ripper/(.*)$ /$1 break;
+          proxy_pass $ripper_panel;
+          proxy_ssl_server_name on;
+          proxy_ssl_name nixos-ripper.tail69fe1.ts.net;
+          proxy_ssl_verify on;
+          proxy_ssl_trusted_certificate ${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt;
+          proxy_connect_timeout 5s;
+          proxy_read_timeout 10s;
+        '';
+      };
     };
   };
-
-  # Ensure static site directory exists
-  systemd.tmpfiles.rules = [
-    "d /var/www/public 0775 nginx nginx -"
-  ];
 
   # NVIDIA Container Toolkit for GPU access in Docker
   # enableNvidia is deprecated but still required — it creates config.toml
