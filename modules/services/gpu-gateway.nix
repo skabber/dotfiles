@@ -84,6 +84,18 @@ in
       description = "Max wait for in-flight freetoken requests to finish once moss work is waiting; past this the engine is stopped anyway.";
     };
 
+    ftStallSec = mkOption {
+      type = types.ints.positive;
+      default = 120;
+      description = "Cut an in-flight freetoken stream that has produced no bytes for this long once moss work is waiting (hung streams otherwise pin the GPU through the whole drain window).";
+    };
+
+    ftStallHardSec = mkOption {
+      type = types.ints.positive;
+      default = 900;
+      description = "Hard cap on silent freetoken streams even with no moss work waiting; past this the stream is cut so ghost counters cannot pin the GPU forever.";
+    };
+
     maxHoldSec = mkOption {
       type = types.ints.positive;
       default = 900;
@@ -132,6 +144,8 @@ in
         GW_COALESCE_SEC = toString cfg.coalesceSec;
         GW_FT_IDLE_SEC = toString cfg.ftIdleSec;
         GW_DRAIN_TIMEOUT_SEC = toString cfg.drainTimeoutSec;
+        GW_FT_STALL_SEC = toString cfg.ftStallSec;
+        GW_FT_STALL_HARD_SEC = toString cfg.ftStallHardSec;
         GW_MAX_HOLD_SEC = toString cfg.maxHoldSec;
         GW_HEALTH_TIMEOUT_SEC = toString cfg.healthTimeoutSec;
         GW_SWITCH_COOLDOWN_SEC = toString cfg.switchCooldownSec;

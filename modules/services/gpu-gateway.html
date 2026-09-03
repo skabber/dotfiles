@@ -57,6 +57,7 @@
       <div class="row"><span class="k">engine health</span><span class="num" id="ft-health">—</span></div>
       <div class="row"><span class="k">queued requests</span><span class="num" id="ft-pending">—</span></div>
       <div class="row"><span class="k">in flight</span><span class="num" id="ft-inflight">—</span></div>
+      <div class="row"><span class="k">oldest stream idle</span><span class="num" id="ft-idle">—</span></div>
     </div>
 
     <div class="card wide">
@@ -120,6 +121,12 @@ async function refresh() {
   $("ft-inflight").textContent = d.ft.inflight;
   cls("ft-pending", d.ft.pending > 0);
   cls("ft-inflight", d.ft.inflight > 0);
+  const fi = $("ft-idle");
+  if (d.ft.inflight > 0 && d.ft.oldestIdleSec != null) {
+    fi.textContent = d.ft.oldestIdleSec + "s" +
+      (d.ft.stalledInflight > 0 ? " (" + d.ft.stalledInflight + " stalled)" : "");
+    fi.className = "num" + (d.ft.stalledInflight > 0 ? " hot" : "");
+  } else { fi.textContent = "—"; fi.className = "num"; }
 
   const g = d.gpu;
   if (g) {
@@ -141,6 +148,7 @@ async function refresh() {
   $("policy").textContent =
     "coalesce " + p.coalesceSec + "s · ft idle " + p.ftIdleSec + "s · " +
     "drain cap " + p.drainTimeoutSec + "s · hold cap " + p.maxHoldSec + "s · " +
+    "stall " + p.ftStallSec + "s/hard " + p.ftStallHardSec + "s · " +
     "cooldown " + p.switchCooldownSec + "s";
 }
 

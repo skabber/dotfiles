@@ -2,8 +2,10 @@
 """gpu-gateway: single-GPU time-share scheduler + buffering reverse proxy.
 
 Two loopback front ports:
-  - freetoken front: OpenAI/Anthropic API proxied to the ft server; requests
-    are held in-process while the engine is down and released once healthy.
+  - freetoken front: OpenAI/Anthropic API proxied to the ft server; inference
+    requests are held in-process while the engine is down and released once
+    healthy, while health probes (/, /health, /v1/models) fail fast and never
+    count as demand.
   - moss front: the mtd-subtitle-web jobs API + web UI; mutating requests
     are held while the vLLM engine is down, GETs pass through.
 
@@ -58,6 +60,8 @@ MOSS_UNIT = os.environ.get("GW_MOSS_UNIT", "moss-transcribe.service")
 COALESCE = env_float("GW_COALESCE_SEC", 8)          # batch ft arrivals before switching
 FT_IDLE = env_float("GW_FT_IDLE_SEC", 300)          # hysteresis before returning home
 DRAIN = env_float("GW_DRAIN_TIMEOUT_SEC", 600)      # max wait for in-flight ft before cutting
+FT_STALL = env_float("GW_FT_STALL_SEC", 120)        # cut an in-flight ft stream silent this long once moss waits
+FT_STALL_HARD = env_float("GW_FT_STALL_HARD_SEC", 900)  # silent-stream cap: cut even with no moss work waiting
 MAX_HOLD = env_float("GW_MAX_HOLD_SEC", 900)        # per-request hold cap
 HEALTH_TIMEOUT = env_float("GW_HEALTH_TIMEOUT_SEC", 900)  # engine cold start (JIT/model load)
 COOLDOWN = env_float("GW_SWITCH_COOLDOWN_SEC", 60)  # min dwell between switches
@@ -84,6 +88,7 @@ class GW:
     moss_healthy = False
     ft_pending = 0    # arrived, waiting for the engine
     ft_inflight = 0   # forwarded, streaming
+    ft_streams = {}   # stream handle -> {start, last_active, upstream, kill}
     moss_held = 0     # mutating requests waiting for the engine
     moss_jobs = 0     # active jobs reported by the jobs API
     ft_demand_since = None
@@ -353,9 +358,21 @@ async def cycle():
 
     elif gw.state == "FREETOKEN":
         want_moss = gw.moss_held > 0 or gw.moss_jobs > 0
-        ft_idle = gw.ft_pending == 0 and gw.ft_inflight == 0
         if want_moss:
             gw.want_moss_since = gw.want_moss_since or now
+            # Cut stalled streams early: an ft response producing no bytes for
+            # FT_STALL while moss work waits gets killed instead of pinning the
+            # GPU through the whole drain window (hung SSE streams otherwise
+            # force every moss request to wait out DRAIN).
+            for h in list(gw.ft_streams.values()):
+                idle = now - h["last_active"]
+                if idle >= FT_STALL and h.get("kill"):
+                    event(f"cutting stalled freetoken stream "
+                          f"(silent {idle:.0f}s, moss waiting)")
+                    h["kill"]()
+            # Re-check after the sweep: cutting the stragglers may have just
+            # made freetoken idle.
+            ft_idle = gw.ft_pending == 0 and gw.ft_inflight == 0
             forced = now - gw.want_moss_since >= DRAIN
             if (ft_idle and now - gw.last_switch >= COOLDOWN) or forced:
                 event("returning to MOSS" +
@@ -363,6 +380,17 @@ async def cycle():
                 await transition("MOSS")
         else:
             gw.want_moss_since = None
+            # Ghost or hung streams with no moss work waiting would pin
+            # freetoken forever (ft_idle can never become true): cut them at
+            # FT_STALL_HARD — well past any legitimate silent non-streaming
+            # generation — so the idle hysteresis can fire.
+            for h in list(gw.ft_streams.values()):
+                idle = now - h["last_active"]
+                if idle >= FT_STALL_HARD and h.get("kill"):
+                    event(f"cutting stalled freetoken stream "
+                          f"(silent {idle:.0f}s, hard cap)")
+                    h["kill"]()
+            ft_idle = gw.ft_pending == 0 and gw.ft_inflight == 0
             if ft_idle:
                 gw.ft_idle_since = gw.ft_idle_since or now
                 if (now - gw.ft_idle_since >= FT_IDLE
@@ -445,7 +473,8 @@ def hold_timeout():
     )
 
 
-async def proxy_pass(request: Request, backend: str, *, spool: bool, on_done=None):
+async def proxy_pass(request: Request, backend: str, *, spool: bool, on_done=None,
+                     handle=None):
     """Streaming reverse proxy. When spool is set the body was consumed while
     holding; otherwise the request body streams straight through."""
     url = backend + request.url.path
@@ -462,8 +491,32 @@ async def proxy_pass(request: Request, backend: str, *, spool: bool, on_done=Non
 
     req = client.build_request(request.method, url,
                                headers=fwd_req_headers(request), content=content)
+    send = asyncio.ensure_future(client.send(req, stream=True))
+
+    def kill():
+        # Governor-initiated cut: close the upstream response (stream ends,
+        # finally-release runs) or cancel the in-flight send. Idempotent.
+        if handle is None or handle.get("killed"):
+            return
+        handle["killed"] = True
+        up = handle.get("upstream")
+        if up is not None:
+            asyncio.ensure_future(up.aclose())
+        else:
+            send.cancel()
+
+    if handle is not None:
+        handle["kill"] = kill
     try:
-        upstream = await client.send(req, stream=True)
+        upstream = await send
+        if handle is not None:
+            handle["upstream"] = upstream
+    except asyncio.CancelledError:
+        if cleanup:
+            cleanup()
+        if on_done:
+            on_done()
+        raise
     except httpx.HTTPError as e:
         if cleanup:
             cleanup()
@@ -488,9 +541,17 @@ async def proxy_pass(request: Request, backend: str, *, spool: bool, on_done=Non
     async def body_stream():
         try:
             async for chunk in upstream.aiter_raw():
+                if handle is not None:
+                    handle["last_active"] = time.monotonic()
                 yield chunk
         finally:
-            await upstream.aclose()
+            # Runs on normal end, error, AND kill (upstream closed) — releasing
+            # the inflight slot here means a force-cut can never leak a ghost
+            # counter (BackgroundTask is skipped when a stream dies mid-flight).
+            # ensure_future: no awaits while the generator is being closed.
+            asyncio.ensure_future(upstream.aclose())
+            if on_done:
+                on_done()
 
     return StreamingResponse(body_stream(), status_code=upstream.status_code,
                              headers=fwd_resp_headers(upstream.headers),
@@ -498,12 +559,18 @@ async def proxy_pass(request: Request, backend: str, *, spool: bool, on_done=Non
 
 
 def status_payload():
+    now = time.monotonic()
+    streams = list(gw.ft_streams.values())
+    oldest_idle = max((now - h["last_active"] for h in streams), default=None)
     return {
         "state": gw.state,
         "transitioning": gw.transitioning,
         "degraded": gw.degraded,
         "switches": gw.switches,
         "ft": {"pending": gw.ft_pending, "inflight": gw.ft_inflight,
+               "oldestIdleSec": round(oldest_idle, 1) if oldest_idle is not None else None,
+               "stalledInflight": sum(1 for h in streams
+                                       if now - h["last_active"] >= FT_STALL),
                "healthy": gw.ft_healthy, "unit": FT_UNIT,
                "unitState": gw.ft_unit_state},
         "moss": {"held": gw.moss_held, "jobs": gw.moss_jobs,
@@ -513,6 +580,7 @@ def status_payload():
         "events": EVENTS[-30:],
         "policy": {"coalesceSec": COALESCE, "ftIdleSec": FT_IDLE,
                    "drainTimeoutSec": DRAIN, "maxHoldSec": MAX_HOLD,
+                   "ftStallSec": FT_STALL, "ftStallHardSec": FT_STALL_HARD,
                    "switchCooldownSec": COOLDOWN},
     }
 
@@ -544,6 +612,15 @@ async def status():
 @app_ft.api_route("/{path:path}",
                   methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])
 async def ft_proxy(request: Request, path: str):
+    if (request.method not in MUTATING
+            and request.url.path.rstrip("/") in NON_DEMAND):
+        if not (gw.state == "FREETOKEN" and gw.ft_healthy):
+            return JSONResponse(
+                status_code=503,
+                content={"error": "gpu-gateway: engine down; non-inference requests are not held"},
+                headers={"Retry-After": "60"},
+            )
+        return await proxy_pass(request, FT_BACKEND, spool=False)
     gw.ft_pending += 1
     spool = False
     try:
@@ -556,6 +633,9 @@ async def ft_proxy(request: Request, path: str):
     finally:
         gw.ft_pending -= 1
     gw.ft_inflight += 1
+    h = {"start": time.monotonic(), "last_active": time.monotonic(),
+         "upstream": None, "kill": None}
+    gw.ft_streams[id(h)] = h
     released = False
 
     def release():
@@ -563,17 +643,27 @@ async def ft_proxy(request: Request, path: str):
         if not released:
             released = True
             gw.ft_inflight -= 1
+            gw.ft_streams.pop(id(h), None)
 
+    h["release"] = release
     try:
-        return await proxy_pass(request, FT_BACKEND, spool=spool, on_done=release)
+        return await proxy_pass(request, FT_BACKEND, spool=spool, on_done=release,
+                                handle=h)
     except BaseException:
-        # CancelledError (client disconnect mid-send) is a BaseException and
-        # must release the inflight slot too, or ft_idle never returns true.
+        # CancelledError (client disconnect mid-send, governor kill) is a
+        # BaseException and must release the inflight slot too, or ft_idle
+        # never returns true.
         release()
         raise
 
 
 MUTATING = {"POST", "PUT", "PATCH", "DELETE"}
+
+# Probes that must never register as ft demand: a once-a-minute GET / or
+# /v1/models health poll would otherwise boot the engine and pin the model
+# in VRAM all day. They fail fast while the engine is down instead of being
+# held, and pass through untracked (no inflight slot) when it is up.
+NON_DEMAND = {"", "health", "v1/models"}
 
 
 @app_moss.api_route("/{path:path}",
