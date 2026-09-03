@@ -471,6 +471,13 @@ async def proxy_pass(request: Request, backend: str, *, spool: bool, on_done=Non
             on_done()
         return JSONResponse(status_code=502,
                             content={"error": f"gpu-gateway: upstream unavailable: {e}"})
+    except ClientDisconnect:
+        if cleanup:
+            cleanup()
+        if on_done:
+            on_done()
+        return PlainTextResponse("gpu-gateway: client disconnected",
+                                 status_code=499)
 
     def finish():
         if cleanup:
@@ -549,12 +556,20 @@ async def ft_proxy(request: Request, path: str):
     finally:
         gw.ft_pending -= 1
     gw.ft_inflight += 1
+    released = False
+
+    def release():
+        nonlocal released
+        if not released:
+            released = True
+            gw.ft_inflight -= 1
+
     try:
-        return await proxy_pass(
-            request, FT_BACKEND, spool=spool,
-            on_done=lambda: setattr(gw, "ft_inflight", gw.ft_inflight - 1))
-    except Exception:
-        gw.ft_inflight -= 1
+        return await proxy_pass(request, FT_BACKEND, spool=spool, on_done=release)
+    except BaseException:
+        # CancelledError (client disconnect mid-send) is a BaseException and
+        # must release the inflight slot too, or ft_idle never returns true.
+        release()
         raise
 
 
