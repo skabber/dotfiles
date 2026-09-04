@@ -38,9 +38,9 @@ in
       text = concatStringsSep "\n" (mapAttrsToList
         (name: remote: ''
           if ${pkgs.flatpak}/bin/flatpak remote-list 2>/dev/null | grep -q "^${name}\b"; then
-            ${pkgs.flatpak}/bin/flatpak remote-modify ${name} --url=${escapeShellArg remote.url}
+            ${pkgs.flatpak}/bin/flatpak remote-modify ${name} --url=${escapeShellArg remote.url} || true
           else
-            ${pkgs.flatpak}/bin/flatpak remote-add --if-not-exists ${name} ${escapeShellArg remote.url}
+            ${pkgs.flatpak}/bin/flatpak remote-add --if-not-exists ${name} ${escapeShellArg remote.url} || true
           fi
         '')
         cfg.remotes);
