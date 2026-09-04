@@ -5,8 +5,11 @@
 # ~/.config. Only imported by hosts that enable Hyprland (modules/desktop.nix).
 #
 # See docs/hyprland.md for usage.
-{ ... }:
+{ pkgs, ... }:
 
+let
+  wallpaper = "${pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha}/share/wallpapers/nineish-catppuccin-mocha/contents/images/nix-wallpaper-nineish-catppuccin-mocha.png";
+in
 {
   xdg.configFile = {
     "hypr/hyprland.lua".source = ../config/hypr/hyprland.lua;
@@ -15,5 +18,10 @@
     "waybar/style.css".source = ../config/waybar/style.css;
     "rofi/config.rasi".source = ../config/rofi/config.rasi;
     "mako/config".source = ../config/mako/config;
+    "hypr/hyprpaper.conf".text = ''
+      splash = false
+      preload = ${wallpaper}
+      wallpaper = ,${wallpaper}
+    '';
   };
 }

@@ -33,6 +33,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("waybar")                      -- status bar
     hl.exec_cmd("mako")                        -- notifications
     hl.exec_cmd("nm-applet --indicator")       -- network tray icon
+    hl.exec_cmd("hyprpaper")                   -- wallpaper
 end)
 
 -------------------------------
@@ -183,6 +184,7 @@ hl.bind(mainMod .. " + C", hl.dsp.window.close())
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))         -- dwindle only
+hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())          -- toggle fullscreen
 
 -- ── Session ───────────────────────────────────────────
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(lockCmd))             -- lock screen: hyprlock
@@ -199,6 +201,16 @@ hl.bind("SUPER + Print", hl.dsp.exec_cmd(
 ))
 -- Region -> clipboard
 hl.bind("ALT + Print", hl.dsp.exec_cmd(
+    'grim -g "$(slurp)" - | wl-copy && notify-send -t 2000 "Screenshot" "Region copied to clipboard"'
+))
+-- Same on keyboards without a Print key (P for Print): full / region->file / region->clipboard
+hl.bind("SUPER + CTRL + P", hl.dsp.exec_cmd(
+    'mkdir -p ~/Pictures/Screenshots && grim ~/Pictures/Screenshots/full-$(date +%Y%m%d-%H%M%S).png && notify-send -t 2000 "Screenshot" "Full screen saved"'
+))
+hl.bind("SUPER + SHIFT + P", hl.dsp.exec_cmd(
+    'mkdir -p ~/Pictures/Screenshots && grim -g "$(slurp)" ~/Pictures/Screenshots/region-$(date +%Y%m%d-%H%M%S).png && notify-send -t 2000 "Screenshot" "Region saved"'
+))
+hl.bind("SUPER + ALT + P", hl.dsp.exec_cmd(
     'grim -g "$(slurp)" - | wl-copy && notify-send -t 2000 "Screenshot" "Region copied to clipboard"'
 ))
 

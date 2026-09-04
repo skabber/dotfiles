@@ -15,6 +15,7 @@ host that imports that module (nixos-ripper, framework-13, framework-16) gets it
 | [Rofi](https://github.com/davatorium/rofi) | App launcher / window switcher | `config/rofi/config.rasi` |
 | [Mako](https://github.com/emersion/mako) | Notification daemon | `config/mako/config` |
 | [hyprlock](https://github.com/hyprwm/hyprlock) | Lock screen | `config/hypr/hyprlock.conf` |
+| [hyprpaper](https://github.com/hyprwm/hyprpaper) | Wallpaper (NixOS "nineish", Catppuccin Mocha) | `home/hyprland.nix` |
 
 > **How this is wired (the Nix way):** the config files live in this repo under
 > `config/` and [Home Manager](https://nix-community.github.io/home-manager/) ships
@@ -33,7 +34,7 @@ host that imports that module (nixos-ripper, framework-13, framework-16) gets it
    packages are installed.
 2. Log out. On the GDM login screen, click your name, then click the **gear icon**
    (bottom-right corner) and pick **Hyprland**.
-3. Log in. Waybar, mako, and the network tray icon start automatically.
+3. Log in. Waybar, mako, hyprpaper, and the network tray icon start automatically.
 
 The machine still boots into GNOME by default as the other session — switching between
 GNOME and Hyprland is just a matter of picking the session at login.
@@ -64,6 +65,7 @@ layout). The basics:
   (`resize_on_border` is on)
 - **Float a window** — `Super+V` toggles floating/tiled
 - **Swap the split** — `Super+J` flips the orientation after a split
+- **Full screen** — `Super+F` toggles the focused window between tiled and fullscreen
 - **Scratchpad** — `Super+S` shows/hides a hidden workspace (drop windows in with
   `Super+Shift+S`); great for a music player or a quick notes window
 
@@ -102,6 +104,9 @@ calendar tooltip) | **CPU** · **RAM** · **network** · **volume** · **tray**.
 | `Print` | Full screen → file in `~/Pictures/Screenshots/` |
 | `Super+Print` | Draw a region with the mouse → file |
 | `Alt+Print` | Draw a region → clipboard (paste with `Super+V` in apps / `wl-paste`) |
+| `Super+Ctrl+P` | Full screen → file — for keyboards without a `Print` key |
+| `Super+Shift+P` | Draw a region → file — for keyboards without a `Print` key |
+| `Super+Alt+P` | Draw a region → clipboard — for keyboards without a `Print` key |
 
 Each screenshot fires a mako notification confirming where it went.
 
@@ -135,6 +140,7 @@ YubiKey unlock it. `Super+M` exits the whole Hyprland session back to GDM.
 | `Super+V` | Toggle float |
 | `Super+P` | Toggle pseudo-tiling |
 | `Super+J` | Toggle split orientation |
+| `Super+F` | Toggle fullscreen |
 | `Super+L` | Lock screen |
 | `Super+M` | Exit Hyprland |
 | `Super+←/→/↑/↓` | Move focus |
@@ -144,6 +150,7 @@ YubiKey unlock it. `Super+M` exits the whole Hyprland session back to GDM.
 | `Super+mouse wheel` | Cycle workspaces |
 | `Super+drag LMB` / `Super+drag RMB` | Move / resize window |
 | `Print` / `Super+Print` / `Alt+Print` | Screenshot: full / region→file / region→clipboard |
+| `Super+Ctrl+P` / `Super+Shift+P` / `Super+Alt+P` | Screenshot (no `Print` key): full / region→file / region→clipboard |
 | `XF86Audio*` keys | Volume, mic mute, media (playerctl) |
 | `XF86MonBrightness*` keys | Brightness |
 
@@ -230,6 +237,7 @@ Find a window's class with `hyprctl clients` while the app is open (look for `cl
 | — `config/rofi/*` | nothing — rofi reads it on every launch |
 | — `config/mako/config` | …then `makoctl reload` |
 | — `config/hypr/hyprlock.conf` | nothing — read at next lock |
+| — hyprpaper.conf (generated in `home/hyprland.nix`) | `pkill hyprpaper && hyprpaper &` (or just log back in) |
 | Anything under `modules/` or `home/` in this repo | `./scripts/rebuild.sh` (or `sudo nixos-rebuild switch --flake .#<host>`) |
 
 > Fast loop while tinkering: `./scripts/rebuild.sh` only rebuilds what changed — the

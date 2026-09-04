@@ -21,6 +21,7 @@
     waybar
     rofi
     mako
+    hyprpaper
     grim
     slurp
     networkmanagerapplet
