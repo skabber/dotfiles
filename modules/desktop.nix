@@ -27,5 +27,12 @@
     networkmanagerapplet
     brightnessctl
     libnotify
+    # Hyprland ecosystem: idle, system info, annotate, clipboard, recording
+    hypridle
+    hyprsysteminfo
+    satty
+    cliphist
+    wl-screenrec
+    gpu-screen-recorder
   ];
 }

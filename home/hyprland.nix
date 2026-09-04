@@ -14,6 +14,7 @@ in
   xdg.configFile = {
     "hypr/hyprland.lua".source = ../config/hypr/hyprland.lua;
     "hypr/hyprlock.conf".source = ../config/hypr/hyprlock.conf;
+    "hypr/hypridle.conf".source = ../config/hypr/hypridle.conf;
     "waybar/config.jsonc".source = ../config/waybar/config.jsonc;
     "waybar/style.css".source = ../config/waybar/style.css;
     "rofi/config.rasi".source = ../config/rofi/config.rasi;

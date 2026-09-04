@@ -16,6 +16,12 @@ host that imports that module (nixos-ripper, framework-13, framework-16) gets it
 | [Mako](https://github.com/emersion/mako) | Notification daemon | `config/mako/config` |
 | [hyprlock](https://github.com/hyprwm/hyprlock) | Lock screen | `config/hypr/hyprlock.conf` |
 | [hyprpaper](https://github.com/hyprwm/hyprpaper) | Wallpaper (NixOS "nineish", Catppuccin Mocha) | `home/hyprland.nix` |
+| [hypridle](https://github.com/hyprwm/hypridle) | Idle daemon: auto-lock, screens off, suspend | `config/hypr/hypridle.conf` |
+| [Satty](https://github.com/gabm/Satty) | Screenshot annotation (arrows, text, blur) | `config/hypr/hyprland.lua` binds |
+| [wl-screenrec](https://github.com/Decodetalkers/wl-screenrec) | Screen + audio recording | `config/hypr/hyprland.lua` binds |
+| [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/about/) | Replay buffer ("save the last 30 s") | `config/hypr/hyprland.lua` binds |
+| [cliphist](https://github.com/sentriz/cliphist) | Clipboard history | `config/hypr/hyprland.lua` binds |
+| hyprsysteminfo | System info panel | package — run `hyprsysteminfo` |
 
 > **How this is wired (the Nix way):** the config files live in this repo under
 > `config/` and [Home Manager](https://nix-community.github.io/home-manager/) ships
@@ -68,13 +74,37 @@ layout). The basics:
 - **Full screen** — `Super+F` toggles the focused window between tiled and fullscreen
 - **Scratchpad** — `Super+S` shows/hides a hidden workspace (drop windows in with
   `Super+Shift+S`); great for a music player or a quick notes window
+- **Tab groups** — `Super+G` tabs the focused window into a group (a slim tab bar
+  appears at the top). `Super+Ctrl+←/→` flips through the tabs, `Super+Shift+G`
+  pulls the focused tab back out, `Super+Ctrl+G` locks the group's membership.
+  Great for stacking terminals or reference docs
+- **Adjust mode** — `Super+A` enters a modal key mode: arrows resize the focused
+  window, `Shift+arrows` move it, `Esc`/`Enter` leave the mode. No modifier
+  gymnastics needed
+- **Magnifier** — `Super+Z` / `Super+Shift+Z` zoom the screen in/out around the
+  cursor (up to 5×, smoothly animated); zooming back to 1× turns it off. Handy
+  for tiny text on the 13" panel
+- **Mark & jump** — `Super+Shift+T` tags the focused window `marked`, `Super+T`
+  jumps straight back to it from anywhere. (Tags are Hyprland's per-window
+  labels — window rules can also match on them)
+- **Floating snap** — floated windows magnetically snap to screen edges, the
+  gaps, and other windows while dragging
+- **Scrolling layout** — `Super+Y` flips between dwindle (binary splits) and the
+  built-in scrolling layout (PaperWM-style horizontal columns). Press it again
+  to go back; windows stay put
 
 ### Workspaces
 
 - `Super+1` … `Super+9`, `Super+0` — switch to workspace 1–10
 - `Super+Shift+1…0` — carry the focused window to that workspace
 - `Super+mouse wheel` — cycle through workspaces
+- 3-finger horizontal swipe on the touchpad — switch workspaces (works on the
+  Framework laptops' touchpads)
 - Workspaces are per-monitor on multi-display setups
+
+> Heads-up: Hyprland 0.56 (what we run) has no built-in overview dispatcher yet —
+> `Super+Tab` (window switcher) plus the scrolling layout are the closest things
+> for now. Watch for it in newer releases.
 
 ### The launcher (rofi)
 
@@ -83,9 +113,14 @@ layout). The basics:
 | `Super+R` | Apps (drun) | Launch installed applications — fuzzy search |
 | `Super+Shift+R` | Run | Run a command, like a shell prompt |
 | `Super+Tab` | Window | Switch between open windows by title |
+| `Super+Shift+V` | Clipboard | Search everything you've copied; `Enter` copies it back |
 
 Type to fuzzy-search, `Enter` to confirm, `Esc` to dismiss, arrow keys to move through
 results. Waybar's Nix logo (left corner) also opens the app launcher on click.
+
+The clipboard mode is [cliphist](https://github.com/sentriz/cliphist), fed by a
+`wl-paste --watch` watcher that starts with the session. Clear the history with
+`cliphist wipe` (e.g. after copying a password).
 
 ### The status bar (waybar)
 
@@ -103,12 +138,39 @@ calendar tooltip) | **CPU** · **RAM** · **network** · **volume** · **tray**.
 |---|---|
 | `Print` | Full screen → file in `~/Pictures/Screenshots/` |
 | `Super+Print` | Draw a region with the mouse → file |
-| `Alt+Print` | Draw a region → clipboard (paste with `Super+V` in apps / `wl-paste`) |
+| `Alt+Print` | Draw a region → clipboard (paste with the app's paste key, or `wl-paste`) |
 | `Super+Ctrl+P` | Full screen → file — for keyboards without a `Print` key |
 | `Super+Shift+P` | Draw a region → file — for keyboards without a `Print` key |
 | `Super+Alt+P` | Draw a region → clipboard — for keyboards without a `Print` key |
+| `Ctrl+Print` / `Ctrl+Alt+P` | Draw a region → **Satty** to annotate, then save/copy |
 
-Each screenshot fires a mako notification confirming where it went.
+Each plain screenshot fires a mako notification confirming where it went.
+
+The Satty bind drops the region into an editor: arrows, text, rectangles,
+blur/highlight, cropping. `Ctrl+S` saves to `~/Pictures/Screenshots/annotated-*`,
+`Ctrl+C` copies to the clipboard, `Esc` discards. (`Ctrl+Alt+P` is the variant
+for keyboards without a `Print` key.)
+
+### Recording
+
+| Keys | Action |
+|---|---|
+| `Shift+Print` / `Shift+Alt+P` | Record a region + system audio (wl-screenrec) → `~/Videos/` |
+| `Ctrl+Shift+Print` / `Ctrl+Shift+Alt+P` | Stop recording and save |
+| `Super+F11` | Toggle the replay daemon — keeps the last 30 s in memory |
+| `Super+F12` | Write the last 30 s to `~/Videos/Replays/` |
+
+The replay buffer is `gpu-screen-recorder`: it encodes on the GPU and only
+touches disk when you press `Super+F12`, so you can leave it running during a
+game and save the highlight after the fact. Check it's running with
+`pgrep -a gpu-screen-recorder`.
+
+### Screen sharing in calls
+
+The NixOS Hyprland module ships hyprwm's own portal (`xdg-desktop-portal-hyprland`),
+so Firefox/Chromium/Zoom screen sharing works out of the box — pick a monitor or
+window in the portal picker. If a call app offers "entire screen" only, picking
+the specific monitor usually behaves better.
 
 ### Notifications (mako)
 
@@ -126,6 +188,11 @@ makoctl list             # see history
 
 `Super+L` locks with hyprlock: the screen blurs, a clock appears, and your password +
 YubiKey unlock it. `Super+M` exits the whole Hyprland session back to GDM.
+
+hypridle backs that up when you walk away: after 5 idle minutes the session locks
+itself, after 6 the screens switch off (`config/hypr/hypridle.conf`; uncomment the
+suspend listener there on the laptops). Test without waiting:
+`hyprctl dispatch forceidle 5`.
 
 ## Full keybinding reference
 
@@ -148,9 +215,23 @@ YubiKey unlock it. `Super+M` exits the whole Hyprland session back to GDM.
 | `Super+Shift+1…0` | Move window to workspace |
 | `Super+S` / `Super+Shift+S` | Toggle scratchpad / move window to it |
 | `Super+mouse wheel` | Cycle workspaces |
+| 3-finger horizontal swipe | Switch workspace (touchpad) |
+| `Super+Y` | Toggle dwindle ↔ scrolling layout |
+| `Super+G` | Toggle window group (tabs) |
+| `Super+Ctrl+←/→` | Previous/next tab in group |
+| `Super+Ctrl+G` | Lock/unlock the active group |
+| `Super+Shift+G` | Move window out of its group |
+| `Super+A` | Adjust mode: arrows resize, `Shift+arrows` move, `Esc`/`Enter` exits |
+| `Super+Z` / `Super+Shift+Z` | Magnifier zoom in / out |
+| `Super+T` / `Super+Shift+T` | Jump to / toggle `marked` tag on focused window |
+| `Super+Shift+V` | Clipboard history (rofi) |
 | `Super+drag LMB` / `Super+drag RMB` | Move / resize window |
 | `Print` / `Super+Print` / `Alt+Print` | Screenshot: full / region→file / region→clipboard |
+| `Ctrl+Print` | Region → Satty annotator |
 | `Super+Ctrl+P` / `Super+Shift+P` / `Super+Alt+P` | Screenshot (no `Print` key): full / region→file / region→clipboard |
+| `Ctrl+Alt+P` | Region → Satty (no `Print` key) |
+| `Shift+Print` / `Ctrl+Shift+Print` | Start / stop region recording with audio (`Shift+Alt+P` / `Ctrl+Shift+Alt+P` without a `Print` key) |
+| `Super+F11` / `Super+F12` | Toggle replay daemon / save last 30 s to `~/Videos/Replays/` |
 | `XF86Audio*` keys | Volume, mic mute, media (playerctl) |
 | `XF86MonBrightness*` keys | Brightness |
 
@@ -237,6 +318,7 @@ Find a window's class with `hyprctl clients` while the app is open (look for `cl
 | — `config/rofi/*` | nothing — rofi reads it on every launch |
 | — `config/mako/config` | …then `makoctl reload` |
 | — `config/hypr/hyprlock.conf` | nothing — read at next lock |
+| — `config/hypr/hypridle.conf` | …then `pkill hypridle && hypridle &` |
 | — hyprpaper.conf (generated in `home/hyprland.nix`) | `pkill hyprpaper && hyprpaper &` (or just log back in) |
 | Anything under `modules/` or `home/` in this repo | `./scripts/rebuild.sh` (or `sudo nixos-rebuild switch --flake .#<host>`) |
 
