@@ -1,4 +1,4 @@
-# Shared GNOME Desktop / PipeWire / Wayland base configuration
+# Shared desktop base: GDM greeter, GNOME + COSMIC sessions, PipeWire, Wayland
 { config, pkgs, lib, ... }:
 
 {
@@ -39,6 +39,7 @@
 
   services.displayManager.gdm.enable = true;
   services.desktopManager.gnome.enable = true;
+  services.desktopManager.cosmic.enable = true;
 
   services.xserver = {
     xkb.layout = "us";
