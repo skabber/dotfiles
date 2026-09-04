@@ -18,10 +18,10 @@
   copyDesktopItems,
 }:
 let
-  version = "3.10.2";
+  version = "3.11.2";
   src = fetchurl {
     url = "https://cdn-zcode.z.ai/zcode/electron/releases/${version}/linux-x64/ZCode-${version}-linux-x64.AppImage";
-    hash = "sha256-b0utaKoaaQJuikXQqd8l8YaDvJpBevSDEF3L70SLqz8=";
+    hash = "sha256-/EzIUShqQOqAkM6/qsGp+b3ETqs0njbu8NOzIZ85MD8=";
   };
 
   bin = writeShellScriptBin "zcode" ''
