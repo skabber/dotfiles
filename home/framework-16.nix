@@ -65,9 +65,5 @@
     gnomeExtensions.resource-monitor
 
   ];
-
-  # Framework 16 needs HSA override for AMD GPU
-  home.sessionVariables = {
-    HSA_OVERRIDE_GFX_VERSION = "11.0.2";
-  };
 }
+
