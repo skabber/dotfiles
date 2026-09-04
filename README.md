@@ -48,7 +48,15 @@ bashconfig                 # Bash config for server host
 gitconfig                  # Git config (SSH signing, GPG)
 bin/                       # Utility scripts
 scripts/                   # Deploy/rebuild/rollback helpers
+config/                    # Desktop app configs shipped to ~/.config via HM
+                           #   (hypr, waybar, rofi, mako — see home/hyprland.nix)
+docs/                      # Guides (see [docs/hyprland.md](docs/hyprland.md) for the Hyprland desktop)
 ```
+
+## Guides
+
+- **[Hyprland desktop](docs/hyprland.md)** — how to use and customize the Hyprland
+  session (ghostty + waybar + rofi) shipped on AMD desktop hosts
 
 ## Shared Modules
 

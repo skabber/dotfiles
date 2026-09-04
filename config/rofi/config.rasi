@@ -1,0 +1,110 @@
+/* ──────────────────────────────────────────────
+   Rofi — Catppuccin Mocha
+   Modes: drun (Super+R) · run (Super+Shift+R) · window (Super+Tab)
+   ────────────────────────────────────────────── */
+
+configuration {
+    modi: "drun,run,window";
+    show-icons: true;
+    icon-theme: "Adwaita";
+    font: "FiraCode Nerd Font 12";
+    display-drun: "  Apps";
+    display-run: "  Run";
+    display-window: "  Windows";
+    drun-display-format: "{icon}  {name}";
+    matching: "fuzzy";
+    disable-history: false;
+    hide-scrollbar: true;
+    sidebar-mode: false;
+}
+
+* {
+    bg:          rgba(30, 30, 46, 92%);
+    bg-alt:      #181825;
+    bg-selected: #cba6f7;
+    fg:          #cdd6f4;
+    fg-alt:      #6c7086;
+    accent:      #89b4fa;
+
+    background-color: transparent;
+    text-color: @fg;
+    font-family: "FiraCode Nerd Font";
+}
+
+window {
+    width: 720px;
+    location: center;
+    anchor: center;
+    background-color: @bg;
+    border: 2px;
+    border-color: rgba(137, 180, 250, 45%);
+    border-radius: 16px;
+}
+
+mainbox {
+    padding: 16px;
+    spacing: 12px;
+    children: [inputbar, listview];
+}
+
+inputbar {
+    spacing: 10px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    background-color: @bg-alt;
+    children: [prompt, entry];
+}
+
+prompt {
+    text-color: @accent;
+    font-weight: bold;
+}
+
+entry {
+    placeholder: "Search...";
+    placeholder-color: @fg-alt;
+}
+
+listview {
+    lines: 8;
+    fixed-height: false;
+    spacing: 4px;
+}
+
+element {
+    padding: 10px 12px;
+    spacing: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+element-icon {
+    size: 24px;
+}
+
+element-text {
+    vertical-align: 0.5;
+}
+
+element selected.normal {
+    background-color: @bg-selected;
+}
+
+element selected.normal element-text {
+    color: #1e1e2e;
+    font-weight: bold;
+}
+
+element selected.active {
+    background-color: rgba(243, 139, 168, 80%);
+}
+
+message {
+    padding: 12px;
+    border-radius: 10px;
+    background-color: @bg-alt;
+}
+
+textbox {
+    text-color: @fg-alt;
+}

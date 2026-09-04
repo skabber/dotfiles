@@ -11,7 +11,7 @@
 | `nixos` | nixos | Threadripper + NVIDIA | GNOME (desktop-nvidia) |
 | `nixos-ripper` | nixos-ripper | Threadripper + RDNA 2 | GNOME (desktop) |
 | `framework-13` | nixos-framework-13 | Framework 13 + RDNA 3.5 | GNOME (desktop) |
-| `framework-16` | nixos-framework | Framework 16 + RDNA 3.5 | COSMIC (desktop-cosmic) |
+| `framework-16` | nixos-framework | Framework 16 + RDNA 3.5 | GNOME (desktop) |
 
 ## Commands
 
@@ -31,7 +31,8 @@ flake.nix              # mkHost helper wires HM + google-workspace-cli into ever
 hosts/<name>/          # default.nix imports modules + sets hostname
   hardware-configuration.nix  # AUTO-GENERATED — never edit
 modules/common.nix     # base system (boot, networking, docker, zsh, steam, 1password)
-modules/desktop-base.nix → desktop.nix (AMD) / desktop-nvidia.nix / desktop-cosmic.nix
+modules/desktop-base.nix → desktop.nix (AMD, +Hyprland) / desktop-nvidia.nix
+                       # base: GDM + GNOME + COSMIC sessions on every host; Hyprland only on AMD hosts
 modules/rocm-dev.nix   # ROCm toolchain (enable + architecture option)
 modules/services/*.nix # each is a NixOS module with `enable` option
 home/common.nix        # shared user packages, git, starship, direnv

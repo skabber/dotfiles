@@ -9,6 +9,7 @@
 {
   imports = [
     ./common.nix
+    ./hyprland.nix
   ];
 
   # nixos-ripper specific packages

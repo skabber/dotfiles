@@ -9,6 +9,7 @@
 {
   imports = [
     ./common.nix
+    ./hyprland.nix
   ];
 
   # Framework 13 specific packages

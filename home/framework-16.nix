@@ -9,6 +9,7 @@
 {
   imports = [
     ./common.nix
+    ./hyprland.nix
   ];
 
   # Framework 16 specific packages

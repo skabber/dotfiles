@@ -1,0 +1,125 @@
+// ──────────────────────────────────────────────
+// Waybar — Catppuccin Mocha
+// Bar for Hyprland · matches ~/.config/waybar/style.css
+// ──────────────────────────────────────────────
+{
+    "layer": "top",
+    "position": "top",
+    "height": 38,
+    "margin-top": 6,
+    "margin-left": 12,
+    "margin-right": 12,
+    "spacing": 2,
+
+    "modules-left": [
+        "custom/launcher",
+        "wlr/workspaces",
+        "hyprland/window"
+    ],
+
+    "modules-center": [
+        "clock"
+    ],
+
+    "modules-right": [
+        "cpu",
+        "memory",
+        "network",
+        "pulseaudio",
+        "tray"
+    ],
+
+    "custom/launcher": {
+        "format": "󱄅",
+        "tooltip-format": "Apps  |  Super+R",
+        "on-click": "rofi -show drun",
+        "on-click-middle": "rofi -show window"
+    },
+
+    "wlr/workspaces": {
+        "format": "{name}",
+        "on-click": "activate",
+        "persistent-workspaces": { "*": 5 },
+        "disable-scroll": false
+    },
+
+    "hyprland/window": {
+        "max-length": 42,
+        "separate-outputs": true,
+        "rewrite": {
+            "(.*) — Mozilla Firefox": "󰈹  $1",
+            "(.*) - Ghostty": "󰊠  $1",
+            "(.*) — Chromium|(.*) - Google Chrome": "󰊯  $1"
+        }
+    },
+
+    "clock": {
+        "format": "  {:%H:%M}",
+        "format-alt": "  {:%a, %d %b %Y}",
+        "tooltip-format": "<tt><small>{calendar}</small></tt>",
+        "calendar": {
+            "mode": "month",
+            "weeks-pos": "left",
+            "format": {
+                "months":     "<span color='#cba6f7'><b>{}</b></span>",
+                "days":       "<span color='#cdd6f4'><b>{}</b></span>",
+                "weeks":      "<span color='#585b70'><b>{}</b></span>",
+                "weekdays":   "<span color='#89b4fa'><b>{}</b></span>",
+                "today":      "<span color='#f38ba8'><b><u>{}</u></b></span>"
+            }
+        },
+        "actions": {
+            "on-click-right": "mode",
+            "on-click-forward": "tz_up",
+            "on-click-backward": "tz_down",
+            "on-scroll-up": "shift_up",
+            "on-scroll-down": "shift_down"
+        }
+    },
+
+    "cpu": {
+        "format": "󰻠  {usage}%",
+        "interval": 3,
+        "tooltip": false
+    },
+
+    "memory": {
+        "format": "󰍛  {percentage}%",
+        "interval": 5,
+        "tooltip": false
+    },
+
+    "network": {
+        "format-wifi": "󰤨  {essid}",
+        "format-ethernet": "󰈀  Wired",
+        "format-linked": "󰤪  {essid}",
+        "format-disconnected": "󰤭  Offline",
+        "tooltip-format": "{ifname} via {gwaddr} 󰛳",
+        "max-length": 22,
+        "interval": 10
+    },
+
+    "pulseaudio": {
+        "format": "{icon}  {volume}%",
+        "format-muted": "󰸈  Muted",
+        "format-bluetooth": "{icon}󰂯  {volume}%",
+        "format-icons": {
+            "headphone": "󰋋",
+            "hands-free": "󰥰",
+            "headset": "󰋎",
+            "phone": "󰏲",
+            "portable": "󰏳",
+            "car": "󰄍",
+            "default": ["󰕿", "󰖀", "󰕾"]
+        },
+        "scroll-step": 5,
+        "on-click": "pavucontrol",
+        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "tooltip-format": "{desc}"
+    },
+
+    "tray": {
+        "icon-size": 16,
+        "spacing": 8
+    }
+}
