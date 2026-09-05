@@ -32,11 +32,17 @@ window#waybar {
     color: @text;
 }
 
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
 /* ── Pills ─────────────────────────────────────── */
 #custom-launcher,
 #clock,
 #cpu,
 #memory,
+#battery,
 #network,
 #pulseaudio,
 #tray {
@@ -74,6 +80,31 @@ window#waybar {
 
 #memory {
     color: @yellow;
+}
+
+#battery {
+    color: @green;
+}
+
+#battery.charging {
+    color: @green;
+}
+
+#battery.plugged {
+    color: @green;
+}
+
+#battery.warning {
+    color: @yellow;
+}
+
+#battery.critical {
+    color: @red;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+#battery.full {
+    color: @green;
 }
 
 #network {
