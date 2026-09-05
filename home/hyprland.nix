@@ -21,8 +21,10 @@ in
     "mako/config".source = ../config/mako/config;
     "hypr/hyprpaper.conf".text = ''
       splash = false
-      preload = ${wallpaper}
-      wallpaper = ,${wallpaper}
+      wallpaper {
+          monitor = *
+          path = ${wallpaper}
+      }
     '';
   };
 }
