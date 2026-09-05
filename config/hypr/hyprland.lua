@@ -216,7 +216,7 @@ local mainMod = "SUPER"
 -- ── Apps ──────────────────────────────────────────────
 hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(terminal))            -- terminal: ghostty
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))         -- files: nautilus
-hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))                -- app launcher: rofi (drun)
+hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd(menu))              -- app launcher: rofi (drun)
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("rofi -show run"))  -- command runner
 hl.bind("SUPER + TAB", hl.dsp.exec_cmd(windowMenu))              -- window switcher
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd(
