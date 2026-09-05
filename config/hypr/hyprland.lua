@@ -52,8 +52,8 @@ hl.env("HYPRCURSOR_SIZE", "24")
 
 hl.config({
     general = {
-        gaps_in  = 6,
-        gaps_out = 14,
+        gaps_in  = 2,
+        gaps_out = 2,
 
         border_size = 2,
 
@@ -70,8 +70,8 @@ hl.config({
         snap = {
             enabled      = true,
             respect_gaps = true,
-            window_gap   = 8,
-            monitor_gap  = 8,
+            window_gap   = 2,
+            monitor_gap  = 2,
         },
 
         layout = "dwindle",
