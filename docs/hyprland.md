@@ -128,10 +128,15 @@ The clipboard mode is [cliphist](https://github.com/sentriz/cliphist), fed by a
 
 Left to right: **launcher** · **workspaces** (highlighted = current, click to switch) ·
 **focused window title** | **clock** (click to toggle time/date, right-click for the
-calendar tooltip) | **CPU** · **RAM** · **network** · **volume** · **tray**.
+calendar tooltip) | **CPU** · **RAM** · **screens** · **battery** · **network** · **volume** · **tray**.
 
 - Click the volume pill → pavucontrol; right-click → mute
 - Scroll the volume pill → adjust volume
+- Click the screens pill → cycle Extend → Internal only → External only;
+  right-click → rofi menu (also offers Mirror); hover shows per-display details
+- Virtual screens (`hyprctl output create headless`) show with a `~` prefix and
+  turn the pill yellow; add/remove them from the right-click menu — handy for
+  screen sharing or running a second "display" for remote clients
 - Tray icons (network, applets) appear on the right
 
 ### Screenshots

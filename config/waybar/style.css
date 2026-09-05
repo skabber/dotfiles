@@ -43,8 +43,10 @@ window#waybar {
 #clock,
 #cpu,
 #memory,
+#custom-screens,
 #battery,
 #network,
+#custom-tailscale,
 #pulseaudio,
 #tray {
     background-color: @surface0;
@@ -83,6 +85,30 @@ window#waybar {
     color: @yellow;
 }
 
+#custom-screens {
+    color: @blue;
+}
+
+#custom-screens:hover {
+    background-color: @surface1;
+}
+
+#custom-screens.multi {
+    color: @green;
+}
+
+#custom-screens.external {
+    color: @mauve;
+}
+
+#custom-screens.virtual {
+    color: @yellow;
+}
+
+#custom-screens.error {
+    color: @red;
+}
+
 #battery {
     color: @green;
 }
@@ -113,6 +139,26 @@ window#waybar {
 }
 
 #network.disconnected {
+    color: @red;
+}
+
+#custom-tailscale {
+    color: @blue;
+}
+
+#custom-tailscale:hover {
+    background-color: @surface1;
+}
+
+#custom-tailscale.exit-node {
+    color: @green;
+}
+
+#custom-tailscale.stopped {
+    color: @overlay0;
+}
+
+#custom-tailscale.error {
     color: @red;
 }
 

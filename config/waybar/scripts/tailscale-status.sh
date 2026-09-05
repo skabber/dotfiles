@@ -22,7 +22,7 @@ if [[ -z "$status" ]]; then
   exit 0
 fi
 
-jq '
+jq -c '
   def esc: gsub("&"; "&amp;") | gsub("<"; "&lt;") | gsub(">"; "&gt;");
   . as $s |
   ($s.BackendState // "Unknown") as $state |

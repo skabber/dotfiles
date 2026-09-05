@@ -21,6 +21,14 @@ in
       source = ../config/waybar/scripts/tailscale-status.sh;
       executable = true;
     };
+    "waybar/scripts/audio-picker.sh" = {
+      source = ../config/waybar/scripts/audio-picker.sh;
+      executable = true;
+    };
+    "waybar/scripts/screens.sh" = {
+      source = ../config/waybar/scripts/screens.sh;
+      executable = true;
+    };
     "rofi/config.rasi".source = ../config/rofi/config.rasi;
     "networkmanager-dmenu/config.ini".source = ../config/networkmanager-dmenu/config.ini;
     "mako/config".source = ../config/mako/config;

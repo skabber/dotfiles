@@ -24,8 +24,10 @@
     "modules-right": [
         "cpu",
         "memory",
+        "custom/screens",
         "battery",
         "network",
+        "custom/tailscale",
         "pulseaudio",
         "tray"
     ],
@@ -118,6 +120,24 @@
         "interval": 10
     },
 
+    "custom/screens": {
+        "exec": "~/.config/waybar/scripts/screens.sh",
+        "return-type": "json",
+        "interval": 5,
+        "on-click": "~/.config/waybar/scripts/screens.sh cycle",
+        "on-click-right": "~/.config/waybar/scripts/screens.sh menu",
+        "tooltip": true
+    },
+
+    "custom/tailscale": {
+        "exec": "~/.config/waybar/scripts/tailscale-status.sh",
+        "return-type": "json",
+        "interval": 10,
+        "on-click": "~/.config/waybar/scripts/tailscale-status.sh toggle",
+        "on-click-right": "xdg-open https://login.tailscale.com/admin/machines",
+        "tooltip": true
+    },
+
     "pulseaudio": {
         "format": "{icon}  {volume}%",
         "format-muted": "󰸈  Muted",
@@ -132,7 +152,8 @@
             "default": ["󰕿", "󰖀", "󰕾"]
         },
         "scroll-step": 5,
-        "on-click": "pavucontrol",
+        "on-click": "~/.config/waybar/scripts/audio-picker.sh sink",
+        "on-click-middle": "~/.config/waybar/scripts/audio-picker.sh source",
         "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
         "tooltip-format": "{desc}"
     },
