@@ -68,6 +68,7 @@
   boot.kernelParams = [
     "ttm.pages_limit=22369536"
     "button.lid_init_state=open"
+    "resume=UUID=e04ba30f-d12b-46a9-9a10-de2e44f627a8"  # swap partition, for hibernate
   ];
 
   # Custom geolocation provider
