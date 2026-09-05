@@ -25,6 +25,7 @@
     grim
     slurp
     networkmanagerapplet
+    networkmanager_dmenu
     brightnessctl
     libnotify
     # Hyprland ecosystem: idle, system info, annotate, clipboard, recording

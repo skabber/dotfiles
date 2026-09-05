@@ -40,7 +40,7 @@ host that imports that module (nixos-ripper, framework-13, framework-16) gets it
    packages are installed.
 2. Log out. On the GDM login screen, click your name, then click the **gear icon**
    (bottom-right corner) and pick **Hyprland**.
-3. Log in. Waybar, mako, hyprpaper, and the network tray icon start automatically.
+3. Log in. Waybar, mako, hyprpaper, and hypridle start automatically.
 
 The machine still boots into GNOME by default as the other session — switching between
 GNOME and Hyprland is just a matter of picking the session at login.
@@ -315,7 +315,6 @@ Edit the startup hook near the top of `config/hypr/hyprland.lua`:
 hl.on("hyprland.start", function()
     hl.exec_cmd("waybar")
     hl.exec_cmd("mako")
-    hl.exec_cmd("nm-applet --indicator")
     -- hl.exec_cmd("firefox")          -- add anything you want
 end)
 ```

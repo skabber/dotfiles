@@ -32,7 +32,6 @@ local lockCmd     = "hyprlock"
 hl.on("hyprland.start", function()
     hl.exec_cmd("waybar")                      -- status bar
     hl.exec_cmd("mako")                        -- notifications
-    hl.exec_cmd("nm-applet --indicator")       -- network tray icon
     hl.exec_cmd("hyprpaper")                   -- wallpaper
     hl.exec_cmd("hypridle")                    -- idle: auto-lock + screen off
     hl.exec_cmd("wl-paste --type text --watch cliphist store")  -- clipboard history
