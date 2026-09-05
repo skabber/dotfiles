@@ -36,6 +36,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("hyprpaper")                   -- wallpaper
     hl.exec_cmd("hypridle")                    -- idle: auto-lock + screen off
     hl.exec_cmd("wl-paste --type text --watch cliphist store")  -- clipboard history
+    hl.exec_cmd("1password --silent")           -- 1Password: tray, Quick Access, SSH agent, polkit agent
 end)
 
 -------------------------------
@@ -220,6 +221,7 @@ hl.bind("SUPER + TAB", hl.dsp.exec_cmd(windowMenu))              -- window switc
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd(
     'cliphist list | rofi -dmenu -p Clipboard | cliphist decode | wl-copy'
 ))
+hl.bind(mainMod .. " + O", hl.dsp.exec_cmd("1password --quick-access"))  -- 1Password Quick Access
 
 -- ── Window management ─────────────────────────────────
 hl.bind(mainMod .. " + C", hl.dsp.window.close())

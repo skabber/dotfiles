@@ -51,6 +51,7 @@ GNOME and Hyprland is just a matter of picking the session at login.
 |---|---|
 | `Super+Q` | Open a terminal (ghostty) |
 | `Super+R` | App launcher (type to search, Enter to launch) |
+| `Super+O` | 1Password Quick Access (search any password) |
 | `Super+C` | Close the focused window |
 | `Super+1…9,0` | Switch to workspace 1–10 |
 | `Super+L` | Lock the screen |
@@ -184,6 +185,30 @@ makoctl dismiss -a       # dismiss all
 makoctl list             # see history
 ```
 
+### Passwords (1Password)
+
+1Password starts silently with the session (tray icon, right side of the bar) and takes
+care of three auth flows:
+
+- **Quick Access** — `Super+O` opens a rofi-style search over everything in your
+  vault: passwords, TOTP codes, SSH keys. Enter copies, and the browser extension
+  or `op` CLI handle autofill/authentication.
+- **SSH agent** — `ssh` and `git` already point at 1Password's agent socket
+  (`~/.1password/agent.sock`, wired in `home/common.nix`), so `git push`, ssh logins
+  and commit signing (your gitconfig signs with SSH) pop the 1Password prompt
+  instead of asking for a key passphrase. Enable it once in the app:
+  **1Password → Settings → Developer → Use the SSH agent**. Check with
+  `ssh-add -l` (lists `1Password` as the agent comment).
+- **System (polkit) prompts** — Hyprland has no built-in authentication agent, so
+  when a GUI tool asks for admin rights (GParted, system updates, etc.) 1Password
+  serves the prompt — this is what `polkitPolicyOwners = [ "jay" ]` in
+  `modules/common.nix` grants. If you quit 1Password entirely, those prompts have
+  no agent until it's running again.
+
+`op` (the 1Password CLI) is installed on every host; with **Integrate with 1Password
+CLI** enabled in the app's Developer settings, `op` unlocks biometrically through the
+same session link.
+
 ### Locking
 
 `Super+L` locks with hyprlock: the screen blurs, a clock appears, and your password +
@@ -225,6 +250,7 @@ suspend listener there on the laptops). Test without waiting:
 | `Super+Z` / `Super+Shift+Z` | Magnifier zoom in / out |
 | `Super+T` / `Super+Shift+T` | Jump to / toggle `marked` tag on focused window |
 | `Super+Shift+V` | Clipboard history (rofi) |
+| `Super+O` | 1Password Quick Access |
 | `Super+drag LMB` / `Super+drag RMB` | Move / resize window |
 | `Print` / `Super+Print` / `Alt+Print` | Screenshot: full / region→file / region→clipboard |
 | `Ctrl+Print` | Region → Satty annotator |
