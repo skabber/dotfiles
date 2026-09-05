@@ -13,6 +13,7 @@ host that imports that module (nixos-ripper, framework-13, framework-16) gets it
 | [Ghostty](https://ghostty.org) | Terminal emulator | `~/.config/ghostty/config` (local) |
 | [Waybar](https://github.com/Alexays/Waybar) | Status bar (top) | `config/waybar/{config.jsonc,style.css}` |
 | [Rofi](https://github.com/davatorium/rofi) | App launcher / window switcher | `config/rofi/config.rasi` |
+| [networkmanager-dmenu](https://github.com/firecat53/networkmanager-dmenu) | Rofi WiFi menu — click the network pill | `config/networkmanager-dmenu/config.ini` |
 | [Mako](https://github.com/emersion/mako) | Notification daemon | `config/mako/config` |
 | [hyprlock](https://github.com/hyprwm/hyprlock) | Lock screen | `config/hypr/hyprlock.conf` |
 | [hyprpaper](https://github.com/hyprwm/hyprpaper) | Wallpaper (NixOS "nineish", Catppuccin Mocha) | `home/hyprland.nix` |

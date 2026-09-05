@@ -14,6 +14,9 @@
   # Lock screen (also installs hyprlock + PAM policy)
   programs.hyprlock.enable = true;
 
+  # Icon font for waybar/rofi configs (FiraCode Nerd Font)
+  fonts.packages = [ pkgs.nerd-fonts.fira-code ];
+
   environment.systemPackages = with pkgs; [
     pulseaudio
     pipewire

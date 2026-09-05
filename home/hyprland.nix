@@ -17,7 +17,12 @@ in
     "hypr/hypridle.conf".source = ../config/hypr/hypridle.conf;
     "waybar/config.jsonc".source = ../config/waybar/config.jsonc;
     "waybar/style.css".source = ../config/waybar/style.css;
+    "waybar/scripts/tailscale-status.sh" = {
+      source = ../config/waybar/scripts/tailscale-status.sh;
+      executable = true;
+    };
     "rofi/config.rasi".source = ../config/rofi/config.rasi;
+    "networkmanager-dmenu/config.ini".source = ../config/networkmanager-dmenu/config.ini;
     "mako/config".source = ../config/mako/config;
     "hypr/hyprpaper.conf".text = ''
       splash = false
