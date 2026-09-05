@@ -109,7 +109,10 @@
         "format-ethernet": "󰈀  Wired",
         "format-linked": "󰤪  {essid}",
         "format-disconnected": "󰤭  Offline",
-        "tooltip-format": "{ifname} via {gwaddr} 󰛳",
+        "tooltip-format-wifi": "󰤨  <b>{essid}</b>  <small><span color='#a6adc8'>{signalStrength}% · {signaldBm} dBm</span></small>\n<span color='#89b4fa'>󰛳</span>  {ipaddr} via {gwaddr}",
+        "tooltip-format-ethernet": "󰈀  <b>Wired</b>  <small><span color='#a6adc8'>{ifname}</span></small>\n<span color='#89b4fa'>󰛳</span>  {ipaddr} via {gwaddr}",
+        "tooltip-format-disconnected": "󰤭  Not connected",
+        "on-click": "nm-connection-editor",
         "max-length": 22,
         "interval": 10
     },
