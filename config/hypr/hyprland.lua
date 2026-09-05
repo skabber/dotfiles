@@ -37,6 +37,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("hypridle")                    -- idle: auto-lock + screen off
     hl.exec_cmd("wl-paste --type text --watch cliphist store")  -- clipboard history
     hl.exec_cmd("1password --silent")           -- 1Password: tray, Quick Access, SSH agent, polkit agent
+    hl.exec_cmd(terminal)                       -- terminal on login
 end)
 
 -------------------------------
