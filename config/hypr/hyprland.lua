@@ -232,7 +232,7 @@ hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())          -- toggle fullsc
 
 -- ── Session ───────────────────────────────────────────
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(lockCmd))             -- lock screen: hyprlock
-hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("hyprctl dispatch exit"))
+hl.bind(mainMod .. " + M", hl.dsp.exit())
 
 -- ── Layout: dwindle <-> scrolling (0.56 built-in PaperWM-style layout) ──
 local layout = "dwindle"

@@ -217,7 +217,7 @@ YubiKey unlock it. `Super+M` exits the whole Hyprland session back to GDM.
 hypridle backs that up when you walk away: after 5 idle minutes the session locks
 itself, after 6 the screens switch off (`config/hypr/hypridle.conf`; uncomment the
 suspend listener there on the laptops). Test without waiting:
-`hyprctl dispatch forceidle 5`.
+`hyprctl dispatch hl.dsp.force_idle(5)`.
 
 ## Full keybinding reference
 
