@@ -13,7 +13,7 @@
 
     "modules-left": [
         "custom/launcher",
-        "wlr/workspaces",
+        "hyprland/workspaces",
         "hyprland/window"
     ],
 
@@ -39,8 +39,25 @@
         "on-click-middle": "rofi -show window"
     },
 
-    "wlr/workspaces": {
-        "format": "{name}",
+    "hyprland/workspaces": {
+        "format": "{name} {windows}",
+        "format-window-separator": " ",
+        "window-rewrite-default": "󰧞",
+        "window-rewrite": {
+            "class<.*[Ff]irefox.*>": "󰈹",
+            "class<.*[Gg]hostty.*>": "󰊠",
+            "class<.*[Cc]hrome.*>": "󰊯",
+            "class<.*[Cc]hromium.*>": "󰊯",
+            "class<.*[Nn]autilus.*>": "󰝗",
+            "class<code.*>": "󰨞",
+            "class<.*[Ss]team.*>": "󰓓",
+            "class<.*[Dd]iscord.*>": "󰙯",
+            "class<.*[Ss]lack.*>": "󰒋",
+            "class<.*[Ss]potify.*>": "󰓇",
+            "class<.*[Oo]bsidian.*>": "󰠮",
+            "class<1[Pp]assword.*>": "󰢁",
+            "class<.*[Pp]avucontrol.*>": "󰕿"
+        },
         "on-click": "activate",
         "persistent-workspaces": { "*": 5 },
         "disable-scroll": false
