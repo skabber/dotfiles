@@ -239,6 +239,11 @@ hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())          -- toggle fullsc
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(lockCmd))             -- lock screen: hyprlock
 hl.bind(mainMod .. " + M", hl.dsp.exit())
 
+-- ── Power profile (power-profiles-daemon) ─────────────
+-- Super+Shift+B cycles power-saver -> balanced -> performance
+local powerProfileCycle = 'p=$(powerprofilesctl get); case "$p" in power-saver) n="balanced";; balanced) n="performance";; *) n="power-saver";; esac; powerprofilesctl set "$n" && notify-send -t 2000 "Power profile" "$n"'
+hl.bind(mainMod .. " + SHIFT + B", hl.dsp.exec_cmd(powerProfileCycle))
+
 -- ── Layout: dwindle <-> scrolling (0.56 built-in PaperWM-style layout) ──
 local layout = "dwindle"
 hl.bind(mainMod .. " + Y", function()

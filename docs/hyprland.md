@@ -22,6 +22,7 @@ host that imports that module (nixos-ripper, framework-13, framework-16) gets it
 | [wl-screenrec](https://github.com/Decodetalkers/wl-screenrec) | Screen + audio recording | `config/hypr/hyprland.lua` binds |
 | [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/about/) | Replay buffer ("save the last 30 s") | `config/hypr/hyprland.lua` binds |
 | [cliphist](https://github.com/sentriz/cliphist) | Clipboard history | `config/hypr/hyprland.lua` binds |
+| [power-profiles-daemon](https://gitlab.freedesktop.org/upower/power-profiles-daemon) | Power profiles (throttling culprit behind "slow" days) | waybar pill + `Super+Shift+B` |
 | hyprsysteminfo | System info panel | package — run `hyprsysteminfo` |
 
 > **How this is wired (the Nix way):** the config files live in this repo under
@@ -128,7 +129,8 @@ The clipboard mode is [cliphist](https://github.com/sentriz/cliphist), fed by a
 
 Left to right: **launcher** · **workspaces** (highlighted = current, click to switch) ·
 **focused window title** | **clock** (click to toggle time/date, right-click for the
-calendar tooltip) | **CPU** · **RAM** · **screens** · **battery** · **network** · **volume** · **tray**.
+calendar tooltip) | **screens** · **power profile** · **battery** · **CPU** ·
+**RAM** · **network** · **volume** · **tray**.
 
 - Click the volume pill → pavucontrol; right-click → mute
 - Scroll the volume pill → adjust volume
@@ -137,6 +139,9 @@ calendar tooltip) | **CPU** · **RAM** · **screens** · **battery** · **networ
 - Virtual screens (`hyprctl output create headless`) show with a `~` prefix and
   turn the pill yellow; add/remove them from the right-click menu — handy for
   screen sharing or running a second "display" for remote clients
+- Click the power profile pill (or `Super+Shift+B`) → cycle power-saver →
+  balanced → performance; yellow = power-saver, red = performance — this is the
+  first thing to check when the laptop feels sluggish on battery
 - Tray icons (network, applets) appear on the right
 
 ### Screenshots
@@ -241,6 +246,7 @@ suspend listener there on the laptops). Test without waiting:
 | `Super+F` | Toggle fullscreen |
 | `Super+L` | Lock screen |
 | `Super+M` | Exit Hyprland |
+| `Super+Shift+B` | Cycle power profile: power-saver → balanced → performance |
 | `Super+←/→/↑/↓` | Move focus |
 | `Super+1…0` | Switch workspace |
 | `Super+Shift+1…0` | Move window to workspace |

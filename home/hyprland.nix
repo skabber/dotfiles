@@ -25,6 +25,10 @@ in
       source = ../config/waybar/scripts/audio-picker.sh;
       executable = true;
     };
+    "waybar/scripts/bluetooth-picker.sh" = {
+      source = ../config/waybar/scripts/bluetooth-picker.sh;
+      executable = true;
+    };
     "waybar/scripts/screens.sh" = {
       source = ../config/waybar/scripts/screens.sh;
       executable = true;

@@ -23,9 +23,11 @@
 
     "modules-right": [
         "custom/screens",
+        "power-profiles-daemon",
         "group/hardware",
         "network",
         "custom/tailscale",
+        "bluetooth",
         "pulseaudio",
         "tray"
     ],
@@ -121,6 +123,16 @@
         "interval": 30
     },
 
+    "power-profiles-daemon": {
+        "format": "{icon}  {profile}",
+        "tooltip-format": "Power profile: {profile} ({driver})\nClick to cycle · Super+Shift+B",
+        "format-icons": {
+            "performance": "󰓅",
+            "balanced": "󰾔",
+            "power-saver": "󰾐"
+        }
+    },
+
     "network": {
         "format-wifi": "󰤨  {essid}",
         "format-ethernet": "󰈀  Wired",
@@ -160,6 +172,20 @@
         "on-click": "~/.config/waybar/scripts/tailscale-status.sh toggle",
         "on-click-right": "xdg-open https://login.tailscale.com/admin/machines",
         "tooltip": true
+    },
+
+    "bluetooth": {
+        "format": "󰂯",
+        "format-disabled": "󰂲",
+        "format-off": "󰂲",
+        "format-connected": "󰂱 {num_connections}",
+        "format-connected-battery": "󰂱 {device_battery_percentage}%",
+        "tooltip-format": "{controller_alias} · off",
+        "tooltip-format-connected": "{controller_alias} · {num_connections} connected\n{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}",
+        "tooltip-format-enumerate-connected-battery": "{device_alias} · {device_battery_percentage}%",
+        "on-click": "~/.config/waybar/scripts/bluetooth-picker.sh",
+        "on-click-right": "~/.config/waybar/scripts/bluetooth-picker.sh power"
     },
 
     "pulseaudio": {

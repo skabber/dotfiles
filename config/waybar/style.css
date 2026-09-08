@@ -45,8 +45,10 @@ window#waybar {
 #memory,
 #custom-screens,
 #battery,
+#power-profiles-daemon,
 #network,
 #custom-tailscale,
+#bluetooth,
 #pulseaudio,
 #tray {
     background-color: @surface0;
@@ -151,6 +153,18 @@ window#waybar {
     color: @green;
 }
 
+#power-profiles-daemon {
+    color: @green;
+}
+
+#power-profiles-daemon.performance {
+    color: @red;
+}
+
+#power-profiles-daemon.power-saver {
+    color: @yellow;
+}
+
 #network {
     color: @blue;
 }
@@ -177,6 +191,22 @@ window#waybar {
 
 #custom-tailscale.error {
     color: @red;
+}
+
+#bluetooth {
+    color: @blue;
+}
+
+#bluetooth:hover {
+    background-color: @surface1;
+}
+
+#bluetooth.connected {
+    color: @green;
+}
+
+#bluetooth.disabled {
+    color: @overlay0;
 }
 
 #pulseaudio {
