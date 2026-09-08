@@ -16,6 +16,7 @@
     ../../modules/services/defuddle.nix
     ../../modules/services/freetoken.nix
     ../../modules/services/service-panel.nix
+    ../../modules/services/pi-chat.nix
     ../../modules/services/gpu-gateway.nix
     ../../modules/services/paperless.nix
     ../../modules/services/paperless-ai.nix
@@ -223,6 +224,11 @@
       "moss-transcribe-web.service"
       "kokoro-fastapi.service"
     ];
+  };
+
+  pi-chat = {
+    enable = true;
+    tokenFile = "/home/jay/.secrets/pi-chat.env";
   };
 
   defuddle = {
