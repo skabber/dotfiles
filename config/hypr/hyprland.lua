@@ -30,6 +30,11 @@ local lockCmd     = "hyprlock"
 -------------------
 
 hl.on("hyprland.start", function()
+    -- systemd integration: make xdg-desktop-portal work in the bare (non-uwsm) session
+    hl.exec_cmd(
+        "dbus-update-activation-environment --systemd WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP=Hyprland"
+    )
+
     hl.exec_cmd("waybar")                      -- status bar
     hl.exec_cmd("mako")                        -- notifications
     hl.exec_cmd("hyprpaper")                   -- wallpaper
