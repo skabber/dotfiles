@@ -233,7 +233,16 @@ hl.bind(mainMod .. " + C", hl.dsp.window.close())
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))         -- dwindle only
-hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())          -- toggle fullscreen
+hl.bind(mainMod .. " + F", function()
+    -- browsers: maximize-style fullscreen so tabs/URL bar stay visible
+    local w = hl.get_active_window()
+    local class = w and w.class or ""
+    if class:match("[Cc]hrome") then
+        hl.dispatch(hl.dsp.window.fullscreen({ mode = 1 }))
+    else
+        hl.dispatch(hl.dsp.window.fullscreen())
+    end
+end)
 
 -- ── Session ───────────────────────────────────────────
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(lockCmd))             -- lock screen: hyprlock

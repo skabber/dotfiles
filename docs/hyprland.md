@@ -74,7 +74,9 @@ layout). The basics:
   (`resize_on_border` is on)
 - **Float a window** — `Super+V` toggles floating/tiled
 - **Swap the split** — `Super+J` flips the orientation after a split
-- **Full screen** — `Super+F` toggles the focused window between tiled and fullscreen
+- **Full screen** — `Super+F` toggles the focused window between tiled and
+  fullscreen (browsers get maximize-style fullscreen so tabs/URL bar stay
+  visible)
 - **Scratchpad** — `Super+S` shows/hides a hidden workspace (drop windows in with
   `Super+Shift+S`); great for a music player or a quick notes window
 - **Tab groups** — `Super+G` tabs the focused window into a group (a slim tab bar
@@ -243,7 +245,7 @@ suspend listener there on the laptops). Test without waiting:
 | `Super+V` | Toggle float |
 | `Super+P` | Toggle pseudo-tiling |
 | `Super+J` | Toggle split orientation |
-| `Super+F` | Toggle fullscreen |
+| `Super+F` | Toggle fullscreen (browsers: maximize-style, keeps tabs/URL bar) |
 | `Super+L` | Lock screen |
 | `Super+M` | Exit Hyprland |
 | `Super+Shift+B` | Cycle power profile: power-saver → balanced → performance |
