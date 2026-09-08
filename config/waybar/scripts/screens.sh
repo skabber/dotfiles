@@ -53,6 +53,11 @@ apply_mode() {
 
 status() {
   local real virt text tooltip count class
+  # hide the pill entirely when there's nothing but the internal panel
+  if (( ${#EXTS_ALL[@]} == 0 && ${#VIRTS[@]} == 0 )); then
+    jq -nc '{text: "", tooltip: "", class: "hidden"}'
+    return
+  fi
   real="$(jq_str "[.[] | select($VIRT | not) | select(.disabled | not) | .name] | join(\" + \")")"
   virt="$(jq_str "[.[] | select($VIRT) | select(.disabled | not) | \"~\" + .name] | join(\" + \")")"
   text="$real"
