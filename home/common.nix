@@ -142,7 +142,7 @@
     enable = true;
     settings = {
       add_newline = false;
-      scan_timeout = 100;
+      scan_timeout = 2000;
       package.disabled = true;
     };
   };

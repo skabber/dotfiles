@@ -6,6 +6,7 @@
     ./hardware-configuration.nix
     ../../modules/common.nix
     ../../modules/desktop-nvidia.nix
+    ../../modules/services/aixle-flow.nix
     ../../modules/services/sunshine.nix
     ../../modules/services/gnome-remote-desktop.nix
     ../../modules/services/gitea.nix
@@ -16,6 +17,7 @@
     ../../modules/services/defuddle.nix
     ../../modules/services/freetoken.nix
     ../../modules/services/service-panel.nix
+    ../../modules/services/pi-chat.nix
     ../../modules/services/gpu-gateway.nix
     ../../modules/services/paperless.nix
     ../../modules/services/paperless-ai.nix
@@ -52,6 +54,11 @@
 
   # Enable services
   sunshine.enable = false;
+
+  aixle-flow = {
+    enable = true;
+    environmentFile = "/home/jay/.secrets/aixle-flow.env";
+  };
 
   gnome-remote-desktop = {
     enable = true;
@@ -223,6 +230,11 @@
       "moss-transcribe-web.service"
       "kokoro-fastapi.service"
     ];
+  };
+
+  pi-chat = {
+    enable = true;
+    tokenFile = "/home/jay/.secrets/pi-chat.env";
   };
 
   defuddle = {

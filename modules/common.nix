@@ -162,6 +162,9 @@
       source $(fzf-share)/key-bindings.zsh
       source $(fzf-share)/completion.zsh
     '';
+    loginShellInit = ''
+      cd ~/dotfiles
+    '';
   };
   programs._1password.enable = true;
   programs._1password-gui = {
