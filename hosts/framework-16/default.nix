@@ -8,6 +8,7 @@
     ../../modules/desktop.nix
     ../../modules/rocm-dev.nix
     ../../modules/services/ollama.nix
+    ../../modules/services/agentgateway.nix
     ../../modules/services/flatpak.nix
     ../../modules/services/crucial-x8.nix
   ];
@@ -23,6 +24,9 @@
 
   # Ollama + Open WebUI
   ollama.enable = true;
+
+  # Agentgateway (LLM/MCP/A2A proxy, UI at http://localhost:4000/ui)
+  agentgateway.enable = true;
 
   # Flatpak support (orion-beta remote is set by the flatpak module by default)
   flatpak.enable = true;
