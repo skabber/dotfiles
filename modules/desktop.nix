@@ -11,6 +11,16 @@
     withUWSM = true;
   };
 
+  # Bare (non-uwsm) Hyprland sessions never activate graphical-session.target;
+  # xdg-desktop-portal refuses to start without it (Requisite=), which silently
+  # breaks window/screen sharing in browsers. Make the target manually startable
+  # (hyprland.lua autostart starts it) and persistent with no requirers.
+  environment.etc."systemd/user/graphical-session.target.d/allow-manual-start.conf".text = ''
+    [Unit]
+    RefuseManualStart=no
+    StopWhenUnneeded=no
+  '';
+
   # Lock screen (also installs hyprlock + PAM policy)
   programs.hyprlock.enable = true;
 

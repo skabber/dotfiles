@@ -34,6 +34,10 @@ hl.on("hyprland.start", function()
     hl.exec_cmd(
         "dbus-update-activation-environment --systemd WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP=Hyprland"
     )
+    -- bare session: nothing activates graphical-session.target, and the portal
+    -- refuses to start without it (Requisite=), breaking window/screen sharing
+    -- in Chrome and friends (drop-in in modules/desktop.nix makes this startable)
+    hl.exec_cmd("systemctl --user start graphical-session.target")
 
     hl.exec_cmd("waybar")                      -- status bar
     hl.exec_cmd("mako")                        -- notifications
