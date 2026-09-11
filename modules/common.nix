@@ -139,7 +139,7 @@
   users.users.jay = {
     isNormalUser = true;
     description = "Jay Graves";
-    extraGroups = [ "networkmanager" "wheel" "docker" "video" "render" "tty" "dialout" "nginx" "systemd-journal" ];
+    extraGroups = [ "networkmanager" "wheel" "docker" "video" "render" "tty" "dialout" "nginx" "systemd-journal" "scanner" ];
     packages = [ ];
     shell = pkgs.zsh;
   };
@@ -151,6 +151,7 @@
   networking.firewall.trustedInterfaces = [ "tailscale0" ];
   services.fwupd.enable = true;
   services.printing.enable = true;
+  hardware.sane.enable = true;
   services.geoclue2.enable = true;
   services.automatic-timezoned.enable = true;
 
