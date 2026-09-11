@@ -63,6 +63,9 @@
     "resume=UUID=e04ba30f-d12b-46a9-9a10-de2e44f627a8"  # swap partition, for hibernate
   ];
 
+  # Magic SysRq for recovery from GPU/sleep lockups (Alt+SysRq+REISUB)
+  boot.kernel.sysctl."kernel.sysrq" = 1;
+
   # Custom geolocation provider
   services.geoclue2.geoProviderUrl = "https://api.beacondb.net/v1/geolocate";
 
