@@ -298,9 +298,9 @@ end)
 hl.bind("Print", hl.dsp.exec_cmd(
     'mkdir -p ~/Pictures/Screenshots && grim ~/Pictures/Screenshots/full-$(date +%Y%m%d-%H%M%S).png && notify-send -t 2000 "Screenshot" "Full screen saved"'
 ))
--- Region -> file
+-- Region -> file + clipboard
 hl.bind("SUPER + Print", hl.dsp.exec_cmd(
-    'mkdir -p ~/Pictures/Screenshots && grim -g "$(slurp)" ~/Pictures/Screenshots/region-$(date +%Y%m%d-%H%M%S).png && notify-send -t 2000 "Screenshot" "Region saved"'
+    'mkdir -p ~/Pictures/Screenshots && grim -g "$(slurp)" - | tee ~/Pictures/Screenshots/region-$(date +%Y%m%d-%H%M%S).png | wl-copy && notify-send -t 2000 "Screenshot" "Region saved + copied"'
 ))
 -- Region -> clipboard
 hl.bind("ALT + Print", hl.dsp.exec_cmd(
@@ -311,7 +311,7 @@ hl.bind("SUPER + CTRL + P", hl.dsp.exec_cmd(
     'mkdir -p ~/Pictures/Screenshots && grim ~/Pictures/Screenshots/full-$(date +%Y%m%d-%H%M%S).png && notify-send -t 2000 "Screenshot" "Full screen saved"'
 ))
 hl.bind("SUPER + SHIFT + P", hl.dsp.exec_cmd(
-    'mkdir -p ~/Pictures/Screenshots && grim -g "$(slurp)" ~/Pictures/Screenshots/region-$(date +%Y%m%d-%H%M%S).png && notify-send -t 2000 "Screenshot" "Region saved"'
+    'mkdir -p ~/Pictures/Screenshots && grim -g "$(slurp)" - | tee ~/Pictures/Screenshots/region-$(date +%Y%m%d-%H%M%S).png | wl-copy && notify-send -t 2000 "Screenshot" "Region saved + copied"'
 ))
 hl.bind("SUPER + ALT + P", hl.dsp.exec_cmd(
     'grim -g "$(slurp)" - | wl-copy && notify-send -t 2000 "Screenshot" "Region copied to clipboard"'
