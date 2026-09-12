@@ -37,6 +37,15 @@
   # Power management
   powerManagement.enable = true;
 
+  # Hibernation: resume from the /swapfile on root (nvme1n1p2; see
+  # hardware-configuration.nix). The offset below is the physical extent of
+  # the swapfile as created by the 2025-09 rebuild; if /swapfile is ever
+  # deleted/recreated (e.g. size changed), re-read it with
+  #   sudo filefrag -v /swapfile | sed -n '4p' | awk '{print $4}' | tr -d '.'
+  # and update it here, or hibernate will fail to find its image.
+  boot.resumeDevice = "/dev/disk/by-uuid/899d2560-5b59-4faa-a283-fccb0efa4c83";
+  boot.kernelParams = [ "resume_offset=164333568" ];
+
   # Disable WiFi power save (mt7921e/MT7922 latency + throughput fix)
   networking.networkmanager.wifi.powersave = false;
 

@@ -29,7 +29,10 @@
       fsType = "ext4";
     };
 
-  swapDevices = [ ];
+  # Swapfile for hibernation. `size` (MiB) lets activation create/format/enable
+  # the file if missing. If you ever change or delete /swapfile, the physical
+  # extent moves and boot.kernelParams resume_offset must be updated.
+  swapDevices = [ { device = "/swapfile"; size = 32 * 1024; } ];
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's
