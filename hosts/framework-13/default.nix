@@ -7,7 +7,6 @@
     ../../modules/common.nix
     ../../modules/desktop.nix
     ../../modules/rocm-dev.nix
-    ../../modules/services/comfyui.nix
     ../../modules/services/ollama.nix
     ../../modules/services/rclone-s3.nix
     ../../modules/services/flatpak.nix
@@ -30,13 +29,6 @@
   rclone-s3 = {
     enable = true;
     bucket = "crumpet-jay";
-  };
-
-  # ComfyUI - Stable Diffusion node-based UI (ROCm, Python venv)
-  comfyui = {
-    enable = true;
-    gfxVersion = "11.5.0";
-    extraArgs = [ "--enable-manager" ];
   };
 
   # Ollama + Open WebUI
@@ -70,6 +62,9 @@
     "button.lid_init_state=open"
     "resume=UUID=e04ba30f-d12b-46a9-9a10-de2e44f627a8"  # swap partition, for hibernate
   ];
+
+  # Magic SysRq for recovery from GPU/sleep lockups (Alt+SysRq+REISUB)
+  boot.kernel.sysctl."kernel.sysrq" = 1;
 
   # Custom geolocation provider
   services.geoclue2.geoProviderUrl = "https://api.beacondb.net/v1/geolocate";
