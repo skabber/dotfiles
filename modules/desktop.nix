@@ -35,6 +35,13 @@
   # Icon font for waybar/rofi configs (FiraCode Nerd Font)
   fonts.packages = [ pkgs.nerd-fonts.fira-code ];
 
+  # Polkit authentication agent for the Hyprland session. 1Password's embedded
+  # agent does not register under Hyprland, and without an agent polkit requests
+  # that require auth (e.g. Bitwarden biometric unlock, GParted) fail silently.
+  # The unit is started from hyprland.lua's autostart (needs WAYLAND_DISPLAY in
+  # the user manager, which the dbus-update-activation-environment call sets).
+  systemd.packages = [ pkgs.hyprpolkitagent ];
+
   environment.systemPackages = with pkgs; [
     pulseaudio
     pipewire
