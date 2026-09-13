@@ -16,6 +16,12 @@ in
 # };
   options.ollama.enable = mkEnableOption "Ollama";
 
+  options.ollama.autoStart = mkOption {
+    type = types.bool;
+    default = true;
+    description = "Start the service automatically at boot.";
+  };
+
   options.ollama.package = mkOption {
     type = types.package;
     default = pkgs.ollama; # Replace with the actual package name if different
@@ -74,6 +80,7 @@ in
     systemd.services.ollama = {
       after = [ "dev-kfd.device" ];
       wants = [ "dev-kfd.device" ];
+      wantedBy = mkForce (optionals cfg.autoStart [ "multi-user.target" ]);
     };
 
     # Allow Docker containers to reach Ollama

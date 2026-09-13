@@ -12,6 +12,7 @@
     ../../modules/services/flatpak.nix
     ../../modules/services/crucial-x8.nix
     ../../modules/services/moss-transcribe.nix
+    ../../modules/services/llama-mtp.nix
   ];
 
   # Hostname
@@ -34,6 +35,16 @@
   # Ollama + Open WebUI
   ollama.enable = true;
   ollama.igpuEnable = true;  # Radeon 890M (gfx1150) is an iGPU; ollama drops it by default
+  ollama.autoStart = false;  # on-demand only: systemctl start ollama
+
+  # llama.cpp (unsloth fork) with MTP speculative decoding — replaces
+  # LM Studio's runtime for qwen3.8-flash-next on port 1234 (~1.5x tok/s;
+  # LM Studio's own server must stay stopped to avoid the port clash)
+  llama-mtp = {
+    enable = true;
+    model = "/home/jay/.lmstudio/models/unsloth/Qwen3.8-Flash-Next-GGUF/Qwen3.8-Flash-Next-UD-Q3_K_XL-00001-of-00003.gguf";
+    draftModel = "/home/jay/.lmstudio/mtp/mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf";
+  };
 
   # MOSS-Transcribe-Diarize (speaker-diarized transcription, ROCm)
   # rocm-dev pins native gfx1150 kernels, so no HSA masquerade is needed
@@ -58,7 +69,7 @@
 
   # Framework 13 specific kernel params
   boot.kernelParams = [
-    "ttm.pages_limit=22369536"
+    "ttm.pages_limit=23068672"
     "button.lid_init_state=open"
     "resume=UUID=e04ba30f-d12b-46a9-9a10-de2e44f627a8"  # swap partition, for hibernate
   ];
