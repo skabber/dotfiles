@@ -24,6 +24,9 @@
   # Lock screen (also installs hyprlock + PAM policy)
   programs.hyprlock.enable = true;
 
+  # hyprlock drives fprintd natively (auth.fingerprint in hyprlock.conf)
+  security.pam.services.hyprlock.fprintAuth = false;
+
   # Icon font for waybar/rofi configs (FiraCode Nerd Font)
   fonts.packages = [ pkgs.nerd-fonts.fira-code ];
 
