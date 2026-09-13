@@ -15,11 +15,16 @@
   # xdg-desktop-portal refuses to start without it (Requisite=), which silently
   # breaks window/screen sharing in browsers. Make the target manually startable
   # (hyprland.lua autostart starts it) and persistent with no requirers.
-  environment.etc."systemd/user/graphical-session.target.d/allow-manual-start.conf".text = ''
-    [Unit]
-    RefuseManualStart=no
-    StopWhenUnneeded=no
-  '';
+  # asDropin generates user-units/graphical-session.target.d/overrides.conf;
+  # an environment.etc entry under "systemd/user" would collide with NixOS's
+  # symlink to user-units and break the etc build.
+  systemd.user.targets."graphical-session" = {
+    overrideStrategy = "asDropin";
+    unitConfig = {
+      RefuseManualStart = false;
+      StopWhenUnneeded = false;
+    };
+  };
 
   # Lock screen (also installs hyprlock + PAM policy)
   programs.hyprlock.enable = true;
