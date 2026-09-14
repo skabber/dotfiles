@@ -302,11 +302,6 @@
     tokenFile = "/home/jay/.secrets/show-friends-preview.env";
   };
 
-  # Fingerprint reader (Goodix)
-  services.fprintd.enable = true;
-  services.fprintd.tod.enable = true;
-  services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix;
-
   # Enable linger so systemd --user starts at boot (needed for user services over SSH)
   users.users.jay.linger = true;
 

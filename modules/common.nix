@@ -189,6 +189,12 @@
   security.rtkit.enable = true;
   security.pam.services.gdm-password.enableGnomeKeyring = true;
 
+  # Bitwarden "Unlock with system authentication": the app's auto-setup writes to
+  # /usr (impossible on NixOS), so register its polkit action ourselves. Bitwarden
+  # itself is installed via Home Manager, so this action isn't picked up otherwise.
+  environment.etc."polkit-1/actions/com.bitwarden.Bitwarden.policy".source =
+    "${pkgs.bitwarden-desktop}/share/polkit-1/actions/com.bitwarden.Bitwarden.policy";
+
   # nix-ld for dynamically linked binaries (e.g., cargo-installed tools)
   programs.nix-ld.enable = true;
   programs.nix-ld.libraries = with pkgs; [

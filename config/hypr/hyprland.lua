@@ -38,13 +38,15 @@ hl.on("hyprland.start", function()
     -- refuses to start without it (Requisite=), breaking window/screen sharing
     -- in Chrome and friends (drop-in in modules/desktop.nix makes this startable)
     hl.exec_cmd("systemctl --user start graphical-session.target")
+    -- polkit agent (shipped unit; 1Password's embedded agent doesn't register here)
+    hl.exec_cmd("systemctl --user start hyprpolkitagent")
 
     hl.exec_cmd("waybar")                      -- status bar
     hl.exec_cmd("mako")                        -- notifications
     hl.exec_cmd("hyprpaper")                   -- wallpaper
     hl.exec_cmd("hypridle")                    -- idle: auto-lock + screen off
     hl.exec_cmd("wl-paste --type text --watch cliphist store")  -- clipboard history
-    hl.exec_cmd("1password --silent")           -- 1Password: tray, Quick Access, SSH agent, polkit agent
+    hl.exec_cmd("1password --silent")           -- 1Password: tray, Quick Access, SSH agent
     hl.exec_cmd(terminal)                       -- terminal on login
 end)
 
