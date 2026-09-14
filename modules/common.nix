@@ -152,6 +152,10 @@
   services.fwupd.enable = true;
   services.printing.enable = true;
   hardware.sane.enable = true;
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
   services.geoclue2.enable = true;
   services.automatic-timezoned.enable = true;
 
