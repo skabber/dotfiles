@@ -37,7 +37,7 @@ in
 
     ollamaModel = mkOption {
       type = types.str;
-      default = "hf.co/deepreinforce-ai/Ornith-1.0-9B-GGUF:Q4_K_M";
+      default = "ornith-1.5:9b";
       description = "Ollama model tag used for commentary.";
     };
 
