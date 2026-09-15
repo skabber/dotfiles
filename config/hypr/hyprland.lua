@@ -252,6 +252,7 @@ end)
 
 -- ── Session ───────────────────────────────────────────
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(lockCmd))             -- lock screen: hyprlock
+hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("systemctl suspend")) -- sleep (hypridle locks before suspend)
 hl.bind(mainMod .. " + M", hl.dsp.exit())
 
 -- ── Power profile (power-profiles-daemon) ─────────────
