@@ -35,6 +35,7 @@
     superfile
     proton-vpn
     vlc
+    notion-electron
 
     # Development
     nodejs_24
