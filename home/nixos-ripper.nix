@@ -53,7 +53,6 @@
     nvtopPackages.amd
 
     # Terminal & shell
-    ghostty
     warp-terminal
     nushell
     fd

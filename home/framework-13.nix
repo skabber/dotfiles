@@ -42,7 +42,6 @@
     nvtopPackages.amd
 
     # Terminal
-    ghostty
     warp-terminal
     nushell
 
