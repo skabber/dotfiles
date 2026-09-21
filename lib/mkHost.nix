@@ -81,6 +81,24 @@ let
       });
     };
 
+  # torch 2.13.0 doesn't compile against the aotriton 0.11.x that nixpkgs
+  # unstable pins (its pre-0.12 code paths are broken: undeclared `cookie`
+  # identifier in aotriton_adapter.h and attn_options::deterministic, which
+  # only exists in aotriton >= 0.12). Only ROCm builds compile these files,
+  # so CUDA/CPU hosts are unaffected. Drop when nixpkgs ships aotriton >= 0.12
+  # or a fixed torch.
+  torchAotritonOverlay = _final: prev: {
+    pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+      (_pyFinal: pyPrev: {
+        torch = pyPrev.torch.overrideAttrs (old: {
+          patches = (old.patches or [ ]) ++ [
+            "${root}/patches/torch-2.13-aotriton-0.11.patch"
+          ];
+        });
+      })
+    ];
+  };
+
   # Small inline modules baked into every host.
   googleCloudSdkModule = { pkgs, ... }: {
     environment.systemPackages = [ pkgs.google-cloud-sdk ];
@@ -101,7 +119,7 @@ in
       specialArgs = extraSpecialArgs;
       modules = [
         { nixpkgs.hostPlatform = system; }
-        { nixpkgs.overlays = [ pinnedPackagesOverlay spacyTestFixOverlay vaultwardenOverlay ]; }
+        { nixpkgs.overlays = [ pinnedPackagesOverlay spacyTestFixOverlay vaultwardenOverlay torchAotritonOverlay ]; }
         "${root}/hosts/${hostname}/default.nix"
         googleCloudSdkModule
         nixLdModule

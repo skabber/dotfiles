@@ -212,11 +212,13 @@ care of three auth flows:
   instead of asking for a key passphrase. Enable it once in the app:
   **1Password → Settings → Developer → Use the SSH agent**. Check with
   `ssh-add -l` (lists `1Password` as the agent comment).
-- **System (polkit) prompts** — Hyprland has no built-in authentication agent, so
-  when a GUI tool asks for admin rights (GParted, system updates, etc.) 1Password
-  serves the prompt — this is what `polkitPolicyOwners = [ "jay" ]` in
-  `modules/common.nix` grants. If you quit 1Password entirely, those prompts have
-  no agent until it's running again.
+- **System (polkit) prompts** — Hyprland has no built-in authentication agent,
+  and 1Password's embedded agent does **not** register under Hyprland, so
+  `hyprpolkitagent` (installed in `modules/desktop.nix`, started from
+  `hyprland.lua`'s autostart as a systemd user unit) serves the prompts — this is
+  also what Bitwarden's *Unlock with system authentication* needs.
+  `polkitPolicyOwners = [ "jay" ]` in `modules/common.nix` is unrelated to this:
+  it grants passwordless auth on 1Password's own action policies.
 
 `op` (the 1Password CLI) is installed on every host; with **Integrate with 1Password
 CLI** enabled in the app's Developer settings, `op` unlocks biometrically through the

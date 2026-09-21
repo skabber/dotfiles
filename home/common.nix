@@ -20,6 +20,7 @@
     file-roller
     htop
     git
+    bitwarden-desktop
     git-lfs
     gh
     tea
@@ -35,6 +36,7 @@
     superfile
     proton-vpn
     vlc
+    notion-electron
 
     # Development
     nodejs_24
@@ -115,7 +117,7 @@
     enableDefaultConfig = false;
     settings = {
       "*" = {
-        IdentityAgent = "${config.home.homeDirectory}/.1password/agent.sock";
+        IdentityAgent = "${config.home.homeDirectory}/.bitwarden-ssh-agent.sock";
       };
       "nixos" = {
         HostName = "nixos.tail69fe1.ts.net";
@@ -129,7 +131,7 @@
   };
 
   home.sessionVariables = {
-    SSH_AUTH_SOCK = "${config.home.homeDirectory}/.1password/agent.sock";
+    SSH_AUTH_SOCK = "${config.home.homeDirectory}/.bitwarden-ssh-agent.sock";
   };
 
   # Direnv

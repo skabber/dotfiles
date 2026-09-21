@@ -15,17 +15,32 @@
   # xdg-desktop-portal refuses to start without it (Requisite=), which silently
   # breaks window/screen sharing in browsers. Make the target manually startable
   # (hyprland.lua autostart starts it) and persistent with no requirers.
-  environment.etc."systemd/user/graphical-session.target.d/allow-manual-start.conf".text = ''
-    [Unit]
-    RefuseManualStart=no
-    StopWhenUnneeded=no
-  '';
+  # asDropin generates user-units/graphical-session.target.d/overrides.conf;
+  # an environment.etc entry under "systemd/user" would collide with NixOS's
+  # symlink to user-units and break the etc build.
+  systemd.user.targets."graphical-session" = {
+    overrideStrategy = "asDropin";
+    unitConfig = {
+      RefuseManualStart = false;
+      StopWhenUnneeded = false;
+    };
+  };
 
   # Lock screen (also installs hyprlock + PAM policy)
   programs.hyprlock.enable = true;
 
+  # hyprlock drives fprintd natively (auth.fingerprint in hyprlock.conf)
+  security.pam.services.hyprlock.fprintAuth = false;
+
   # Icon font for waybar/rofi configs (FiraCode Nerd Font)
   fonts.packages = [ pkgs.nerd-fonts.fira-code ];
+
+  # Polkit authentication agent for the Hyprland session. 1Password's embedded
+  # agent does not register under Hyprland, and without an agent polkit requests
+  # that require auth (e.g. Bitwarden biometric unlock, GParted) fail silently.
+  # The unit is started from hyprland.lua's autostart (needs WAYLAND_DISPLAY in
+  # the user manager, which the dbus-update-activation-environment call sets).
+  systemd.packages = [ pkgs.hyprpolkitagent ];
 
   environment.systemPackages = with pkgs; [
     pulseaudio

@@ -8,12 +8,12 @@
     substituters = [
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"
-      "https://cuda-maintainers.cachix.org"
+      "https://cache.nixos-cuda.org"
     ];
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="
+      "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
     ];
     # Per-build core cap. The Nix default (cores = 0) lets each build use ALL
     # cores, so a single ROCm kernel build (rocblas/miopen) OOMs the machine
@@ -152,6 +152,10 @@
   services.fwupd.enable = true;
   services.printing.enable = true;
   hardware.sane.enable = true;
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
   services.geoclue2.enable = true;
   services.automatic-timezoned.enable = true;
 
@@ -184,6 +188,12 @@
   # Security
   security.rtkit.enable = true;
   security.pam.services.gdm-password.enableGnomeKeyring = true;
+
+  # Bitwarden "Unlock with system authentication": the app's auto-setup writes to
+  # /usr (impossible on NixOS), so register its polkit action ourselves. Bitwarden
+  # itself is installed via Home Manager, so this action isn't picked up otherwise.
+  environment.etc."polkit-1/actions/com.bitwarden.Bitwarden.policy".source =
+    "${pkgs.bitwarden-desktop}/share/polkit-1/actions/com.bitwarden.Bitwarden.policy";
 
   # nix-ld for dynamically linked binaries (e.g., cargo-installed tools)
   programs.nix-ld.enable = true;
