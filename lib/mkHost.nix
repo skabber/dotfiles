@@ -54,6 +54,33 @@ let
     };
   };
 
+  # vaultwarden 1.37.2 cannot parse the new password-change payload that
+  # web-vault/client 2026.7.0+ send, so changing the master password fails
+  # with 422 "missing field `newMasterPasswordHash`". 1.37.3 fixes this
+  # (upstream PR #7634), but nixpkgs hasn't bumped past 1.37.2 yet.
+  # TEMPORARY: remove this overlay once nixpkgs ships vaultwarden >= 1.37.3.
+  vaultwardenOverlay =
+    _final: prev:
+    let
+      vwSrc = prev.fetchFromGitHub {
+        owner = "dani-garcia";
+        repo = "vaultwarden";
+        tag = "1.37.3";
+        hash = "sha256-T2sTVsBCvsvgxjlTeBPSvA96mJ7TLYqLNvldCI73by0=";
+      };
+    in
+    {
+      vaultwarden = prev.vaultwarden.overrideAttrs (_old: {
+        version = "1.37.3";
+        src = vwSrc;
+        # cargoHash doesn't survive overrideAttrs, so vendor explicitly
+        cargoDeps = prev.rustPlatform.fetchCargoVendor {
+          src = vwSrc;
+          hash = "sha256-gUQxnGPo8jYTfG+Zsz8W35h8lkYDxI3mGnCdxNXYB4k=";
+        };
+      });
+    };
+
   # Small inline modules baked into every host.
   googleCloudSdkModule = { pkgs, ... }: {
     environment.systemPackages = [ pkgs.google-cloud-sdk ];
@@ -74,7 +101,7 @@ in
       specialArgs = extraSpecialArgs;
       modules = [
         { nixpkgs.hostPlatform = system; }
-        { nixpkgs.overlays = [ pinnedPackagesOverlay spacyTestFixOverlay ]; }
+        { nixpkgs.overlays = [ pinnedPackagesOverlay spacyTestFixOverlay vaultwardenOverlay ]; }
         "${root}/hosts/${hostname}/default.nix"
         googleCloudSdkModule
         nixLdModule

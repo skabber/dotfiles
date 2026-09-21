@@ -26,6 +26,7 @@
     ../../modules/services/show-friends-preview.nix
     ../../modules/services/samba.nix
     ../../modules/services/flatpak.nix
+    ../../modules/services/vaultwarden.nix
   ];
 
   # Hostname
@@ -226,6 +227,8 @@
   service-panel = {
     enable = true;
     units = [
+      "vaultwarden.service"
+      "tailscale-serve-vaultwarden.service"
       "gpu-gateway.service"
       "moss-transcribe-web.service"
       "kokoro-fastapi.service"
@@ -294,6 +297,13 @@
       path = "/run/media/jay/Crucial X8";
       comment = "Crucial X8 external drive";
     };
+  };
+
+  vaultwarden = {
+    enable = true;
+    domain = "nixos.tail69fe1.ts.net";
+    adminTokenFile = "/home/jay/.secrets/vaultwarden.env";
+    backupDir = "/var/backup/vaultwarden";
   };
 
   show-friends-preview = {
