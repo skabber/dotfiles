@@ -37,6 +37,12 @@ in
       default = "jay";
       description = "User that receives a synced copy of the kubeconfig.";
     };
+
+    tlsSans = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "Extra SANs on the kube-apiserver serving cert (e.g. the tailnet hostname so remote hosts can reach the cluster).";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -46,6 +52,7 @@ in
       extraFlags = [
         "--disable=traefik"
         "--disable=servicelb"
+      ] ++ (map (san: "--tls-san=${san}") cfg.tlsSans) ++ [
         # Agent Substrate needs the pod-certificate APIs; not on by default
         # as of Kubernetes 1.36 (see hack/create-kind-cluster.sh upstream).
         "--kube-apiserver-arg=feature-gates=ClusterTrustBundle=true,ClusterTrustBundleProjection=true,PodCertificateRequest=true"

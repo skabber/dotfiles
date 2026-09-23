@@ -59,6 +59,7 @@
 
   k3s = {
     enable = true;
+    tlsSans = [ "nixos.tail69fe1.ts.net" ];
     registries = {
       "127.0.0.1:5000".endpoint = "http://registry.k3s-registry.svc.cluster.local:5000";
       "127.0.0.1:3000".endpoint = "http://127.0.0.1:3000";
