@@ -37,21 +37,30 @@ let
     dwarfs = nixpkgs-libreoffice.legacyPackages.${system}.dwarfs;
   };
 
-  # spacy 3.8.16 fails its test suite on Python 3.14
-  # (test_span_ruler_multiprocessing: multiprocessing can't pickle a local
-  # lambda), which blocks paperless-ngx and the whole system build. Upstream
-  # already deselects other 3.14-only failures; drop this when nixpkgs ships
-  # the same fix.
+  # spacy 3.8.16 fails its test suite on Python 3.14. Root cause:
+  # test_doc_retokenize_merge_extension_attrs_invalid registers a local
+  # lambda as a global Doc extension setter without cleanup; every later
+  # n_process>1 test then dies pickling it (schedule-dependent — different
+  # victims each run). Deselect the poisoner plus the known dependents
+  # (the check hook feeds disabledTests into pytest -k, whose expression
+  # grammar can't express parametrized ids, so families are substring-
+  # matched whole). Drop this when nixpkgs ships the same fix.
+  #
+  # Must go through pythonPackagesExtensions (applies to python3.pkgs et
+  # al.); overriding prev.python314 only rebuilds the python314 alias and
+  # paperless pulls spacy via python3Packages, which wouldn't see it.
   spacyTestFixOverlay = _final: prev: {
-    python314 = prev.python314.override {
-      packageOverrides = _pyFinal: pyPrev: {
+    pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+      (_pyFinal: pyPrev: {
         spacy = pyPrev.spacy.overridePythonAttrs (old: {
           disabledTests = (old.disabledTests or [ ]) ++ [
+            "test_doc_retokenize_merge_extension_attrs_invalid"
             "test_span_ruler_multiprocessing"
+            "test_language_pipe"
           ];
         });
-      };
-    };
+      })
+    ];
   };
 
   # vaultwarden 1.37.2 cannot parse the new password-change payload that
