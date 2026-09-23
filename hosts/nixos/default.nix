@@ -6,6 +6,7 @@
     ./hardware-configuration.nix
     ../../modules/common.nix
     ../../modules/desktop-nvidia.nix
+    ../../modules/services/k3s.nix
     ../../modules/services/aixle-flow.nix
     ../../modules/services/sunshine.nix
     ../../modules/services/gnome-remote-desktop.nix
@@ -55,6 +56,14 @@
 
   # Enable services
   sunshine.enable = false;
+
+  k3s = {
+    enable = true;
+    registries = {
+      "127.0.0.1:5000".endpoint = "http://registry.k3s-registry.svc.cluster.local:5000";
+      "127.0.0.1:3000".endpoint = "http://127.0.0.1:3000";
+    };
+  };
 
   aixle-flow = {
     enable = true;
