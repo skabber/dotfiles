@@ -8,7 +8,12 @@
 
   # Machine-specific packages
   home.packages = with pkgs; [
+    (pkgs.callPackage ../pkgs/ax.nix { })
     (pkgs.callPackage ../pkgs/zcode.nix { })
+    kubectl
+    ko
+    go_1_27
+    k9s
     retroarch
     warp-terminal
     alacritty
