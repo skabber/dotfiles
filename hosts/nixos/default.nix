@@ -6,8 +6,8 @@
     ./hardware-configuration.nix
     ../../modules/common.nix
     ../../modules/desktop-nvidia.nix
+    # ../../modules/services/aixle-flow.nix
     ../../modules/services/k3s.nix
-    ../../modules/services/aixle-flow.nix
     ../../modules/services/sunshine.nix
     ../../modules/services/gnome-remote-desktop.nix
     ../../modules/services/gitea.nix
@@ -65,10 +65,10 @@
     };
   };
 
-  aixle-flow = {
-    enable = true;
-    environmentFile = "/home/jay/.secrets/aixle-flow.env";
-  };
+  # aixle-flow = {
+  #   enable = true;
+  #   environmentFile = "/home/jay/.secrets/aixle-flow.env";
+  # };
 
   gnome-remote-desktop = {
     enable = true;
