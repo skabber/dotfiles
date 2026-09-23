@@ -36,7 +36,6 @@
     awscli2
 
     # Terminal tools
-    ghostty
     warp-terminal
     nushell
 

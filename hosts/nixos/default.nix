@@ -6,7 +6,8 @@
     ./hardware-configuration.nix
     ../../modules/common.nix
     ../../modules/desktop-nvidia.nix
-    ../../modules/services/aixle-flow.nix
+    # ../../modules/services/aixle-flow.nix
+    ../../modules/services/k3s.nix
     ../../modules/services/sunshine.nix
     ../../modules/services/gnome-remote-desktop.nix
     ../../modules/services/gitea.nix
@@ -26,6 +27,7 @@
     ../../modules/services/show-friends-preview.nix
     ../../modules/services/samba.nix
     ../../modules/services/flatpak.nix
+    ../../modules/services/vaultwarden.nix
   ];
 
   # Hostname
@@ -55,10 +57,19 @@
   # Enable services
   sunshine.enable = false;
 
-  aixle-flow = {
+  k3s = {
     enable = true;
-    environmentFile = "/home/jay/.secrets/aixle-flow.env";
+    tlsSans = [ "nixos.tail69fe1.ts.net" ];
+    registries = {
+      "127.0.0.1:5000".endpoint = "http://registry.k3s-registry.svc.cluster.local:5000";
+      "127.0.0.1:3000".endpoint = "http://127.0.0.1:3000";
+    };
   };
+
+  # aixle-flow = {
+  #   enable = true;
+  #   environmentFile = "/home/jay/.secrets/aixle-flow.env";
+  # };
 
   gnome-remote-desktop = {
     enable = true;
@@ -226,6 +237,8 @@
   service-panel = {
     enable = true;
     units = [
+      "vaultwarden.service"
+      "tailscale-serve-vaultwarden.service"
       "gpu-gateway.service"
       "moss-transcribe-web.service"
       "kokoro-fastapi.service"
@@ -294,6 +307,13 @@
       path = "/run/media/jay/Crucial X8";
       comment = "Crucial X8 external drive";
     };
+  };
+
+  vaultwarden = {
+    enable = true;
+    domain = "nixos.tail69fe1.ts.net";
+    adminTokenFile = "/home/jay/.secrets/vaultwarden.env";
+    backupDir = "/var/backup/vaultwarden";
   };
 
   show-friends-preview = {

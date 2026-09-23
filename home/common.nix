@@ -12,6 +12,7 @@
   # Common packages for all machines
   home.packages = with pkgs; [
     # Core tools
+    ghostty
     ghostty.terminfo
     lsof
     cemu
@@ -77,6 +78,9 @@
     # Agent stuff
     agent-browser
     herdr
+    (pkgs.callPackage ../pkgs/ax.nix { })
+    kubectl
+    k9s
 
     # Utilities
     # trayscale  # FIXME: broken with Go 1.26 in nixpkgs (gvisor build tag conflict)

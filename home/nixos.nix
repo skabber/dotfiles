@@ -9,6 +9,8 @@
   # Machine-specific packages
   home.packages = with pkgs; [
     (pkgs.callPackage ../pkgs/zcode.nix { })
+    ko
+    go_1_27
     retroarch
     warp-terminal
     alacritty
