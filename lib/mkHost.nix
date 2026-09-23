@@ -63,6 +63,33 @@ let
     ];
   };
 
+  # paperless-ngx 3.1.3's test_consumer.py::TestConsumer::testNormalOperation
+  # counts files while the consume-dir watcher is live; under parallel test
+  # load it intermittently sees one extra event (AssertionError: 22 != 21).
+  # 3266 other tests pass; drop this when upstream stabilizes it.
+  #
+  # The paperless NixOS module re-enters the package via
+  # `pkg.override { tesseract5 = ... }` (to enable PAPERLESS_OCR_LANGUAGE
+  # detection modules), but overridePythonAttrs drops that passthru — so
+  # restore an override that re-applies the test patch after the module's
+  # re-invocation.
+  paperlessTestFixOverlay = _final: prev:
+    let
+      patchTests =
+        pkg:
+        pkg.overridePythonAttrs (old: {
+          disabledTests = (old.disabledTests or [ ]) ++ [
+            "testNormalOperation"
+          ];
+        });
+    in
+    {
+      paperless-ngx = patchTests prev.paperless-ngx // {
+        inherit (prev.paperless-ngx) tesseract5;
+        override = args: patchTests (prev.paperless-ngx.override args);
+      };
+    };
+
   # vaultwarden 1.37.2 cannot parse the new password-change payload that
   # web-vault/client 2026.7.0+ send, so changing the master password fails
   # with 422 "missing field `newMasterPasswordHash`". 1.37.3 fixes this
@@ -128,7 +155,7 @@ in
       specialArgs = extraSpecialArgs;
       modules = [
         { nixpkgs.hostPlatform = system; }
-        { nixpkgs.overlays = [ pinnedPackagesOverlay spacyTestFixOverlay vaultwardenOverlay torchAotritonOverlay ]; }
+        { nixpkgs.overlays = [ pinnedPackagesOverlay spacyTestFixOverlay paperlessTestFixOverlay vaultwardenOverlay torchAotritonOverlay ]; }
         "${root}/hosts/${hostname}/default.nix"
         googleCloudSdkModule
         nixLdModule
