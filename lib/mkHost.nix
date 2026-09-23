@@ -123,13 +123,19 @@ let
   # only exists in aotriton >= 0.12). Only ROCm builds compile these files,
   # so CUDA/CPU hosts are unaffected. Drop when nixpkgs ships aotriton >= 0.12
   # or a fixed torch.
+  # The patch goes through builtins.path so only the FILE is copied to the
+  # store, content-addressed. A plain path literal (or "${root}/...") makes
+  # the derivation depend on a full flake-source snapshot, so every dotfiles
+  # edit recompiled torch from source.
+  torchAotritonPatch = builtins.path {
+    path = ../patches/torch-2.13-aotriton-0.11.patch;
+    name = "torch-2.13-aotriton-0.11.patch";
+  };
   torchAotritonOverlay = _final: prev: {
     pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
       (_pyFinal: pyPrev: {
         torch = pyPrev.torch.overrideAttrs (old: {
-          patches = (old.patches or [ ]) ++ [
-            "${root}/patches/torch-2.13-aotriton-0.11.patch"
-          ];
+          patches = (old.patches or [ ]) ++ [ torchAotritonPatch ];
         });
       })
     ];
