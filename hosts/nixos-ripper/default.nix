@@ -52,6 +52,12 @@
   # snd-aloop: ALSA loopback for system audio capture
   boot.kernelModules = [ "iwlwifi" "ath12k" "snd-aloop" ];
 
+  # DO NOT enable services.hardware.openrgb or load i2c-dev on this host.
+  # OpenRGB's SMBus scan (RAM/GPU RGB on the TRX40 piix4 aux bus) hard-freezes
+  # the board — reproduced twice on 2026-09-24 (gen 371 boot + interactive
+  # scan), each requiring a hard reset. USB devices are safe without i2c-dev;
+  # see scripts/lights-off.sh.
+
   # Hardware firmware
   hardware.enableRedistributableFirmware = true;
   hardware.firmware = with pkgs; [ linux-firmware ];
@@ -235,6 +241,7 @@
     fuse
     linuxConsoleTools
     snyk
+    openrgb
   ];
 
   system.stateVersion = "23.11";
