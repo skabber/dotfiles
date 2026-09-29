@@ -24,7 +24,7 @@ GNOME on X11/Wayland via `modules/desktop.nix` (amdgpu driver) with polkit, sudo
 ## Home Manager Packages
 
 ### Development
-- code-cursor, zed-editor, Android Studio
+- zed-editor, Android Studio
 - PostgreSQL, espup, elf2uf2-rs (embedded)
 - awscli2, Bruno
 

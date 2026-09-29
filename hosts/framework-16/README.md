@@ -27,7 +27,7 @@ GNOME on X11/Wayland via `modules/desktop.nix` (amdgpu driver).
 ### Development
 - Go (gopls), Zig, PostgreSQL, OpenTofu
 - Taplo (TOML), espup + elf2uf2-rs (embedded)
-- code-cursor, zed-editor, Android Studio
+- zed-editor, Android Studio
 - awscli2, Bruno, Postman
 
 ### Terminal

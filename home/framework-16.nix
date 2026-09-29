@@ -26,7 +26,6 @@
     elf2uf2-rs
 
     # Editors & IDEs
-    code-cursor
     zed-editor
     android-studio
     alacritty
