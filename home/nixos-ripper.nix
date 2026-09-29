@@ -68,7 +68,6 @@
     elf2uf2-rs
     # sunshine
     zoom-us
-    code-cursor
 
     # GNOME extensions
     # gnomeExtensions.pano
