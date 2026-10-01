@@ -44,7 +44,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("waybar")                      -- status bar
     hl.exec_cmd("mako")                        -- notifications
     hl.exec_cmd("hyprpaper")                   -- wallpaper
-    hl.exec_cmd("hypridle")                    -- idle: auto-lock + screen off
+    hl.exec_cmd("pidof hypridle || hypridle")       -- idle: auto-lock + screen off (a stale daemon survives compositor restarts)
     hl.exec_cmd("wl-paste --type text --watch cliphist store")  -- clipboard history
     hl.exec_cmd("1password --silent")           -- 1Password: tray, Quick Access, SSH agent
     hl.exec_cmd(terminal)                       -- terminal on login
@@ -254,6 +254,11 @@ end)
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(lockCmd))             -- lock screen: hyprlock
 hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("systemctl suspend")) -- sleep (hypridle locks before suspend)
 hl.bind(mainMod .. " + M", hl.dsp.exit())
+
+-- ── Notifications (mako) ──────────────────────────────
+hl.bind(mainMod .. " + N",         hl.dsp.exec_cmd("makoctl dismiss"))     -- dismiss newest
+hl.bind(mainMod .. " + SHIFT + N", hl.dsp.exec_cmd("makoctl dismiss -a"))  -- dismiss all
+hl.bind(mainMod .. " + CTRL + N",  hl.dsp.exec_cmd("makoctl restore"))     -- restore last dismissed
 
 -- ── Power profile (power-profiles-daemon) ─────────────
 -- Super+Shift+B cycles power-saver -> balanced -> performance
