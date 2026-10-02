@@ -98,6 +98,10 @@
       token = "07XSNFqRI37Y91ikvcJ8eUjT3F5z4G3NKSZdatfm";
       labels = [ "ubuntu-latest:docker://catthehacker/ubuntu:act-latest" ];
     };
+    mcp = {
+      enable = true;
+      tokenFile = "/home/jay/.secrets/gitea-mcp-token";
+    };
   };
 
   wallabag = {

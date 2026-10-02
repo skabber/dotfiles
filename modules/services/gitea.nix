@@ -149,6 +149,37 @@ in
     };
   };
 
+  options.gitea.mcp = {
+    enable = mkEnableOption "Gitea MCP server";
+
+    port = mkOption {
+      type = types.port;
+      default = 8090;
+      description = "Port for the MCP server (streamable HTTP at /mcp). 8080 is taken by paperless-gpt.";
+    };
+
+    giteaUrl = mkOption {
+      type = types.str;
+      default = "http://127.0.0.1:${toString cfg.httpPort}";
+      description = "Gitea instance URL the MCP server talks to.";
+    };
+
+    tokenFile = mkOption {
+      type = types.path;
+      description = ''
+        Path to a file containing a Gitea personal access token. Used as the
+        default credential for MCP requests; clients sending their own
+        Authorization header take precedence.
+      '';
+    };
+
+    readOnly = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Expose only read-only tools.";
+    };
+  };
+
   config = mkIf cfg.enable {
     services.gitea = {
       enable = true;
@@ -173,7 +204,9 @@ in
     };
 
     networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall (
-      [ cfg.httpPort ] ++ optionals cfg.runner.enable [ cfg.runner.cachePort ]
+      [ cfg.httpPort ]
+      ++ optionals cfg.runner.enable [ cfg.runner.cachePort ]
+      ++ optionals cfg.mcp.enable [ cfg.mcp.port ]
     );
 
     services.gitea-actions-runner.instances.${cfg.runner.name} = mkIf cfg.runner.enable {
@@ -197,6 +230,33 @@ in
           options = "-m 32g --cpus 32";  # 32GB RAM, 32 CPUs
           valid_volumes = [ ];
         };
+      };
+    };
+
+    systemd.services.gitea-mcp = mkIf cfg.mcp.enable {
+      description = "Gitea MCP Server";
+      after = [ "network-online.target" "gitea.service" ];
+      wants = [ "network-online.target" ];
+      wantedBy = [ "multi-user.target" ];
+
+      # gitea-mcp writes its log to $HOME/.gitea-mcp/gitea-mcp.log
+      environment = {
+        HOME = "/var/lib/gitea-mcp";
+        GITEA_ACCESS_TOKEN_FILE = "/run/credentials/gitea-mcp.service/gitea-token";
+      } // optionalAttrs cfg.mcp.readOnly { GITEA_READONLY = "true"; };
+
+      serviceConfig = {
+        DynamicUser = true;
+        StateDirectory = "gitea-mcp";
+        LoadCredential = "gitea-token:${cfg.mcp.tokenFile}";
+        ExecStart = concatStringsSep " " [
+          "${pkgs.gitea-mcp-server}/bin/gitea-mcp"
+          "-t" "http"
+          "-H" cfg.mcp.giteaUrl
+          "-p" (toString cfg.mcp.port)
+        ];
+        Restart = "on-failure";
+        RestartSec = "5s";
       };
     };
   };
