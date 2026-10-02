@@ -196,15 +196,17 @@
   };
 
   # MOSS-Transcribe-Diarize: same jobs API as the AMD hosts backed by a
-  # loopback vLLM engine. gpu-gateway fronts :7860 and owns the engine
-  # lifecycle; only the web unit starts at boot.
+  # loopback vLLM engine. gpu-gateway is OFF (2026-09-30 driver lockup
+  # postmortem): freetoken stays disabled, the engine starts at boot and
+  # keeps the GPU, and tailscale serve publishes 7860 directly. Re-enable
+  # the gateway later by setting serve back to false.
   moss-transcribe = {
     enable = true;
     backend = "vllm";
     host = "127.0.0.1";
     openFirewall = false;
-    serve = false;
-    autoStart = false;
+    serve = true;
+    autoStart = true;
     # 24576-token batch budget grows the encoder cache; the remaining 3.37 GiB
     # KV cache can't fit the 32768 default (needs 3.5 GiB). 30720 ≈ 41 min
     # audio, still above the ~33 min single-pass window.
@@ -215,7 +217,7 @@
   # FreeToken: MoE serving engine on the RTX 3080. FP8 35B (~35 GB of experts
   # in host RAM via the offload backend) fits the 62 GiB; BF16 would not.
   freetoken = {
-    enable = true;
+    enable = false;
     model = "Qwen/Qwen3.6-35B-A3B-FP8";
     host = "127.0.0.1";
     autoStart = false;
@@ -237,7 +239,7 @@
   # Time-share the GPU between the two engines: moss is the preferred tenant,
   # freetoken runs on demand once moss is idle. Publishes both APIs on the
   # tailnet under their original port numbers (7860 moss, 1919 freetoken).
-  gpu-gateway.enable = true;
+  gpu-gateway.enable = false;
 
   service-panel = {
     enable = true;
