@@ -73,7 +73,7 @@
       After = [ "network-online.target" ];
     };
     Service = {
-      ExecStart = "/home/jay/Projects/rustfs/target/release/rustfs --address 127.0.0.1:9000 --console-enable /home/jay/buckets";
+      ExecStart = "/home/jay/Projects/rustfs/target/release/rustfs --address 0.0.0.0:9000 --console-enable /home/jay/buckets";
       WorkingDirectory = "/home/jay/Projects/rustfs";
       EnvironmentFile = "/home/jay/.config/rustfs/env";
       Restart = "on-failure";

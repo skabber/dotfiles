@@ -66,6 +66,11 @@
     };
   };
 
+  # Pod-to-host traffic (e.g. substrate snapshots into the rustfs user
+  # service) arrives on the k3s CNI bridge; the default INPUT policy would
+  # reject it.
+  networking.firewall.interfaces.cni0.allowedTCPPorts = [ 9000 ];
+
   # aixle-flow = {
   #   enable = true;
   #   environmentFile = "/home/jay/.secrets/aixle-flow.env";
