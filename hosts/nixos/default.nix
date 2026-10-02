@@ -24,10 +24,12 @@
     ../../modules/services/paperless-ai.nix
     ../../modules/services/paperless-gpt.nix
     ../../modules/services/romm.nix
+    ../../modules/services/restic-backup.nix
     ../../modules/services/show-friends-preview.nix
     ../../modules/services/samba.nix
     ../../modules/services/flatpak.nix
     ../../modules/services/vaultwarden.nix
+    ../../modules/services/openhands.nix
   ];
 
   # Hostname
@@ -249,6 +251,8 @@
       "gpu-gateway.service"
       "moss-transcribe-web.service"
       "kokoro-fastapi.service"
+      "docker-openhands.service"
+      "tailscale-serve-openhands.service"
     ];
   };
 
@@ -317,11 +321,18 @@
     };
   };
 
+  restic-backup.enable = true;
+
   vaultwarden = {
     enable = true;
     domain = "nixos.tail69fe1.ts.net";
     adminTokenFile = "/home/jay/.secrets/vaultwarden.env";
     backupDir = "/var/backup/vaultwarden";
+  };
+
+  openhands = {
+    enable = true;
+    serve = true;
   };
 
   show-friends-preview = {
