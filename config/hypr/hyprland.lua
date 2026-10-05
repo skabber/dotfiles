@@ -44,7 +44,6 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("waybar")                      -- status bar
     hl.exec_cmd("mako")                        -- notifications
     hl.exec_cmd("hyprpaper")                   -- wallpaper
-    hl.exec_cmd("pidof hypridle || hypridle")       -- idle: auto-lock + screen off (a stale daemon survives compositor restarts)
     hl.exec_cmd("wl-paste --type text --watch cliphist store")  -- clipboard history
     hl.exec_cmd("1password --silent")           -- 1Password: tray, Quick Access, SSH agent
     hl.exec_cmd(terminal)                       -- terminal on login
