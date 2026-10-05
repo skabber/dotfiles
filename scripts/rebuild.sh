@@ -33,7 +33,15 @@ JOBS=${JOBS:-$(( $(nproc) / CORES / 2 ))}
 [ "$JOBS" -lt 2 ] && JOBS=2
 
 if [ "$UPGRADE" = true ]; then
-  nix flake update
+  # wallbag-rust and gtk-flash live on the nixos host's Gitea; when it is
+  # down a full update stalls ~4.5 min in TCP timeouts. Probe first and
+  # update only the public inputs when it is unreachable.
+  if timeout 5 bash -c '</dev/tcp/nixos.tail69fe1.ts.net/3000' 2>/dev/null; then
+    nix flake update
+  else
+    echo "nixos.tail69fe1.ts.net:3000 unreachable — updating public inputs only"
+    nix flake update nixpkgs home-manager kokoro-fastapi-nix pain
+  fi
 fi
 
 # Stop memory-hungry services before building so Nix has headroom
