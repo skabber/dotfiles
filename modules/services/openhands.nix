@@ -8,6 +8,16 @@ with lib;
 
 let
   cfg = config.openhands;
+
+  # The agent-canvas image exports LD_LIBRARY_PATH (/usr/lib:...), which
+  # takes precedence over Nix RPATHs and makes every Nix binary load
+  # Debian's libc and segfault. The launcher must use the image's /bin/sh
+  # (dash) because Nix bash would crash before the unset runs.
+  opencodeLauncher = pkgs.runCommand "openhands-opencode" { }
+    ''
+      printf '#!/bin/sh\nunset LD_LIBRARY_PATH LD_PRELOAD\nexec ${cfg.opencodePackage}/bin/opencode "$@"\n' > "$out"
+      chmod 0555 "$out"
+    '';
 in
 {
   options.openhands = {
@@ -50,7 +60,7 @@ in
 
     image = mkOption {
       type = types.str;
-      default = "ghcr.io/openhands/agent-canvas:1.24.0";
+      default = "ghcr.io/openhands/agent-canvas:1.25.0";
       description = "Agent Canvas image tag.";
     };
 
@@ -58,6 +68,14 @@ in
       type = with types; nullOr path;
       default = null;
       description = "Optional env file with extra container variables (e.g. OH_* agent server settings).";
+    };
+
+    enableOpencode = mkEnableOption "host opencode inside the container (ACP agent profiles)";
+
+    opencodePackage = mkOption {
+      type = types.package;
+      default = pkgs.opencode;
+      description = "opencode derivation exposed at /usr/local/bin/opencode.";
     };
 
     extraEnvironment = mkOption {
@@ -69,10 +87,16 @@ in
 
   config = mkIf cfg.enable {
     # Container user openhands is UID/GID 10001 in the published image
-    systemd.tmpfiles.rules = [
-      "d ${cfg.dataDir} 0750 10001 10001 -"
-      "d ${cfg.projectsDir} 0755 10001 10001 -"
-    ];
+    systemd.tmpfiles.rules =
+      [
+        "d ${cfg.dataDir} 0750 10001 10001 -"
+        "d ${cfg.projectsDir} 0755 10001 10001 -"
+      ]
+      ++ optionals cfg.enableOpencode [
+        "d ${cfg.dataDir}/opencode/config 0755 10001 10001 -"
+        "d ${cfg.dataDir}/opencode/data 0755 10001 10001 -"
+        "d ${cfg.dataDir}/opencode/state 0755 10001 10001 -"
+      ];
 
     virtualisation.oci-containers.containers.openhands = {
       image = cfg.image;
@@ -81,6 +105,12 @@ in
       volumes = [
         "${cfg.dataDir}:/home/openhands/.openhands"
         "${cfg.projectsDir}:/projects"
+      ] ++ optionals cfg.enableOpencode [
+        "/nix/store:/nix/store:ro"
+        "${opencodeLauncher}:/usr/local/bin/opencode:ro"
+        "${cfg.dataDir}/opencode/config:/home/openhands/.config/opencode"
+        "${cfg.dataDir}/opencode/data:/home/openhands/.local/share/opencode"
+        "${cfg.dataDir}/opencode/state:/home/openhands/.local/state"
       ];
       environment = {
         # Auto-inject the session API key into the served HTML. Only safe

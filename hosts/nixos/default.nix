@@ -337,6 +337,7 @@
   openhands = {
     enable = true;
     serve = true;
+    enableOpencode = true;
   };
 
   show-friends-preview = {
