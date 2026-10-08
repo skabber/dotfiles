@@ -1,6 +1,6 @@
 # nixos
 
-AMD Threadripper server with NVIDIA GPU — runs Gitea, Wallabag, and OpenClaw behind Tailscale Serve.
+AMD Threadripper server with NVIDIA GPU — runs Gitea, Wallabag, and OpenHands behind Tailscale Serve.
 
 ## Hardware
 
@@ -44,9 +44,6 @@ GNOME on X11/Wayland via `modules/desktop-nvidia.nix` (nvidia driver, hardware c
 ## Home Manager
 
 - **Shell**: Bash (sources `~/.bash_profile.local`)
-- **OpenClaw**: Telegram integration, multi-model AI gateway
-  - Loopback gateway with Tailscale auth
-  - Control UI at `~/.openclaw/control-ui`
 
 ## Networking
 
@@ -56,7 +53,6 @@ All services proxied through Tailscale Serve:
 |----------|----------|
 | `:443` | nginx (static + Wallabag) |
 | `:3000` | Gitea |
-| `:8443` | OpenClaw gateway |
 
 ## Security
 
