@@ -101,6 +101,9 @@
     mcp = {
       enable = true;
       tokenFile = "/home/jay/.secrets/gitea-mcp-token";
+      # Own ts-ip, not 127.0.0.1: mcp-go 403s loopback connections carrying a
+      # proxied non-loopback Host header.
+      serveTarget = "100.98.134.56";
     };
   };
 
