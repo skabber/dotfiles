@@ -93,6 +93,10 @@
     };
   };
 
+  # Registration must stay disabled: Gitea is exposed publicly via Tailscale
+  # Funnel (:8443) for the IronClaw vault sync — open signup would be internet-wide.
+  services.gitea.settings.service.DISABLE_REGISTRATION = true;
+
   wallabag = {
     enable = true;
     hostname = "nixos.tail69fe1.ts.net";

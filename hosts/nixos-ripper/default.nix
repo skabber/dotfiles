@@ -16,6 +16,7 @@
     ../../modules/services/moss-transcribe.nix
     ../../modules/services/minidlna.nix
     ../../modules/services/service-panel.nix
+    ../../modules/services/vault-sync.nix
   ];
 
   # Hostname
@@ -69,6 +70,8 @@
   # Mount points
   systemd.tmpfiles.rules = [
     "d /mnt/external 0777 root root - -"
+    # Jellyfin (via "users" group) needs traversal into /home/jay to reach ~/Videos
+    "d /home/jay 0750 jay users -"
   ];
 
   # Crucial X8 CIFS share (served by nixos)
@@ -132,6 +135,23 @@
     openFirewall = true;
   };
 
+  # Obsidian vault git sync -> private Gitea mirrors consumed by IronClaw
+  vault-sync = {
+    enable = true;
+    vaults = [
+      {
+        name = "skabber";
+        path = "/home/jay/Documents/Skabber";
+        remote = "ssh://git@nixos.tail69fe1.ts.net/skabber/vault-skabber.git";
+      }
+      {
+        name = "stablekernel";
+        path = "/home/jay/Documents/StableKernel";
+        remote = "ssh://git@nixos.tail69fe1.ts.net/skabber/vault-stablekernel.git";
+      }
+    ];
+  };
+
   # Service toggles
   ollama.enable = true;
   # Re-enabled 2026-08-24 (Ollama 0.32): FA was disabled in Feb (b0ecfd0) over
@@ -143,6 +163,11 @@
   # Read-only VRAM endpoint for crumpet's GPU steward (remote/tailnet use)
   gpu-status.enable = true;
   sunshine.enable = true;
+  sunshine.settings = {
+    capture = "wlr";
+    back_button_timeout = 0;
+    output_name = 0;
+  };
 
   nixnews.enable = true;
   nixnews.serve = true;
