@@ -39,7 +39,7 @@ in
     # broken per-arch variants downstream, so we overrideScope the main scope
     # instead — mirroring how nixpkgs builds its own per-arch scopes.
     nixpkgs.overlays = [
-      (_final: prev: {
+      (final: prev: {
         rocmPackages = prev.rocmPackages.overrideScope (_sfinal: sprev: {
           clr = sprev.clr.override {
             localGpuTargets =
@@ -47,6 +47,27 @@ in
               in if builtins.isList v then v else [ v ];
           };
         });
+        # magma 2.9.0 supports no AMD arch past gfx1033, and nixpkgs recently
+        # made it derive its target list from clr.localGpuTargets — hosts
+        # pinned to gfx1150 (framework-13) then fail to evaluate with "No
+        # supported GPU targets specified". Fixing this via magma-hip.override
+        # is impossible: the assert in magma's expression evaluates while
+        # forcing the original callPackage'd derivation (makeOverridable's
+        # `result // { override = ...; }`), before override args merge. So
+        # re-callPackage magma fresh with an unpinned rocmPackages (explicit
+        # args beat autoArgs), keeping its other rocm deps pinned. Drop when
+        # magma learns gfx1150.
+        magma-hip =
+          let
+            unpinnedRocm = final.rocmPackages.overrideScope (_sfinal: sprev: {
+              clr = sprev.clr.override { localGpuTargets = null; };
+            });
+          in
+          prev.callPackage (prev.path + "/pkgs/by-name/ma/magma/package.nix") {
+            rocmPackages = unpinnedRocm;
+            cudaSupport = false;
+            rocmSupport = true;
+          };
       })
     ];
 
