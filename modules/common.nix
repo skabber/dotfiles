@@ -64,6 +64,13 @@
   #   rather than just the top-level patool application.
   # - python-gnupg: test_no_such_key races gpg-agent socket cleanup (S.gpg-agent.*
   #   vanishes between os.walk and os.remove). Needed by proton-core/proton-vpn.
+  # - anyio 4.14.2: test_tls_connectable fails on python3.12 ("server_hostname can
+  #   only be specified in client mode"), and two BlockingPortal crash tests are
+  #   flaky under load (unraisable exception warnings). Drop when nixpkgs
+  #   deselects them.
+  # - twisted 26.4.0: test_http2.EndToEndTests.test_realRequest leaves the trial
+  #   reactor dirty in the build sandbox (DelayedCall + BufferingTLSTransport
+  #   leaks, 2 errors / 11485). trial has no deselect flag, so skip the suite.
   nixpkgs.overlays = [
     (final: prev: {
       openldap = prev.openldap.overrideAttrs (_: { doCheck = false; });
@@ -76,6 +83,14 @@
           python-gnupg = python-prev.python-gnupg.overridePythonAttrs (old: {
             disabledTests = (old.disabledTests or [ ]) ++ [ "test_no_such_key" ];
           });
+          anyio = python-prev.anyio.overridePythonAttrs (old: {
+            disabledTests = (old.disabledTests or [ ]) ++ [
+              "test_tls_connectable"
+              "test_start_crash_before_started_call"
+              "test_start_crash_after_started_call"
+            ];
+          });
+          twisted = python-prev.twisted.overridePythonAttrs (_: { doCheck = false; });
         })
       ];
     })
