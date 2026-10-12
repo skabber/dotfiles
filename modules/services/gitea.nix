@@ -149,6 +149,59 @@ in
     };
   };
 
+  options.gitea.mcp = {
+    enable = mkEnableOption "Gitea MCP server";
+
+    port = mkOption {
+      type = types.port;
+      default = 8090;
+      description = "Public HTTPS port for the MCP server via Tailscale Serve (streamable HTTP at /mcp). 8080 is taken by paperless-gpt.";
+    };
+
+    listenPort = mkOption {
+      type = types.port;
+      default = 8091;
+      description = ''
+        Local port gitea-mcp binds (wildcard). Must differ from `port`:
+        gitea-mcp has no bind-address flag, so a wildcard bind on the same
+        port would collide with tailscaled's ts-ip listener (EADDRINUSE).
+      '';
+    };
+
+    serveTarget = mkOption {
+      type = types.str;
+      default = "127.0.0.1";
+      description = ''
+        Backend address Tailscale Serve proxies to. Use the host's own
+        tailnet IP (not 127.0.0.1) when proxying gitea-mcp: its MCP SDK
+        (mcp-go) 403s requests whose connection is loopback but whose Host
+        header is not, which is exactly what a serve proxy produces. Routing
+        to the host's own ts-ip stays on `lo`, so the firewall stays closed.
+      '';
+    };
+
+    giteaUrl = mkOption {
+      type = types.str;
+      default = "http://127.0.0.1:${toString cfg.httpPort}";
+      description = "Gitea instance URL the MCP server talks to.";
+    };
+
+    tokenFile = mkOption {
+      type = types.path;
+      description = ''
+        Path to a file containing a Gitea personal access token. Used as the
+        default credential for MCP requests; clients sending their own
+        Authorization header take precedence.
+      '';
+    };
+
+    readOnly = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Expose only read-only tools.";
+    };
+  };
+
   config = mkIf cfg.enable {
     services.gitea = {
       enable = true;
@@ -173,7 +226,8 @@ in
     };
 
     networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall (
-      [ cfg.httpPort ] ++ optionals cfg.runner.enable [ cfg.runner.cachePort ]
+      [ cfg.httpPort ]
+      ++ optionals cfg.runner.enable [ cfg.runner.cachePort ]
     );
 
     services.gitea-actions-runner.instances.${cfg.runner.name} = mkIf cfg.runner.enable {
@@ -197,6 +251,50 @@ in
           options = "-m 32g --cpus 32";  # 32GB RAM, 32 CPUs
           valid_volumes = [ ];
         };
+      };
+    };
+
+    systemd.services.gitea-mcp = mkIf cfg.mcp.enable {
+      description = "Gitea MCP Server";
+      after = [ "network-online.target" "gitea.service" ];
+      wants = [ "network-online.target" ];
+      wantedBy = [ "multi-user.target" ];
+
+      # gitea-mcp writes its log to $HOME/.gitea-mcp/gitea-mcp.log
+      environment = {
+        HOME = "/var/lib/gitea-mcp";
+        GITEA_ACCESS_TOKEN_FILE = "/run/credentials/gitea-mcp.service/gitea-token";
+      } // optionalAttrs cfg.mcp.readOnly { GITEA_READONLY = "true"; };
+
+      serviceConfig = {
+        DynamicUser = true;
+        StateDirectory = "gitea-mcp";
+        LoadCredential = "gitea-token:${cfg.mcp.tokenFile}";
+        ExecStart = concatStringsSep " " [
+          "${pkgs.gitea-mcp-server}/bin/gitea-mcp"
+          "-t" "http"
+          "-H" cfg.mcp.giteaUrl
+          "-p" (toString cfg.mcp.listenPort)
+        ];
+        Restart = "on-failure";
+        RestartSec = "5s";
+      };
+    };
+
+    # Tailscale Serve: HTTPS proxy for gitea-mcp (tailnet-only). The MCP
+    # endpoint is https://<host>:${port}/mcp.
+    systemd.services.tailscale-serve-gitea-mcp = mkIf cfg.mcp.enable {
+      description = "Tailscale Serve for Gitea MCP";
+      after = [ "tailscaled.service" "gitea-mcp.service" ];
+      wants = [ "tailscaled.service" "gitea-mcp.service" ];
+      wantedBy = [ "multi-user.target" ];
+      path = [ pkgs.tailscale ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStartPre = "${pkgs.bash}/bin/bash -c 'for i in $(seq 1 30); do tailscale status >/dev/null 2>&1 && exit 0; sleep 1; done; exit 1'";
+        ExecStart = "${pkgs.bash}/bin/bash -c 'for i in $(seq 1 5); do ${pkgs.tailscale}/bin/tailscale serve --bg --https=${toString cfg.mcp.port} http://${cfg.mcp.serveTarget}:${toString cfg.mcp.listenPort} && exit 0; sleep 2; done; exit 1'";
+        ExecStop = "${pkgs.tailscale}/bin/tailscale serve --https=${toString cfg.mcp.port} off";
       };
     };
   };

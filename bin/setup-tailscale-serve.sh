@@ -11,10 +11,11 @@
 #   - https://nixos.tail69fe1.ts.net:8000/    -> WhisperX transcription
 #   - https://nixos.tail69fe1.ts.net:8880/    -> Kokoro TTS
 #   - https://nixos.tail69fe1.ts.net:7860/    -> MOSS-Transcribe jobs API
+#   - https://nixos.tail69fe1.ts.net:8090/    -> Gitea MCP
 
 # NOTE: Do NOT `tailscale serve reset` here — it wipes declarative serve rules
 # owned by per-service systemd units (moss-transcribe :7860, romm, nixnews,
-# ollama ...). This script only ADDS rules; remove stale ones individually.
+# ollama, gitea-mcp :8090 ...). This script only ADDS rules; remove stale ones individually.
 # Idempotent: re-adding an existing rule is a no-op.
 
 set -euo pipefail
@@ -67,6 +68,11 @@ tailscale serve --bg --https=3003 http://127.0.0.1:3003
 # Port 8080 -> paperless-gpt
 tailscale serve --bg --https=8080 http://127.0.0.1:8080
 
+# Port 8090 -> Gitea MCP (gitea-mcp binds wildcard on 8091 so it never
+# collides with tailscaled's ts-ip:8090 listener; also managed declaratively
+# by tailscale-serve-gitea-mcp.service, listed so a reset never leaves it missing)
+tailscale serve --bg --https=8090 http://127.0.0.1:8091
+
 echo ""
 echo "Tailscale Serve configuration complete!"
 echo ""
@@ -86,3 +92,4 @@ echo "  https://nixos.tail69fe1.ts.net:3002/      - Defuddle (URL-to-Markdown)"
 echo "  https://nixos.tail69fe1.ts.net:28981/     - Paperless-ngx"
 echo "  https://nixos.tail69fe1.ts.net:3003/      - Paperless-AI"
 echo "  https://nixos.tail69fe1.ts.net:8080/      - paperless-gpt"
+echo "  https://nixos.tail69fe1.ts.net:8090/mcp/   - Gitea MCP"

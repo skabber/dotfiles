@@ -280,6 +280,16 @@ in
       serviceConfig = {
         StateDirectory = "moss-transcribe";
         WorkingDirectory = mkIf (!isVllm) "/var/lib/moss-transcribe";
+        # A start killed mid-write (gateway engine switch) can leave zero-byte
+        # files in the inductor/triton compile caches — an empty module .py
+        # imports but lacks its codegen entry points and an empty *.kernel_perf
+        # fails float() parsing, crash-looping every later start. No legitimate
+        # cache artifact is ever empty, so purge them before each (re)start.
+        ExecStartPre = mkIf isVllm (pkgs.writeShellScript "moss-transcribe-cache-clean" ''
+          set -e
+          ${pkgs.findutils}/bin/find /var/lib/moss-transcribe/cache -type f -size -1c -delete 2>/dev/null || true
+          ${pkgs.findutils}/bin/find /var/lib/moss-transcribe/cache -type f -name ".*.tmp" -delete 2>/dev/null || true
+        '');
         ExecStart =
           if isVllm then
             pkgs.writeShellScript "moss-transcribe-run" ''
@@ -307,7 +317,16 @@ in
               "--max-new-tokens ${toString cfg.maxNewTokens}"
             ];
         Restart = "on-failure";
-        RestartSec = 10;
+        RestartSec = 30;
+      };
+
+      # A crash-looping engine hammers the GPU with a fresh CUDA context
+      # every cycle; that churn hard-locked the NVIDIA driver and took the
+      # whole host down (2026-09-30). Cap retries so a broken engine parks
+      # in 'failed' instead of cycling forever.
+      unitConfig = mkIf isVllm {
+        StartLimitIntervalSec = 600;
+        StartLimitBurst = 5;
       };
 
       path = if isVllm then [ pkgs.stdenv.cc ] else [ pkgs.ffmpeg ];

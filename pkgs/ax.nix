@@ -8,13 +8,13 @@
 
 buildGo127Module rec {
   pname = "ax";
-  version = "0.3.0";
+  version = "0.3.1";
 
   src = fetchFromGitHub {
     owner = "google";
     repo = "ax";
     tag = "v${version}";
-    hash = "sha256-mGSQ4QsYLdeKDtVMBODCulqQQ0Ze0NjeADPhB6edaYU=";
+    hash = "sha256-5xDKmL6kW/yABG5P9RqNFxx9ag1lm8AqpX45IWLRH9E=";
   };
 
   vendorHash = "sha256-iC/X6Bg1M7Pn3dT1zWs2YxuPfgl9ZKNEYQsBisIQguY=";
