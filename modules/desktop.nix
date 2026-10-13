@@ -11,6 +11,14 @@
     withUWSM = true;
   };
 
+  # SDDM preselects the alphabetically-first session when it has no
+  # LastSession state (fresh install, or after clearing /var/lib/sddm), which
+  # is cosmic.desktop — and cosmic-comp currently fails to take drm master
+  # under SDDM, leaving a dead VT and a stuck graphical-session.target that
+  # uwsm then refuses to log in over. Default to the uwsm-managed Hyprland
+  # session instead.
+  services.displayManager.defaultSession = "hyprland-uwsm";
+
   # Bare (non-uwsm) Hyprland sessions never activate graphical-session.target;
   # xdg-desktop-portal refuses to start without it (Requisite=), which silently
   # breaks window/screen sharing in browsers. Make the target manually startable
