@@ -13,8 +13,11 @@
 
     "modules-left": [
         "custom/launcher",
+        "hyprland/submap",
         "hyprland/workspaces",
-        "hyprland/window"
+        "hyprland/window",
+        "mpris",
+        "cava"
     ],
 
     "modules-center": [
@@ -24,11 +27,14 @@
     "modules-right": [
         "custom/screens",
         "power-profiles-daemon",
+        "idle_inhibitor",
         "group/hardware",
+        "privacy",
         "network",
         "custom/tailscale",
         "bluetooth",
-        "pulseaudio",
+        "wireplumber",
+        "keyboard-state",
         "tray"
     ],
 
@@ -71,6 +77,42 @@
             "(.*) - Ghostty": "󰊠  $1",
             "(.*) — Chromium|(.*) - Google Chrome": "󰊯  $1"
         }
+    },
+
+    "hyprland/submap": {
+        "format": "󰌌  {submap}",
+        "tooltip": false
+    },
+
+    "mpris": {
+        "format": "{player_icon}  {title}",
+        "format-paused": "{status_icon}  {title}",
+        "player-icons": {
+            "default": "󰥺",
+            "spotify": "󰓇"
+        },
+        "status-icons": {
+            "paused": "󰏤"
+        },
+        "max-length": 30,
+        "tooltip-format": "{player} · {artist} — {album}",
+        "on-click": "playerctl play-pause",
+        "on-click-right": "playerctl next"
+    },
+
+    "cava": {
+        "cava_config": {
+            "framerate": 30,
+            "bars": 12,
+            "lower_cutoff_freq": 50,
+            "higher_cutoff_freq": 10000,
+            "method": "pulse",
+            "source": "auto",
+            "bar_delimiter": 0,
+            "hide_on_silence": true
+        },
+        "format": "{}",
+        "hide_on_silence": true
     },
 
     "clock": {
@@ -123,6 +165,12 @@
         "interval": 30
     },
 
+    "backlight": {
+        "format": "{icon}  {percent}%",
+        "format-icons": ["󰛨", "󱩎", "󱩒", "󱩖", "󱪘", "󱪜", "󱪠"],
+        "tooltip": false
+    },
+
     "power-profiles-daemon": {
         "format": "{icon}  {profile}",
         "tooltip-format": "Power profile: {profile} ({driver})\nClick to cycle · Super+Shift+B",
@@ -131,6 +179,21 @@
             "balanced": "󰾔",
             "power-saver": "󰾐"
         }
+    },
+
+    "idle_inhibitor": {
+        "format": "{icon}",
+        "format-icons": {
+            "activated": "󰅶",
+            "deactivated": "󰅴"
+        },
+        "tooltip": true
+    },
+
+    "privacy": {
+        "icon-spacing": 4,
+        "icon-size": 14,
+        "tooltip": true
     },
 
     "network": {
@@ -153,7 +216,7 @@
             "transition-duration": 300,
             "transition-left-to-right": false
         },
-        "modules": ["battery", "cpu", "memory"]
+        "modules": ["battery", "backlight", "cpu", "memory"]
     },
 
     "custom/screens": {
@@ -188,9 +251,11 @@
         "on-click-right": "~/.config/waybar/scripts/bluetooth-picker.sh power"
     },
 
-    "pulseaudio": {
-        "format": "{icon}  {volume}%",
-        "format-muted": "󰸈  Muted",
+    "wireplumber": {
+        "format": "{icon}  {volume}%{format_source}",
+        "format-muted": "󰸈  Muted{format_source}",
+        "format-source": " 󰍬",
+        "format-source-muted": " 󰍭",
         "format-bluetooth": "{icon}󰂯  {volume}%",
         "format-icons": {
             "headphone": "󰋋",
@@ -205,7 +270,18 @@
         "on-click": "~/.config/waybar/scripts/audio-picker.sh sink",
         "on-click-middle": "~/.config/waybar/scripts/audio-picker.sh source",
         "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
-        "tooltip-format": "{desc}"
+        "tooltip-format": "{node_name}"
+    },
+
+    "keyboard-state": {
+        "numlock": true,
+        "capslock": true,
+        "format": "{icon}",
+        "format-icons": {
+            "numlock": "󰎕 Num",
+            "capslock": "󰬋 Caps"
+        },
+        "device-path": "/dev/input/by-id/usb-Framework_Laptop_16_Keyboard_Module_-_ANSI_FRAKDKEN0100000000-event-kbd"
     },
 
     "tray": {
