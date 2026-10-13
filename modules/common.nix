@@ -56,8 +56,10 @@
   nixpkgs.config.allowUnfree = true;
 
   # Overrides scoped to packages pulled in transitively via bottles.
-  # - openldap: skip the flaky test017-syncreplication-refresh (timing-sensitive,
-  #   fails intermittently on loaded build hosts).
+  # (openldap's flaky test017-syncreplication-refresh used to be skipped here
+  # too — but rehashing openldap poisons gnupg → gpgme → volume_key →
+  # libblockdev → udisks and the whole GNOME stack out of the binary cache.
+  # Re-add temporarily only if openldap ever needs a local build again.)
   # - patool: 4.0.5's test suite breaks under Python 3.14 (bzip2/xz/lzma list_*
   #   lookups and MIME detection). bottles depends on python3.14.patool, so the
   #   override must go through pythonPackagesExtensions to reach every interpreter
@@ -73,7 +75,6 @@
   #   leaks, 2 errors / 11485). trial has no deselect flag, so skip the suite.
   nixpkgs.overlays = [
     (final: prev: {
-      openldap = prev.openldap.overrideAttrs (_: { doCheck = false; });
       pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
         (python-final: python-prev: {
           patool = python-prev.patool.overridePythonAttrs (_: { doCheck = false; });

@@ -32,7 +32,13 @@ JOBS=${JOBS:-$(( $(nproc) / CORES / 2 ))}
 [ "$JOBS" -gt 4 ] && JOBS=4
 [ "$JOBS" -lt 2 ] && JOBS=2
 
+LOCK_BACKUP=""
+
 if [ "$UPGRADE" = true ]; then
+  # Snapshot the lock so the ROCm preflight below can restore it if the new
+  # nixpkgs tip lacks cached binaries for the heavy libs
+  LOCK_BACKUP=$(mktemp)
+  cp flake.lock "$LOCK_BACKUP"
   # wallbag-rust and gtk-flash live on the nixos host's Gitea; when it is
   # down a full update stalls ~4.5 min in TCP timeouts. Probe first and
   # update only the public inputs when it is unreachable.
@@ -57,11 +63,20 @@ done
 restore_services() {
   for svc in "${STOPPED_SERVICES[@]:-}"; do
     [ -n "$svc" ] || continue
-    echo "Restarting $svc..."
-    sudo systemctl start "$svc"
+    # sudo -n: never block on a password prompt from the EXIT trap (the
+    # build may have outlived the sudo timestamp)
+    if sudo -n systemctl start "$svc" 2>/dev/null; then
+      echo "Restarting $svc..."
+    else
+      echo "WARNING: could not restart $svc (sudo expired) — run: sudo systemctl start $svc" >&2
+    fi
   done
 }
-trap restore_services EXIT
+cleanup() {
+  restore_services
+  [ -n "$LOCK_BACKUP" ] && rm -f "$LOCK_BACKUP"
+}
+trap cleanup EXIT
 
 # Map system hostname -> flake config name. They differ for the Framework
 # laptops (e.g. flake framework-13 lives on host nixos-framework-13).
@@ -71,32 +86,42 @@ case "$(hostname)" in
   *)                  DEFAULT_HOST="$(hostname)" ;;
 esac
 
-# Preflight: the heavy ROCm Tensile libs (rocblas/hipblas/hipblaslt) build
-# for hours; warn when the locked nixpkgs rev has no published binaries on
-# cache.nixos.org — fresh unstable tips often never get them (rocblas is
-# Hydra's longest-pole job and gets superseded by newer evals). Pin to a
-# rev with coverage instead: hydra.nixos.org/job/nixpkgs/unstable/
-# rocmPackages.rocblas.x86_64-linux/latest
-check_rocm_cache() {
+# Preflight gate: refuse to build when key packages have no cached binaries.
+# - ROCm Tensile libs (rocblas/hipblas/hipblaslt): hours-long compiles, and
+#   fresh unstable tips often never get them published (rocblas is Hydra's
+#   longest-pole job, superseded by newer evals).
+# - typescript-language-server: npm registry drift breaks its pinned pnpm
+#   hash between nixpkgs revs (seen twice); a 404 means the rev predates the
+#   hash fix.
+# Pin to a rev with coverage instead: hydra.nixos.org/job/nixpkgs/unstable/
+# <pkg>.x86_64-linux/latest. After --upgrade the lock is restored to its
+# pre-upgrade state before aborting.
+GATE_PKGS_ALWAYS="typescript-language-server"
+GATE_PKGS_ROCM="rocblas hipblas hipblaslt"
+check_cache_gate() {
   local target="${HOST:-$DEFAULT_HOST}"
-  local enable
-  enable=$(nix eval --raw ".#nixosConfigurations.$target.config.rocm-dev.enable" 2>/dev/null) || return 0
-  [ "$enable" = "true" ] || return 0
   local missing=()
-  local pkg out hash
-  for pkg in rocblas hipblas hipblaslt; do
-    out=$(nix eval --raw ".#nixosConfigurations.$target.pkgs.rocmPackages.$pkg.outPath" 2>/dev/null) || continue
+  local pkg out hash enable pkgs="$GATE_PKGS_ALWAYS"
+  enable=$(nix eval ".#nixosConfigurations.$target.config.rocm-dev.enable" 2>/dev/null) || true
+  if [ "$enable" = "true" ]; then pkgs="$pkgs rocmPackages.rocblas rocmPackages.hipblas rocmPackages.hipblaslt"; fi
+  for pkg in $pkgs; do
+    out=$(nix eval --raw ".#nixosConfigurations.$target.pkgs.$pkg.outPath" 2>/dev/null) || continue
     hash=$(basename "$out"); hash=${hash%%-*}
     curl -fsS -o /dev/null --max-time 15 "https://cache.nixos.org/$hash.narinfo" 2>/dev/null || missing+=("$pkg")
   done
   if [ "${#missing[@]}" -gt 0 ]; then
-    echo "WARNING: no cached binary for ROCm: ${missing[*]}" >&2
-    echo "  hours-long local build ahead (or cache unreachable) — pin nixpkgs to the" >&2
-    echo "  rev of Hydra's latest successful rocblas build for coverage" >&2
-  else
-    echo "ROCm preflight: rocblas/hipblas/hipblaslt all cached"
+    echo "ERROR: no cached binary at this nixpkgs rev for: ${missing[*]}" >&2
+    echo "  refusing to build — ROCm means hours of local compilation; a 404 on" >&2
+    echo "  typescript-language-server means npm drift broke its pnpm hash. Pin" >&2
+    echo "  nixpkgs to the rev of Hydra's latest successful build of the package." >&2
+    if [ -n "$LOCK_BACKUP" ]; then
+      cp "$LOCK_BACKUP" flake.lock
+      echo "  flake.lock restored to its pre-upgrade state" >&2
+    fi
+    exit 1
   fi
+  echo "Cache preflight: all gate packages cached"
 }
-check_rocm_cache
+check_cache_gate
 
 sudo nixos-rebuild switch --flake ".#${HOST:-$DEFAULT_HOST}" --max-jobs "$JOBS" --cores "$CORES"
