@@ -94,6 +94,15 @@
         })
       ];
     })
+    # The ROCm scope must stay byte-identical to Hydra's builds or the
+    # Tensile-heavy libs (rocblas/hipblaslt/hipblas/miopen/tensile) lose
+    # cache.nixos.org coverage and compile locally for hours. The python
+    # test-skip overrides above poison them transitively (e.g. anyio ->
+    # nanobind -> hipblaslt; scipy -> tensile -> rocblas), so source the
+    # whole scope from a pristine import of the same nixpkgs tree.
+    (final: prev: {
+      rocmPackages = (import prev.path { system = prev.stdenv.hostPlatform.system; }).rocmPackages;
+    })
   ];
 
   # Common system packages
