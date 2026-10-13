@@ -70,12 +70,14 @@
       rocmPackages = (import prev.path { system = prev.stdenv.hostPlatform.system; }).rocmPackages;
       calibre = (import prev.path { system = prev.stdenv.hostPlatform.system; }).calibre;
     })
-    # python312 lives in the closure via huggingface-hub (and moss/freetoken)
-    # and is not built by Hydra's unstable jobset, so it compiles locally WITH
-    # tests. anyio 4.14.2's TLS and BlockingPortal/unraisable-warning tests
-    # fail on 3.12 (they pass on 3.14, which Hydra builds) — skip them on the
-    # 3.12 interpreter only; a global pythonPackagesExtensions override would
-    # re-poison calibre/ROCm out of the binary cache.
+    # python312 remains only as the interpreter for runtime venvs (moss's
+    # vllm, freetoken's uv) — nothing consumes python312Packages anymore, so
+    # the override below is dormant insurance: Hydra doesn't build the 3.12
+    # set, so any future python312 package compiles locally WITH tests, where
+    # anyio 4.14.2's TLS/BlockingPortal tests fail (they pass on 3.14, which
+    # Hydra builds). Scoped to the 3.12 interpreter only; a global
+    # pythonPackagesExtensions override would re-poison calibre/ROCm out of
+    # the binary cache.
     (final: prev: {
       python312 = prev.python312.override {
         packageOverrides = _pyFinal: pyPrev: {
@@ -125,7 +127,7 @@
     gst_all_1.gst-plugins-bad
     gst_all_1.gst-plugins-ugly
 
-    python312Packages.huggingface-hub
+    python3Packages.huggingface-hub
     appimage-run
   ];
 
