@@ -70,6 +70,27 @@
       rocmPackages = (import prev.path { system = prev.stdenv.hostPlatform.system; }).rocmPackages;
       calibre = (import prev.path { system = prev.stdenv.hostPlatform.system; }).calibre;
     })
+    # python312 lives in the closure via python-lsp-server/huggingface-hub and
+    # is not built by Hydra's unstable jobset, so it compiles locally WITH
+    # tests. anyio 4.14.2's TLS and BlockingPortal/unraisable-warning tests
+    # fail on 3.12 (they pass on 3.14, which Hydra builds) — skip them on the
+    # 3.12 interpreter only; a global pythonPackagesExtensions override would
+    # re-poison calibre/ROCm out of the binary cache.
+    (final: prev: {
+      python312 = prev.python312.override {
+        packageOverrides = _pyFinal: pyPrev: {
+          anyio = pyPrev.anyio.overridePythonAttrs (old: {
+            disabledTests = (old.disabledTests or [ ]) ++ [
+              "test_tls_connectable"
+              "test_start_crash_before_started_call"
+              "test_start_crash_after_started_call"
+              "test_cancel_portal_future"
+              "test_run_sync_worker_cyclic_references"
+            ];
+          });
+        };
+      };
+    })
   ];
 
   # Common system packages
