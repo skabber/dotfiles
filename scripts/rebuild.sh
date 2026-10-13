@@ -71,4 +71,32 @@ case "$(hostname)" in
   *)                  DEFAULT_HOST="$(hostname)" ;;
 esac
 
+# Preflight: the heavy ROCm Tensile libs (rocblas/hipblas/hipblaslt) build
+# for hours; warn when the locked nixpkgs rev has no published binaries on
+# cache.nixos.org — fresh unstable tips often never get them (rocblas is
+# Hydra's longest-pole job and gets superseded by newer evals). Pin to a
+# rev with coverage instead: hydra.nixos.org/job/nixpkgs/unstable/
+# rocmPackages.rocblas.x86_64-linux/latest
+check_rocm_cache() {
+  local target="${HOST:-$DEFAULT_HOST}"
+  local enable
+  enable=$(nix eval --raw ".#nixosConfigurations.$target.config.rocm-dev.enable" 2>/dev/null) || return 0
+  [ "$enable" = "true" ] || return 0
+  local missing=()
+  local pkg out hash
+  for pkg in rocblas hipblas hipblaslt; do
+    out=$(nix eval --raw ".#nixosConfigurations.$target.pkgs.rocmPackages.$pkg.outPath" 2>/dev/null) || continue
+    hash=$(basename "$out"); hash=${hash%%-*}
+    curl -fsS -o /dev/null --max-time 15 "https://cache.nixos.org/$hash.narinfo" 2>/dev/null || missing+=("$pkg")
+  done
+  if [ "${#missing[@]}" -gt 0 ]; then
+    echo "WARNING: no cached binary for ROCm: ${missing[*]}" >&2
+    echo "  hours-long local build ahead (or cache unreachable) — pin nixpkgs to the" >&2
+    echo "  rev of Hydra's latest successful rocblas build for coverage" >&2
+  else
+    echo "ROCm preflight: rocblas/hipblas/hipblaslt all cached"
+  fi
+}
+check_rocm_cache
+
 sudo nixos-rebuild switch --flake ".#${HOST:-$DEFAULT_HOST}" --max-jobs "$JOBS" --cores "$CORES"

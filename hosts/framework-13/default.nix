@@ -47,7 +47,7 @@
   };
 
   # MOSS-Transcribe-Diarize (speaker-diarized transcription, ROCm)
-  # rocm-dev pins native gfx1150 kernels, so no HSA masquerade is needed
+  # stock ROCm builds include native gfx1150 kernels, so no HSA masquerade needed
   moss-transcribe = {
     enable = true;
     serve = true;
