@@ -54,7 +54,7 @@
     gfxVersion = null;
   };
 
-  # Flatpak support (orion-beta remote is set by the flatpak module by default)
+  # Flatpak support
   flatpak.enable = true;
 
   # Image Flasher — GNOME disk-image flasher (USB sticks). The module

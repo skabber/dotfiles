@@ -30,7 +30,7 @@
     architecture = [ "gfx1030" "gfx90a" ];
   };
 
-  # Flatpak support (orion-beta remote is set by the flatpak module by default)
+  # Flatpak support
   flatpak.enable = true;
 
   # Zram swap (fast, compressed RAM, priority 5) is used first; the disk swap
