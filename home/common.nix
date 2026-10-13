@@ -50,7 +50,6 @@
     awscli2
 
     # Language servers
-    typescript-language-server
     vscode-langservers-extracted
     yaml-language-server
     nil

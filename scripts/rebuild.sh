@@ -87,16 +87,14 @@ case "$(hostname)" in
 esac
 
 # Preflight gate: refuse to build when key packages have no cached binaries.
-# - ROCm Tensile libs (rocblas/hipblas/hipblaslt): hours-long compiles, and
-#   fresh unstable tips often never get them published (rocblas is Hydra's
-#   longest-pole job, superseded by newer evals).
-# - typescript-language-server: npm registry drift breaks its pinned pnpm
-#   hash between nixpkgs revs (seen twice); a 404 means the rev predates the
-#   hash fix.
-# Pin to a rev with coverage instead: hydra.nixos.org/job/nixpkgs/unstable/
-# <pkg>.x86_64-linux/latest. After --upgrade the lock is restored to its
-# pre-upgrade state before aborting.
-GATE_PKGS_ALWAYS="typescript-language-server"
+# The ROCm Tensile libs (rocblas/hipblas/hipblaslt) compile for hours and
+# fresh unstable tips often never get them published (rocblas is Hydra's
+# longest-pole job, superseded by newer evals). Pin to a rev with coverage
+# instead: hydra.nixos.org/job/nixpkgs/unstable/rocmPackages.rocblas.x86_64-linux/latest.
+# After --upgrade the lock is restored to its pre-upgrade state before
+# aborting. (typescript-language-server used to be gated here too, until the
+# LSPs moved out of the system closure into per-project devshells.)
+GATE_PKGS_ALWAYS=""
 GATE_PKGS_ROCM="rocblas hipblas hipblaslt"
 check_cache_gate() {
   local target="${HOST:-$DEFAULT_HOST}"
@@ -111,8 +109,7 @@ check_cache_gate() {
   done
   if [ "${#missing[@]}" -gt 0 ]; then
     echo "ERROR: no cached binary at this nixpkgs rev for: ${missing[*]}" >&2
-    echo "  refusing to build — ROCm means hours of local compilation; a 404 on" >&2
-    echo "  typescript-language-server means npm drift broke its pnpm hash. Pin" >&2
+    echo "  refusing to build — this means hours of local compilation. Pin" >&2
     echo "  nixpkgs to the rev of Hydra's latest successful build of the package." >&2
     if [ -n "$LOCK_BACKUP" ]; then
       cp "$LOCK_BACKUP" flake.lock
