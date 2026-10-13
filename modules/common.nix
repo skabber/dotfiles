@@ -55,54 +55,20 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  # Overrides scoped to packages pulled in transitively via bottles.
-  # (openldap's flaky test017-syncreplication-refresh used to be skipped here
-  # too — but rehashing openldap poisons gnupg → gpgme → volume_key →
-  # libblockdev → udisks and the whole GNOME stack out of the binary cache.
-  # Re-add temporarily only if openldap ever needs a local build again.)
-  # - patool: 4.0.5's test suite breaks under Python 3.14 (bzip2/xz/lzma list_*
-  #   lookups and MIME detection). bottles depends on python3.14.patool, so the
-  #   override must go through pythonPackagesExtensions to reach every interpreter
-  #   rather than just the top-level patool application.
-  # - python-gnupg: test_no_such_key races gpg-agent socket cleanup (S.gpg-agent.*
-  #   vanishes between os.walk and os.remove). Needed by proton-core/proton-vpn.
-  # - anyio 4.14.2: test_tls_connectable fails on python3.12 ("server_hostname can
-  #   only be specified in client mode"), and two BlockingPortal crash tests are
-  #   flaky under load (unraisable exception warnings). Drop when nixpkgs
-  #   deselects them.
-  # - twisted 26.4.0: test_http2.EndToEndTests.test_realRequest leaves the trial
-  #   reactor dirty in the build sandbox (DelayedCall + BufferingTLSTransport
-  #   leaks, 2 errors / 11485). trial has no deselect flag, so skip the suite.
+  # Packages pinned to a pristine import of the same nixpkgs tree so their
+  # derivations stay byte-identical to Hydra's builds and substitute from
+  # cache.nixos.org. Global overlays/config poison them transitively:
+  # - rocmPackages: python package overrides leak into hipblaslt (nanobind)
+  #   and tensile -> rocblas/hipblas/miopen, hours of Tensile compilation.
+  # - calibre: rocmSupport gives its piper-tts backend the ROCm onnxruntime
+  #   and locally patched torch.
+  # (The python test-skip overrides that used to live here — patool, scipy,
+  # python-gnupg, anyio, twisted — were dropped 2026-10-13: Hydra is green
+  # on all of them, and scipy's flaky test is deselected upstream on py3.12.)
   nixpkgs.overlays = [
     (final: prev: {
-      pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-        (python-final: python-prev: {
-          patool = python-prev.patool.overridePythonAttrs (_: { doCheck = false; });
-          scipy = python-prev.scipy.overridePythonAttrs (old: {
-            disabledTests = (old.disabledTests or [ ]) ++ [ "test_support_moments_sample" ];
-          });
-          python-gnupg = python-prev.python-gnupg.overridePythonAttrs (old: {
-            disabledTests = (old.disabledTests or [ ]) ++ [ "test_no_such_key" ];
-          });
-          anyio = python-prev.anyio.overridePythonAttrs (old: {
-            disabledTests = (old.disabledTests or [ ]) ++ [
-              "test_tls_connectable"
-              "test_start_crash_before_started_call"
-              "test_start_crash_after_started_call"
-            ];
-          });
-          twisted = python-prev.twisted.overridePythonAttrs (_: { doCheck = false; });
-        })
-      ];
-    })
-    # The ROCm scope must stay byte-identical to Hydra's builds or the
-    # Tensile-heavy libs (rocblas/hipblaslt/hipblas/miopen/tensile) lose
-    # cache.nixos.org coverage and compile locally for hours. The python
-    # test-skip overrides above poison them transitively (e.g. anyio ->
-    # nanobind -> hipblaslt; scipy -> tensile -> rocblas), so source the
-    # whole scope from a pristine import of the same nixpkgs tree.
-    (final: prev: {
       rocmPackages = (import prev.path { system = prev.stdenv.hostPlatform.system; }).rocmPackages;
+      calibre = (import prev.path { system = prev.stdenv.hostPlatform.system; }).calibre;
     })
   ];
 

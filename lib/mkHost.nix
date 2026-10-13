@@ -37,32 +37,6 @@ let
     dwarfs = nixpkgs-libreoffice.legacyPackages.${system}.dwarfs;
   };
 
-  # spacy 3.8.16 fails its test suite on Python 3.14. Root cause:
-  # test_doc_retokenize_merge_extension_attrs_invalid registers a local
-  # lambda as a global Doc extension setter without cleanup; every later
-  # n_process>1 test then dies pickling it (schedule-dependent — different
-  # victims each run). Deselect the poisoner plus the known dependents
-  # (the check hook feeds disabledTests into pytest -k, whose expression
-  # grammar can't express parametrized ids, so families are substring-
-  # matched whole). Drop this when nixpkgs ships the same fix.
-  #
-  # Must go through pythonPackagesExtensions (applies to python3.pkgs et
-  # al.); overriding prev.python314 only rebuilds the python314 alias and
-  # paperless pulls spacy via python3Packages, which wouldn't see it.
-  spacyTestFixOverlay = _final: prev: {
-    pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-      (_pyFinal: pyPrev: {
-        spacy = pyPrev.spacy.overridePythonAttrs (old: {
-          disabledTests = (old.disabledTests or [ ]) ++ [
-            "test_doc_retokenize_merge_extension_attrs_invalid"
-            "test_span_ruler_multiprocessing"
-            "test_language_pipe"
-          ];
-        });
-      })
-    ];
-  };
-
   # paperless-ngx 3.1.3's test_consumer.py::TestConsumer::testNormalOperation
   # counts files while the consume-dir watcher is live; under parallel test
   # load it intermittently sees one extra event (AssertionError: 22 != 21).
@@ -220,7 +194,7 @@ in
       specialArgs = extraSpecialArgs;
       modules = [
         { nixpkgs.hostPlatform = system; }
-        { nixpkgs.overlays = [ pinnedPackagesOverlay spacyTestFixOverlay paperlessTestFixOverlay vaultwardenOverlay torchAotritonOverlay torchGcc16KinetoOverlay ]; }
+        { nixpkgs.overlays = [ pinnedPackagesOverlay paperlessTestFixOverlay vaultwardenOverlay torchAotritonOverlay torchGcc16KinetoOverlay ]; }
         "${root}/hosts/${hostname}/default.nix"
         googleCloudSdkModule
         nixLdModule
