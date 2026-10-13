@@ -1,4 +1,4 @@
-# Shared desktop base: GDM greeter, GNOME + COSMIC sessions, PipeWire, Wayland
+# Shared desktop base: SDDM greeter (astronaut theme), GNOME + COSMIC sessions, PipeWire, Wayland
 { config, pkgs, lib, ... }:
 
 {
@@ -37,7 +37,38 @@
 
   services.xserver.enable = true;
 
-  services.displayManager.gdm.enable = true;
+  # chili is Qt Quick Controls 1 (Qt5-only); nixpkgs' sddm is Qt6 now, so use
+  # astronaut — the closest actively-maintained equivalent. Its QML deps must
+  # go in extraPackages so the greeter wrapper can resolve them.
+  services.displayManager.sddm = {
+    enable = true;
+    theme = "sddm-astronaut-theme";
+    extraPackages = with pkgs.kdePackages; [
+      qtmultimedia
+      qtvirtualkeyboard
+    ];
+  };
+
+  # Either password or fingerprint at the greeter, without pam_fprintd's
+  # ~30s finger-wait blocking password logins: NixOS orders pam_fprintd before
+  # pam_unix, so override sddm's auth stack to check the password first and
+  # only fall back to a swipe on empty/wrong password. Mirrors the generated
+  # `login` auth rules (unix-early prompts and sets the authtok; keyring must
+  # capture it before the sufficient rule short-circuits the stack). Swipe by
+  # logging in with an empty password; a typo pays one fprintd timeout before
+  # the retry. TTY logins stay password-only.
+  security.pam.services.login.fprintAuth = false;
+  security.pam.services.sddm.text = lib.mkForce ''
+    auth      optional    ${pkgs.pam}/lib/security/pam_unix.so likeauth nullok
+    auth      optional    ${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so
+    auth      sufficient  ${pkgs.pam}/lib/security/pam_unix.so likeauth nullok try_first_pass
+    auth      sufficient  ${pkgs.fprintd}/lib/security/pam_fprintd.so
+    auth      required    ${pkgs.pam}/lib/security/pam_deny.so
+    account   include     login
+    password  substack    login
+    session   include     login
+  '';
+
   services.desktopManager.gnome.enable = true;
   services.desktopManager.cosmic.enable = true;
 
@@ -56,6 +87,7 @@
   };
 
   environment.systemPackages = with pkgs; [
+    sddm-astronaut
     xwayland
     wayland-protocols
     wayland-utils

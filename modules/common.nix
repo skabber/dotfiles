@@ -201,7 +201,6 @@
 
   # Security
   security.rtkit.enable = true;
-  security.pam.services.gdm-password.enableGnomeKeyring = true;
 
   # Bitwarden "Unlock with system authentication": the app's auto-setup writes to
   # /usr (impossible on NixOS), so register its polkit action ourselves. Bitwarden
