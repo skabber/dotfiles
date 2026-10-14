@@ -32,6 +32,9 @@
       url = "github:skabber/pain";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    ambxst = {
+      url = "github:Axenide/Ambxst";
+    };
   };
 
   outputs =
@@ -44,6 +47,7 @@
       wallbag-rust,
       gtk-flash,
       pain,
+      ambxst,
       ...
     }:
     let
@@ -54,7 +58,7 @@
       pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
 
       inherit (import ./lib/mkHost.nix {
-        inherit self nixpkgs nixpkgs-libreoffice home-manager system;
+        inherit self nixpkgs nixpkgs-libreoffice home-manager system ambxst;
       }) mkHost;
     in
     {

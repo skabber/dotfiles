@@ -75,9 +75,14 @@ hl.on("hyprland.start", function()
     -- polkit agent (shipped unit; 1Password's embedded agent doesn't register here)
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
 
-    hl.exec_cmd("waybar")                      -- status bar
-    hl.exec_cmd("mako")                        -- notifications
-    hl.exec_cmd("hyprpaper")                   -- wallpaper
+    -- Ambxst session: skip the components its shell replaces (bar,
+    -- notifications, wallpaper); ambxst_active is set by hyprland-ambxst.lua
+    -- when the shell's generated config is loaded
+    if not ambxst_active then
+        hl.exec_cmd("waybar")                  -- status bar
+        hl.exec_cmd("mako")                    -- notifications
+        hl.exec_cmd("hyprpaper")               -- wallpaper
+    end
     hl.exec_cmd("wl-paste --type text --watch cliphist store")  -- clipboard history
     hl.exec_cmd("1password --silent")           -- 1Password: tray, Quick Access, SSH agent
     hl.exec_cmd(terminal)                       -- terminal on login
@@ -300,7 +305,12 @@ local mainMod = "SUPER"
 -- ── Apps ──────────────────────────────────────────────
 hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(terminal))            -- terminal: ghostty
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))         -- files: nautilus
-hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd(menu))              -- app launcher: rofi (drun)
+-- app launcher: rofi (drun); Ambxst session uses the shell's own launcher
+if ambxst_active then
+    hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("ambxst run launcher"))
+else
+    hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd(menu))
+end
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("rofi -show run"))  -- command runner
 hl.bind("SUPER + TAB", hl.dsp.exec_cmd(windowMenu))              -- window switcher
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd(

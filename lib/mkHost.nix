@@ -18,6 +18,7 @@
   nixpkgs-libreoffice,
   home-manager,
   system,
+  ambxst,
 }:
 
 let
@@ -191,7 +192,7 @@ in
       extraSpecialArgs ? { },
     }:
     nixpkgs.lib.nixosSystem {
-      specialArgs = extraSpecialArgs;
+      specialArgs = { inherit ambxst; } // extraSpecialArgs;
       modules = [
         { nixpkgs.hostPlatform = system; }
         { nixpkgs.overlays = [ pinnedPackagesOverlay paperlessTestFixOverlay vaultwardenOverlay torchAotritonOverlay torchGcc16KinetoOverlay ]; }

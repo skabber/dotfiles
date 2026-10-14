@@ -71,5 +71,49 @@ in
       hl.plugin.load("${hypr-dynamic-cursors}/lib/libhypr-dynamic-cursors.so")
       hl.plugin.load("${hyprtasking}/lib/libhyprtasking.so")
     '';
+
+    # Second compositor config for the SDDM "Hyprland (Ambxst)" entry
+    # (modules/desktop.nix sets HYPRLAND_CONFIG here). Ambxst's generated
+    # settings load first, then the regular config runs on top, so this
+    # session defaults to identical binds/plugins/gestures. Until
+    # `ambxst install hyprland` generates its file this is a no-op.
+    "hypr/hyprland-ambxst.lua".text = ''
+      local home = os.getenv("HOME")
+
+      local ambxst = loadfile(home .. "/.local/share/ambxst/hyprland.lua")
+      if ambxst then
+          ambxst()
+          -- consumed by the main config's autostart to skip the components
+          -- Ambxst replaces (bar, notifications, wallpaper)
+          ambxst_active = true
+          -- Hyprland fires every bind matching a key (no dedupe), so drop
+          -- Ambxst's copies of keys the main config owns before loading it.
+          -- Keys Ambxst keeps: Super alone (launcher), Super+D, Super+Esc,
+          -- Super+Shift+C/A, Super+Alt+B, Super+Alt+[0-9]; workspace binds
+          -- mirror ours exactly and are left as harmless duplicates.
+          local ambxstUnbind = {
+              "SUPER + SPACE",
+              "SUPER + TAB",
+              "SUPER + A",
+              "SUPER + C",
+              "SUPER + F",
+              "SUPER + L",
+              "SUPER + N",
+              "SUPER + S",
+              "SUPER + T",
+              "SUPER + V",
+              "SUPER + COMMA",
+              "SUPER + PERIOD",
+              "SUPER + SHIFT + B",
+              "SUPER + SHIFT + R",
+              "SUPER + SHIFT + S",
+          }
+          for _, key in ipairs(ambxstUnbind) do
+              hl.unbind(key)
+          end
+      end
+
+      dofile(home .. "/.config/hypr/hyprland.lua")
+    '';
   };
 }

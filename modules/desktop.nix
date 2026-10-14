@@ -1,8 +1,27 @@
 # Desktop with AMD GPU (adds Hyprland session)
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, ambxst, ... }:
 
+let
+  # Launches Hyprland with HYPRLAND_CONFIG pointing at the Ambxst variant
+  # (home/hyprland.nix): Ambxst's generated settings first, the regular
+  # config layered on top as overrides
+  hyprlandAmbxstSession = pkgs.writeShellScriptBin "hyprland-ambxst-session" ''
+    export HYPRLAND_CONFIG="$HOME/.config/hypr/hyprland-ambxst.lua"
+    exec ${pkgs.hyprland}/bin/start-hyprland
+  '';
+
+  ambxstSessionDesktop = (pkgs.writeTextDir "share/wayland-sessions/hyprland-ambxst.desktop" ''
+    [Desktop Entry]
+    Name=Hyprland (Ambxst)
+    Comment=Hyprland with the Ambxst desktop shell
+    Exec=${pkgs.uwsm}/bin/uwsm start -e -D Hyprland ${hyprlandAmbxstSession}/bin/hyprland-ambxst-session
+    TryExec=${pkgs.uwsm}/bin/uwsm
+    DesktopNames=Hyprland
+    Type=Application
+  '') // { providedSessions = [ "hyprland-ambxst" ]; };
+in
 {
-  imports = [ ./desktop-base.nix ];
+  imports = [ ./desktop-base.nix ambxst.nixosModules.default ];
 
   services.xserver.videoDrivers = [ "amdgpu" ];
 
@@ -18,6 +37,11 @@
   # uwsm then refuses to log in over. Default to the uwsm-managed Hyprland
   # session instead.
   services.displayManager.defaultSession = "hyprland-uwsm";
+
+  # Second SDDM entry: same compositor, but with the Ambxst shell's settings
+  # preloaded (opt-in per login; the default session is unchanged). uwsm
+  # manages this session identically to the default one.
+  services.displayManager.sessionPackages = [ ambxstSessionDesktop ];
 
   # Bare (non-uwsm) Hyprland sessions never activate graphical-session.target;
   # xdg-desktop-portal refuses to start without it (Requisite=), which silently
