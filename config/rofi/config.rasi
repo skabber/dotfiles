@@ -63,6 +63,8 @@ prompt {
 entry {
     placeholder: "Search...";
     placeholder-color: @fg-alt;
+    /* rofi 2.0.0 drops inherited text-color on runtime entry updates — set explicitly */
+    text-color: @fg;
 }
 
 listview {
