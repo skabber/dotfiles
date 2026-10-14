@@ -9,6 +9,27 @@
 
 let
   wallpaper = "${pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha}/share/wallpapers/nineish-catppuccin-mocha/contents/images/nix-wallpaper-nineish-catppuccin-mocha.png";
+
+  # nixpkgs pins hypr-dynamic-cursors at 2026-07-21, which predates hyprland
+  # 0.56.2's renderSoftwareCursorsFor(..., screencopy, forceRender) signature;
+  # the plugin then refuses to load ("unexpected function signature") and its
+  # config keys stay unknown. Backport of upstream fix 9778329 until the pin
+  # catches up: https://github.com/VirtCode/hypr-dynamic-cursors/pull/160
+  hypr-dynamic-cursors = pkgs.hyprlandPlugins.hypr-dynamic-cursors.overrideAttrs (old: {
+    patches = (old.patches or [ ]) ++ [ ./patches/hypr-dynamic-cursors-v0.56.2.patch ];
+  });
+
+  # nixpkgs pins hyprtasking at a rev tracking hyprland main (post-0.56.2 ABI);
+  # the v0.56.2 pair is the plugin's own hyprpm.toml commit_pin
+  hyprtasking = pkgs.hyprlandPlugins.hyprtasking.overrideAttrs (old: {
+    version = "0-unstable-2026-05-04";
+    src = pkgs.fetchFromGitHub {
+      owner = "raybbian";
+      repo = "hyprtasking";
+      rev = "4d3c39511c3f38966abf1ec4393f5a7220ffb1a3";
+      hash = "sha256-3C5YdLaUx4LgmPyVyfYqHB24ZDsrfI87veA3eDQIofM=";
+    };
+  });
 in
 {
   xdg.configFile = {
@@ -42,6 +63,13 @@ in
           monitor = *
           path = ${wallpaper}
       }
+    '';
+
+    # Loaded via require("./plugins") from hyprland.lua; store paths are
+    # interpolated here so plugin updates propagate on rebuild
+    "hypr/plugins.lua".text = ''
+      hl.plugin.load("${hypr-dynamic-cursors}/lib/libhypr-dynamic-cursors.so")
+      hl.plugin.load("${hyprtasking}/lib/libhyprtasking.so")
     '';
   };
 }

@@ -18,6 +18,8 @@ host that imports that module (nixos-ripper, framework-13, framework-16) gets it
 | [hyprlock](https://github.com/hyprwm/hyprlock) | Lock screen | `config/hypr/hyprlock.conf` |
 | [hyprpaper](https://github.com/hyprwm/hyprpaper) | Wallpaper (NixOS "nineish", Catppuccin Mocha) | `home/hyprland.nix` |
 | [hypridle](https://github.com/hyprwm/hypridle) | Idle daemon: auto-lock, screens off, suspend | `config/hypr/hypridle.conf` |
+| [hypr-dynamic-cursors](https://github.com/VirtCode/hypr-dynamic-cursors) | Speed-based cursor tilt/stretch, shake-to-find | `config/hypr/hyprland.lua` + `home/hyprland.nix` |
+| [Hyprtasking](https://github.com/raybbian/hyprtasking) | Workspace overview overlay (Super+W) | `config/hypr/hyprland.lua` + `home/hyprland.nix` |
 | [Satty](https://github.com/gabm/Satty) | Screenshot annotation (arrows, text, blur) | `config/hypr/hyprland.lua` binds |
 | [wl-screenrec](https://github.com/Decodetalkers/wl-screenrec) | Screen + audio recording | `config/hypr/hyprland.lua` binds |
 | [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/about/) | Replay buffer ("save the last 30 s") | `config/hypr/hyprland.lua` binds |
