@@ -116,4 +116,18 @@ in
       dofile(home .. "/.config/hypr/hyprland.lua")
     '';
   };
+
+  # Ambxst's screenshot tool opens its folder via `xdg-open <dir>`; make that
+    # (and any other folder-open on the Hyprland hosts) land in yazi in a
+    # terminal. Super+E still launches nautilus directly; the GNOME host is
+    # unaffected (this file is only imported by Hyprland hosts)
+    xdg.desktopEntries.yazi = {
+      name = "Yazi";
+      exec = "ghostty -e yazi %f";
+      mimeType = [ "inode/directory" ];
+    };
+    xdg.mimeApps = {
+      enable = true;
+      defaultApplications."inode/directory" = [ "yazi.desktop" ];
+    };
 }
