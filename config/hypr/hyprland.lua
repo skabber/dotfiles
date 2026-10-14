@@ -39,10 +39,11 @@ hl.config({
         hyprtasking = {
             bg_color = 0xff1e1e2e,   -- Catppuccin Mocha base
 
-            -- 3- and 4-finger swipes are already bound (workspace switch,
-            -- scrolling-layout tape), so keep the plugin off the touchpad
+            -- 3-finger vertical opens/closes the overview; the plugin only takes
+            -- vertical swipes, so horizontal stays with the workspace gesture
             gestures = {
-                enabled = false,
+                enabled      = true,
+                open_fingers = 3,
             },
         },
     },
