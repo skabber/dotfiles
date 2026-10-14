@@ -54,6 +54,10 @@
   services.udev.extraRules = ''
     # Framework Laptop 16 - LED Matrix
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="32ac", ATTRS{idProduct}=="0020", MODE="0660", TAG+="uaccess"
+
+    # MediaTek MT7922 bluetooth (RZ616): USB autosuspend corrupts SCO packets,
+    # breaking headset mic (HFP) audio
+    ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="0e8d", ATTRS{idProduct}=="e616", ATTR{power/control}="on"
   '';
 
   # Fingerprint
