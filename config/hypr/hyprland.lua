@@ -374,7 +374,7 @@ hl.bind(mainMod .. " + SHIFT + G",    hl.dsp.window.move({ out_of_group = true }
 
 -- ── Hyprtasking overview (workspace thumbnails) ──────
 hl.bind(mainMod .. " + W", function() hl.plugin.hyprtasking.toggle("cursor") end)
-hl.bind("escape", function()
+hl.bind("return", function()
     if hl.plugin.hyprtasking.is_active() then
         hl.plugin.hyprtasking.toggle("all")
     end
