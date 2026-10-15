@@ -189,7 +189,7 @@ the specific monitor usually behaves better.
 ### Notifications (mako)
 
 Notifications stack in the top-right corner and auto-dismiss after 5 s
-(critical ones stay until dismissed). Manage them from a terminal:
+(critical ones stay until dismissed). From a terminal:
 
 ```bash
 makoctl dismiss          # dismiss the newest
@@ -197,6 +197,9 @@ makoctl restore          # bring the last one back
 makoctl dismiss -a       # dismiss all
 makoctl list             # see history
 ```
+
+Or from the keyboard: `Super+N` dismisses the newest, `Super+Shift+N` all,
+and `Super+Ctrl+N` restores the last dismissed one.
 
 ### Passwords (1Password)
 
@@ -250,6 +253,7 @@ suspend listener there on the laptops). Test without waiting:
 | `Super+F` | Toggle fullscreen (browsers: maximize-style, keeps tabs/URL bar) |
 | `Super+L` | Lock screen |
 | `Super+M` | Exit Hyprland |
+| `Super+N` / `Super+Shift+N` | Dismiss newest / all notifications (`Super+Ctrl+N` restores) |
 | `Super+Shift+B` | Cycle power profile: power-saver → balanced → performance |
 | `Super+←/→/↑/↓` | Move focus |
 | `Super+1…0` | Switch workspace |

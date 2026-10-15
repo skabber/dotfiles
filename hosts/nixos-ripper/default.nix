@@ -16,6 +16,7 @@
     ../../modules/services/moss-transcribe.nix
     ../../modules/services/minidlna.nix
     ../../modules/services/service-panel.nix
+    ../../modules/services/vault-sync.nix
   ];
 
   # Hostname
@@ -29,7 +30,7 @@
     architecture = [ "gfx1030" "gfx90a" ];
   };
 
-  # Flatpak support (orion-beta remote is set by the flatpak module by default)
+  # Flatpak support
   flatpak.enable = true;
 
   # Zram swap (fast, compressed RAM, priority 5) is used first; the disk swap
@@ -52,6 +53,12 @@
   # snd-aloop: ALSA loopback for system audio capture
   boot.kernelModules = [ "iwlwifi" "ath12k" "snd-aloop" ];
 
+  # DO NOT enable services.hardware.openrgb or load i2c-dev on this host.
+  # OpenRGB's SMBus scan (RAM/GPU RGB on the TRX40 piix4 aux bus) hard-freezes
+  # the board — reproduced twice on 2026-09-24 (gen 371 boot + interactive
+  # scan), each requiring a hard reset. USB devices are safe without i2c-dev;
+  # see scripts/lights-off.sh.
+
   # Hardware firmware
   hardware.enableRedistributableFirmware = true;
   hardware.firmware = with pkgs; [ linux-firmware ];
@@ -63,6 +70,8 @@
   # Mount points
   systemd.tmpfiles.rules = [
     "d /mnt/external 0777 root root - -"
+    # Jellyfin (via "users" group) needs traversal into /home/jay to reach ~/Videos
+    "d /home/jay 0750 jay users -"
   ];
 
   # Crucial X8 CIFS share (served by nixos)
@@ -126,6 +135,23 @@
     openFirewall = true;
   };
 
+  # Obsidian vault git sync -> private Gitea mirrors consumed by IronClaw
+  vault-sync = {
+    enable = true;
+    vaults = [
+      {
+        name = "skabber";
+        path = "/home/jay/Documents/Skabber";
+        remote = "ssh://git@nixos.tail69fe1.ts.net/skabber/vault-skabber.git";
+      }
+      {
+        name = "stablekernel";
+        path = "/home/jay/Documents/StableKernel";
+        remote = "ssh://git@nixos.tail69fe1.ts.net/skabber/vault-stablekernel.git";
+      }
+    ];
+  };
+
   # Service toggles
   ollama.enable = true;
   # Re-enabled 2026-08-24 (Ollama 0.32): FA was disabled in Feb (b0ecfd0) over
@@ -137,6 +163,11 @@
   # Read-only VRAM endpoint for crumpet's GPU steward (remote/tailnet use)
   gpu-status.enable = true;
   sunshine.enable = true;
+  sunshine.settings = {
+    capture = "wlr";
+    back_button_timeout = 0;
+    output_name = 0;
+  };
 
   nixnews.enable = true;
   nixnews.serve = true;
@@ -181,16 +212,6 @@
       whisper-cpp = prev.whisper-cpp.overrideAttrs (old: {
         doBuild = false;
       });
-      # proton-vpn -> proton-core pulls in python-gnupg, whose test_no_such_key
-      # races gpg-agent socket teardown (S.gpg-agent.ssh vanishes mid-cleanup)
-      # and fails nondeterministically. Skip its checks (upstream test bug).
-      pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-        (pyFinal: pyPrev: {
-          python-gnupg = pyPrev.python-gnupg.overridePythonAttrs (_: {
-            doCheck = false;
-          });
-        })
-      ];
       vllm-rocm = let
         python3 = prev.python3.override {
           packageOverrides = pyFinal: pyPrev: {
@@ -235,6 +256,7 @@
     fuse
     linuxConsoleTools
     snyk
+    openrgb
   ];
 
   system.stateVersion = "23.11";

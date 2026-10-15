@@ -76,10 +76,19 @@ in
     };
 
     # Order after the AMD compute node: ollama discovers GPUs once at startup and
-    # would otherwise race amdgpu/kfd init at boot and silently fall back to CPU
+    # would otherwise race amdgpu/kfd init at boot and silently fall back to CPU.
+    # The dev-kfd.device unit never activates (udev never announces kfd), so
+    # After=/Wants= on it stalled ollama for the full 90s device-job timeout —
+    # and via multi-user.target → graphical.target that delayed every first
+    # login (uwsm waits for system graphical.target at session start). Wait
+    # for the node directly instead, bounded to 30s.
     systemd.services.ollama = {
-      after = [ "dev-kfd.device" ];
-      wants = [ "dev-kfd.device" ];
+      serviceConfig.ExecStartPre = pkgs.writeShellScript "ollama-wait-kfd" ''
+        for _ in $(seq 1 60); do
+          [ -e /dev/kfd ] && exit 0
+          sleep 0.5
+        done
+      '';
       wantedBy = mkForce (optionals cfg.autoStart [ "multi-user.target" ]);
     };
 

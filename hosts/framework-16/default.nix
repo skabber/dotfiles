@@ -28,7 +28,7 @@
   # Agentgateway (LLM/MCP/A2A proxy, UI at http://localhost:4000/ui)
   agentgateway.enable = true;
 
-  # Flatpak support (orion-beta remote is set by the flatpak module by default)
+  # Flatpak support
   flatpak.enable = true;
 
   # Custom geolocation provider

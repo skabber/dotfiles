@@ -45,11 +45,18 @@ window#waybar {
 #memory,
 #custom-screens,
 #battery,
+#backlight,
 #power-profiles-daemon,
+#idle-inhibitor,
+#privacy,
 #network,
 #custom-tailscale,
 #bluetooth,
-#pulseaudio,
+#wireplumber,
+#keyboard-state,
+#submap,
+#mpris,
+#cava,
 #tray {
     background-color: @surface0;
     border-radius: 999px;
@@ -87,7 +94,7 @@ window#waybar {
     color: @yellow;
 }
 
-/* ── Hardware pill (battery + hover drawer: cpu/memory) ── */
+/* ── Hardware pill (battery + hover drawer: backlight/cpu/memory) ── */
 #hardware {
     background-color: @surface0;
     border-radius: 999px;
@@ -96,6 +103,7 @@ window#waybar {
 }
 
 #hardware #battery,
+#hardware #backlight,
 #hardware #cpu,
 #hardware #memory {
     background-color: transparent;
@@ -151,6 +159,32 @@ window#waybar {
 
 #battery.full {
     color: @green;
+}
+
+#backlight {
+    color: @yellow;
+}
+
+#idle-inhibitor {
+    color: @overlay0;
+}
+
+#idle-inhibitor.activated {
+    color: @yellow;
+}
+
+#privacy .privacy-item {
+    padding: 0 4px;
+    color: @overlay0;
+}
+
+#privacy .privacy-item.screenshare,
+#privacy .privacy-item.camera {
+    color: @red;
+}
+
+#privacy .privacy-item.audio-in {
+    color: @yellow;
 }
 
 #power-profiles-daemon {
@@ -209,16 +243,49 @@ window#waybar {
     color: @overlay0;
 }
 
-#pulseaudio {
+#wireplumber {
     color: @mauve;
 }
 
-#pulseaudio:hover {
+#wireplumber:hover {
     background-color: @surface1;
 }
 
-#pulseaudio.muted {
+#wireplumber.muted {
     color: @red;
+}
+
+#keyboard-state {
+    color: @overlay0;
+}
+
+#keyboard-state label.locked {
+    color: @yellow;
+}
+
+#submap {
+    background-color: @red;
+    color: @base;
+    font-weight: 700;
+}
+
+#mpris {
+    color: @green;
+    padding: 2px 10px;
+}
+
+#mpris:hover {
+    background-color: @surface1;
+}
+
+#mpris.paused {
+    color: @overlay0;
+}
+
+#cava {
+    color: @mauve;
+    padding: 2px 8px;
+    font-size: 11px;
 }
 
 #tray {

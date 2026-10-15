@@ -25,7 +25,6 @@
     zig-shell-completions
     gopls
     taplo
-    python312Packages.python-lsp-server
     # openvscode-server  # broken in nixpkgs - network issue during build
     zed-editor
     postman
@@ -68,7 +67,6 @@
     elf2uf2-rs
     # sunshine
     zoom-us
-    code-cursor
 
     # GNOME extensions
     # gnomeExtensions.pano

@@ -55,29 +55,43 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  # Overrides scoped to packages pulled in transitively via bottles.
-  # - openldap: skip the flaky test017-syncreplication-refresh (timing-sensitive,
-  #   fails intermittently on loaded build hosts).
-  # - patool: 4.0.5's test suite breaks under Python 3.14 (bzip2/xz/lzma list_*
-  #   lookups and MIME detection). bottles depends on python3.14.patool, so the
-  #   override must go through pythonPackagesExtensions to reach every interpreter
-  #   rather than just the top-level patool application.
-  # - python-gnupg: test_no_such_key races gpg-agent socket cleanup (S.gpg-agent.*
-  #   vanishes between os.walk and os.remove). Needed by proton-core/proton-vpn.
+  # Packages pinned to a pristine import of the same nixpkgs tree so their
+  # derivations stay byte-identical to Hydra's builds and substitute from
+  # cache.nixos.org. Global overlays/config poison them transitively:
+  # - rocmPackages: python package overrides leak into hipblaslt (nanobind)
+  #   and tensile -> rocblas/hipblas/miopen, hours of Tensile compilation.
+  # - calibre: rocmSupport gives its piper-tts backend the ROCm onnxruntime
+  #   and locally patched torch.
+  # (The python test-skip overrides that used to live here — patool, scipy,
+  # python-gnupg, anyio, twisted — were dropped 2026-10-13: Hydra is green
+  # on all of them, and scipy's flaky test is deselected upstream on py3.12.)
   nixpkgs.overlays = [
     (final: prev: {
-      openldap = prev.openldap.overrideAttrs (_: { doCheck = false; });
-      pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-        (python-final: python-prev: {
-          patool = python-prev.patool.overridePythonAttrs (_: { doCheck = false; });
-          scipy = python-prev.scipy.overridePythonAttrs (old: {
-            disabledTests = (old.disabledTests or [ ]) ++ [ "test_support_moments_sample" ];
+      rocmPackages = (import prev.path { system = prev.stdenv.hostPlatform.system; }).rocmPackages;
+      calibre = (import prev.path { system = prev.stdenv.hostPlatform.system; }).calibre;
+    })
+    # python312 remains only as the interpreter for runtime venvs (moss's
+    # vllm, freetoken's uv) — nothing consumes python312Packages anymore, so
+    # the override below is dormant insurance: Hydra doesn't build the 3.12
+    # set, so any future python312 package compiles locally WITH tests, where
+    # anyio 4.14.2's TLS/BlockingPortal tests fail (they pass on 3.14, which
+    # Hydra builds). Scoped to the 3.12 interpreter only; a global
+    # pythonPackagesExtensions override would re-poison calibre/ROCm out of
+    # the binary cache.
+    (final: prev: {
+      python312 = prev.python312.override {
+        packageOverrides = _pyFinal: pyPrev: {
+          anyio = pyPrev.anyio.overridePythonAttrs (old: {
+            disabledTests = (old.disabledTests or [ ]) ++ [
+              "test_tls_connectable"
+              "test_start_crash_before_started_call"
+              "test_start_crash_after_started_call"
+              "test_cancel_portal_future"
+              "test_run_sync_worker_cyclic_references"
+            ];
           });
-          python-gnupg = python-prev.python-gnupg.overridePythonAttrs (old: {
-            disabledTests = (old.disabledTests or [ ]) ++ [ "test_no_such_key" ];
-          });
-        })
-      ];
+        };
+      };
     })
   ];
 
@@ -113,7 +127,7 @@
     gst_all_1.gst-plugins-bad
     gst_all_1.gst-plugins-ugly
 
-    python312Packages.huggingface-hub
+    python3Packages.huggingface-hub
     appimage-run
   ];
 
@@ -139,7 +153,7 @@
   users.users.jay = {
     isNormalUser = true;
     description = "Jay Graves";
-    extraGroups = [ "networkmanager" "wheel" "docker" "video" "render" "tty" "dialout" "nginx" "systemd-journal" "scanner" ];
+    extraGroups = [ "networkmanager" "wheel" "docker" "video" "render" "tty" "dialout" "nginx" "systemd-journal" "scanner" "input" ];
     packages = [ ];
     shell = pkgs.zsh;
   };
@@ -187,7 +201,6 @@
 
   # Security
   security.rtkit.enable = true;
-  security.pam.services.gdm-password.enableGnomeKeyring = true;
 
   # Bitwarden "Unlock with system authentication": the app's auto-setup writes to
   # /usr (impossible on NixOS), so register its polkit action ourselves. Bitwarden

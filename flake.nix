@@ -6,11 +6,13 @@
     # Pinned so LibreOffice stops rebuilding from source on every --upgrade:
     # it must come from a nixpkgs instance free of the openldap override in
     # modules/common.nix (LibreOffice depends on openldap, and overriding it
-    # invalidates the binary cache for both). Bump when you actually want a
-    # newer LibreOffice. This instance also pins dwarfs, which is broken on
-    # unstable (bundled folly/fbthrift vs current fmt/GCC) — see
-    # lib/mkHost.nix. Verify a green hydra window for dwarfs when bumping.
-    nixpkgs-libreoffice.url = "github:NixOS/nixpkgs/b5aa0fbd538984f6e3d201be0005b4463d8b09f8";
+    # invalidates the binary cache for both). The 26.05 release branch keeps
+    # both libreoffice and dwarfs binary-cached (dwarfs is broken on
+    # unstable; see lib/mkHost.nix). The previous pin (b5aa0fbd, unstable)
+    # served a broken tarball — no root default.nix and a missing bison —
+    # which broke every host build, so verify a rev actually evaluates
+    # before pinning unstable again.
+    nixpkgs-libreoffice.url = "github:NixOS/nixpkgs/nixos-26.05";
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";

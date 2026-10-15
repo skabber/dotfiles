@@ -44,7 +44,6 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("waybar")                      -- status bar
     hl.exec_cmd("mako")                        -- notifications
     hl.exec_cmd("hyprpaper")                   -- wallpaper
-    hl.exec_cmd("hypridle")                    -- idle: auto-lock + screen off
     hl.exec_cmd("wl-paste --type text --watch cliphist store")  -- clipboard history
     hl.exec_cmd("1password --silent")           -- 1Password: tray, Quick Access, SSH agent
     hl.exec_cmd(terminal)                       -- terminal on login
@@ -108,6 +107,18 @@ hl.config({
             passes   = 3,
             vibrancy = 0.17,
         },
+
+        -- inner glow (0.55): active blue, dim surface1 when inactive
+        glow = {
+            enabled        = true,
+            color          = 0xcc89b4fa,
+            color_inactive = 0x5545475a,
+        },
+
+        -- window movement blur (0.56); flip enabled for a speed-smear effect
+        motion_blur = {
+            enabled = false,
+        },
     },
 
     animations = { enabled = true },
@@ -163,6 +174,7 @@ hl.config({
             gradients  = false,
             rounding   = 8,
             text_color = "rgba(cdd6f4ff)",
+            disable_when_only = true,
             col = {
                 active   = "rgba(cba6f7aa)",   -- mauve
                 inactive = "rgba(45475aaa)",   -- surface1
@@ -204,9 +216,21 @@ hl.config({
         follow_mouse = 1,
         sensitivity  = 0,
 
+        -- 2 = most-recently-used focus when a window closes
+        focus_on_close = 2,
+
         touchpad = {
             natural_scroll = true,
         },
+    },
+})
+
+hl.config({
+    binds = {
+        -- focus dispatcher may look past fullscreened windows; pairs with the
+        -- scrolling layout's layout-aware fullscreen (scroll away from a
+        -- fullscreen window without un-fullscreening it)
+        movefocus_cycles_fullscreen = true,
     },
 })
 
@@ -215,6 +239,22 @@ hl.gesture({
     fingers   = 3,
     direction = "horizontal",
     action    = "workspace",
+})
+
+-- 2-finger pinch: magnifier, live, anchored where the pinch starts
+hl.gesture({
+    fingers    = 2,
+    direction  = "pinch",
+    action     = "cursor_zoom",
+    zoom_level = 1,
+    mode       = "live",
+})
+
+-- 4-finger swipe: scroll the scrolling-layout tape (no-op in dwindle)
+hl.gesture({
+    fingers   = 4,
+    direction = "horizontal",
+    action    = "scroll_move",
 })
 
 ---------------------
@@ -255,6 +295,11 @@ hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(lockCmd))             -- lock screen:
 hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("systemctl suspend")) -- sleep (hypridle locks before suspend)
 hl.bind(mainMod .. " + M", hl.dsp.exit())
 
+-- ── Notifications (mako) ──────────────────────────────
+hl.bind(mainMod .. " + N",         hl.dsp.exec_cmd("makoctl dismiss"))     -- dismiss newest
+hl.bind(mainMod .. " + SHIFT + N", hl.dsp.exec_cmd("makoctl dismiss -a"))  -- dismiss all
+hl.bind(mainMod .. " + CTRL + N",  hl.dsp.exec_cmd("makoctl restore"))     -- restore last dismissed
+
 -- ── Power profile (power-profiles-daemon) ─────────────
 -- Super+Shift+B cycles power-saver -> balanced -> performance
 local powerProfileCycle = 'p=$(powerprofilesctl get); case "$p" in power-saver) n="balanced";; balanced) n="performance";; *) n="power-saver";; esac; powerprofilesctl set "$n" && notify-send -t 2000 "Power profile" "$n"'
@@ -265,7 +310,16 @@ local layout = "dwindle"
 hl.bind(mainMod .. " + Y", function()
     layout = (layout == "dwindle") and "scrolling" or "dwindle"
     hl.config({ general = { layout = layout } })
+    hl.notification.create({ text = "Layout: " .. layout, timeout = 2000 })
 end)
+
+-- ── Scrolling layout: tape management (no-ops in dwindle) ──
+hl.bind(mainMod .. " + comma",          hl.dsp.layout("move -col"))        -- tape left one column
+hl.bind(mainMod .. " + period",         hl.dsp.layout("move +col"))        -- tape right one column
+hl.bind(mainMod .. " + SHIFT + comma",  hl.dsp.layout("swapcol l"))        -- swap column with left neighbour
+hl.bind(mainMod .. " + SHIFT + period", hl.dsp.layout("swapcol r"))        -- swap column with right neighbour
+hl.bind(mainMod .. " + I",             hl.dsp.layout("inhibit_scroll"))   -- pin tape position (per workspace)
+hl.bind(mainMod .. " + SHIFT + I",     hl.dsp.layout("fit_into_view"))    -- snap active column into view
 
 -- ── Window groups (tabbed windows) ────────────────────
 hl.bind(mainMod .. " + G",            hl.dsp.group.toggle())      -- tab/untab focused window

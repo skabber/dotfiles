@@ -32,8 +32,22 @@ JOBS=${JOBS:-$(( $(nproc) / CORES / 2 ))}
 [ "$JOBS" -gt 4 ] && JOBS=4
 [ "$JOBS" -lt 2 ] && JOBS=2
 
+LOCK_BACKUP=""
+
 if [ "$UPGRADE" = true ]; then
-  nix flake update
+  # Snapshot the lock so the ROCm preflight below can restore it if the new
+  # nixpkgs tip lacks cached binaries for the heavy libs
+  LOCK_BACKUP=$(mktemp)
+  cp flake.lock "$LOCK_BACKUP"
+  # wallbag-rust and gtk-flash live on the nixos host's Gitea; when it is
+  # down a full update stalls ~4.5 min in TCP timeouts. Probe first and
+  # update only the public inputs when it is unreachable.
+  if timeout 5 bash -c '</dev/tcp/nixos.tail69fe1.ts.net/3000' 2>/dev/null; then
+    nix flake update
+  else
+    echo "nixos.tail69fe1.ts.net:3000 unreachable — updating public inputs only"
+    nix flake update nixpkgs home-manager kokoro-fastapi-nix pain
+  fi
 fi
 
 # Stop memory-hungry services before building so Nix has headroom
@@ -49,11 +63,20 @@ done
 restore_services() {
   for svc in "${STOPPED_SERVICES[@]:-}"; do
     [ -n "$svc" ] || continue
-    echo "Restarting $svc..."
-    sudo systemctl start "$svc"
+    # sudo -n: never block on a password prompt from the EXIT trap (the
+    # build may have outlived the sudo timestamp)
+    if sudo -n systemctl start "$svc" 2>/dev/null; then
+      echo "Restarting $svc..."
+    else
+      echo "WARNING: could not restart $svc (sudo expired) — run: sudo systemctl start $svc" >&2
+    fi
   done
 }
-trap restore_services EXIT
+cleanup() {
+  restore_services
+  [ -n "$LOCK_BACKUP" ] && rm -f "$LOCK_BACKUP"
+}
+trap cleanup EXIT
 
 # Map system hostname -> flake config name. They differ for the Framework
 # laptops (e.g. flake framework-13 lives on host nixos-framework-13).
@@ -62,5 +85,40 @@ case "$(hostname)" in
   nixos-framework)    DEFAULT_HOST="framework-16" ;;
   *)                  DEFAULT_HOST="$(hostname)" ;;
 esac
+
+# Preflight gate: refuse to build when key packages have no cached binaries.
+# The ROCm Tensile libs (rocblas/hipblas/hipblaslt) compile for hours and
+# fresh unstable tips often never get them published (rocblas is Hydra's
+# longest-pole job, superseded by newer evals). Pin to a rev with coverage
+# instead: hydra.nixos.org/job/nixpkgs/unstable/rocmPackages.rocblas.x86_64-linux/latest.
+# After --upgrade the lock is restored to its pre-upgrade state before
+# aborting. (typescript-language-server used to be gated here too, until the
+# LSPs moved out of the system closure into per-project devshells.)
+GATE_PKGS_ALWAYS=""
+GATE_PKGS_ROCM="rocblas hipblas hipblaslt"
+check_cache_gate() {
+  local target="${HOST:-$DEFAULT_HOST}"
+  local missing=()
+  local pkg out hash enable pkgs="$GATE_PKGS_ALWAYS"
+  enable=$(nix eval ".#nixosConfigurations.$target.config.rocm-dev.enable" 2>/dev/null) || true
+  if [ "$enable" = "true" ]; then pkgs="$pkgs rocmPackages.rocblas rocmPackages.hipblas rocmPackages.hipblaslt"; fi
+  for pkg in $pkgs; do
+    out=$(nix eval --raw ".#nixosConfigurations.$target.pkgs.$pkg.outPath" 2>/dev/null) || continue
+    hash=$(basename "$out"); hash=${hash%%-*}
+    curl -fsS -o /dev/null --max-time 15 "https://cache.nixos.org/$hash.narinfo" 2>/dev/null || missing+=("$pkg")
+  done
+  if [ "${#missing[@]}" -gt 0 ]; then
+    echo "ERROR: no cached binary at this nixpkgs rev for: ${missing[*]}" >&2
+    echo "  refusing to build — this means hours of local compilation. Pin" >&2
+    echo "  nixpkgs to the rev of Hydra's latest successful build of the package." >&2
+    if [ -n "$LOCK_BACKUP" ]; then
+      cp "$LOCK_BACKUP" flake.lock
+      echo "  flake.lock restored to its pre-upgrade state" >&2
+    fi
+    exit 1
+  fi
+  echo "Cache preflight: all gate packages cached"
+}
+check_cache_gate
 
 sudo nixos-rebuild switch --flake ".#${HOST:-$DEFAULT_HOST}" --max-jobs "$JOBS" --cores "$CORES"

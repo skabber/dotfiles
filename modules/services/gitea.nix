@@ -209,7 +209,7 @@ in
       mailerPasswordFile = cfg.mailer.passwordFile;
       settings = {
         server = {
-          DOMAIN = cfg.domain;
+          # DOMAIN was removed upstream in favor of ROOT_URL
           HTTP_ADDR = cfg.httpAddr;
           HTTP_PORT = cfg.httpPort;
           ROOT_URL = cfg.rootUrl;

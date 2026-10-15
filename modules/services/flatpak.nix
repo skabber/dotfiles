@@ -18,13 +18,7 @@ in
           };
         };
       });
-      # orion-beta is baked into every host by default. Hosts can override
-      # by setting flatpak.remotes = lib.mkForce { } to remove it.
-      default = {
-        orion-beta = {
-          url = "https://flatpak.orionbrowser.com/orion-beta.flatpakrepo";
-        };
-      };
+      default = { };
       description = "Flatpak remotes to register idempotently on activation";
     };
   };

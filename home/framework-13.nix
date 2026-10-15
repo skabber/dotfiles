@@ -16,7 +16,6 @@
   home.packages = with pkgs; [
     (pkgs.callPackage ../pkgs/zcode.nix { })
     # Development
-    code-cursor
     zed-editor
     awscli2
     espup

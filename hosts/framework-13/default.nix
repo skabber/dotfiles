@@ -47,14 +47,14 @@
   };
 
   # MOSS-Transcribe-Diarize (speaker-diarized transcription, ROCm)
-  # rocm-dev pins native gfx1150 kernels, so no HSA masquerade is needed
+  # stock ROCm builds include native gfx1150 kernels, so no HSA masquerade needed
   moss-transcribe = {
     enable = true;
     serve = true;
     gfxVersion = null;
   };
 
-  # Flatpak support (orion-beta remote is set by the flatpak module by default)
+  # Flatpak support
   flatpak.enable = true;
 
   # Image Flasher — GNOME disk-image flasher (USB sticks). The module
@@ -87,6 +87,35 @@
   services.logind.settings.Login = {
     HandleLidSwitch = "suspend";
   };
+
+  # The lid ACPI device on this unit is dead (never reports state or events),
+  # so a bag wake cannot be detected from lid state. Instead: after resume,
+  # watch /dev/input/event* — on battery with no input at all, go back to sleep.
+  systemd.services.resuspend-if-untouched =
+    let
+      script = pkgs.writeShellScript "resuspend-if-untouched" ''
+        set -euo pipefail
+        if ${pkgs.systemd}/bin/systemd-ac-power; then exit 0; fi
+        # settle: the wake path itself may emit spurious input events
+        ${pkgs.coreutils}/bin/sleep 5
+        # timeout kills cat at 30s (exit 124); with pipefail that would
+        # abort the script before the suspend decision — force success
+        activity=$(${pkgs.coreutils}/bin/timeout 30 ${pkgs.coreutils}/bin/cat /dev/input/event* 2>/dev/null | ${pkgs.coreutils}/bin/wc -c || true)
+        if [ "$activity" -eq 0 ]; then
+          echo "no input within 35s of wake on battery, suspending again"
+          ${pkgs.systemd}/bin/systemctl suspend
+        fi
+      '';
+    in
+    {
+      description = "Re-suspend when woken with no input on battery";
+      after = [ "suspend.target" ];
+      wantedBy = [ "suspend.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = script;
+      };
+    };
 
   # Framework udev rules
   services.udev.packages = [ pkgs.via ];

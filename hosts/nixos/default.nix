@@ -49,7 +49,7 @@
     options = [ "nofail" "noauto" "x-systemd.automount" "x-systemd.idle-timeout=600" "uid=1000" "gid=100" "iocharset=utf8" "errors=remount-ro" ];
   };
 
-  # Flatpak support (orion-beta remote is set by the flatpak module by default)
+  # Flatpak support
   flatpak.enable = true;
   xdg.portal.enable = true;
 
@@ -106,6 +106,10 @@
       serveTarget = "100.98.134.56";
     };
   };
+
+  # Registration must stay disabled: Gitea is exposed publicly via Tailscale
+  # Funnel (:8443) for the IronClaw vault sync — open signup would be internet-wide.
+  services.gitea.settings.service.DISABLE_REGISTRATION = true;
 
   wallabag = {
     enable = true;
