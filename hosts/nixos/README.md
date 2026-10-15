@@ -18,6 +18,7 @@ GNOME on X11/Wayland via `modules/desktop-nvidia.nix` (nvidia driver, hardware c
 | Service | Port | Description |
 |---------|------|-------------|
 | **Gitea** | 3000 | Self-hosted git with Actions runner |
+| **Gitea MCP** | 8090 | MCP server for Gitea (streamable HTTP at `/mcp`) |
 | **Wallabag** | — | Read-it-later at `/wallabag/` (nginx subpath) |
 | **Syncthing** | 8384 | File synchronization |
 | **nginx** | 80 | Static site + Wallabag reverse proxy |
@@ -53,6 +54,7 @@ All services proxied through Tailscale Serve:
 |----------|----------|
 | `:443` | nginx (static + Wallabag) |
 | `:3000` | Gitea |
+| `:8090` | gitea-mcp |
 
 ## Security
 

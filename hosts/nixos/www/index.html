@@ -282,6 +282,13 @@ const HOSTS = [
       { cat: "ai", icon: "🎭", name: "Playwright MCP",
         url: "https://nixos.tail69fe1.ts.net:8182",
         desc: "Browser automation MCP server (user service)." },
+      { cat: "ai", icon: "🔌", name: "Gitea MCP",
+        url: "https://nixos.tail69fe1.ts.net:8090/mcp",
+        desc: "Gitea MCP server — repos, issues, PRs and Actions for AI clients over streamable HTTP.",
+        unit: "gitea-mcp.service",
+        serveUnit: "tailscale-serve-gitea-mcp.service",
+        note: "JSON-RPC POST endpoint — a plain browser GET returns an error",
+        curl: 'curl https://nixos.tail69fe1.ts.net:8090/mcp \\\n  -H "Content-Type: application/json" \\\n  -H "Accept: application/json, text/event-stream" \\\n  -d \'{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"1.0"}}}\'' },
     ],
   },
   {
@@ -376,7 +383,7 @@ function makeCard(h, s) {
   el.dataset.cat = s.cat;
 
   let extra = "";
-  if (s.note || s.serveUnit) extra += `<div class="note"></div>`;
+  if (s.note || s.serveUnit) extra += `<div class="note">${esc(s.note || "")}</div>`;
   if (s.links) {
     extra += `<div class="links">` + s.links.map(l =>
       `<a href="${esc(l[1])}" target="_blank" rel="noopener">${esc(l[0])}</a>`).join("") + `</div>`;
@@ -586,7 +593,7 @@ function applyPanel(host) {
         if (!sv || sv.active !== "active")
           note = "running but tailnet proxy is off — start it in the panel";
       }
-      setNote(c, note);
+      setNote(c, note || c.svc.note || "");
     } else if (c.svc.unit && (!st || st.error)) {
       setPill(c, "checking", "panel?", "panel unreachable — falling back to ping");
       pingCard(c);

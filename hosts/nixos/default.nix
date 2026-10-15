@@ -260,6 +260,8 @@
       "kokoro-fastapi.service"
       "docker-openhands.service"
       "tailscale-serve-openhands.service"
+      "gitea-mcp.service"
+      "tailscale-serve-gitea-mcp.service"
     ];
   };
 
