@@ -48,6 +48,7 @@
     devenv
     nsz
     awscli2
+    codegraph
 
     # Language servers
     vscode-langservers-extracted
