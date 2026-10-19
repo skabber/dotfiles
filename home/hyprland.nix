@@ -5,9 +5,17 @@
 # ~/.config. Only imported by hosts that enable Hyprland (modules/desktop.nix).
 #
 # See docs/hyprland.md for usage.
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 let
+  # Ambxst's daemon owns ~/.config/ambxst/config/* at runtime (its settings
+  # GUI rewrites them via atomic rename), so weather is seeded once on
+  # activation instead of symlinked from the store — a store symlink would
+  # be silently replaced on the first GUI edit and trip later switches.
+  ambxstWeather = (pkgs.formats.json { }).generate "ambxst-weather.json" {
+    location = "Denver";
+    unit = "F";
+  };
   wallpaper = "${pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha}/share/wallpapers/nineish-catppuccin-mocha/contents/images/nix-wallpaper-nineish-catppuccin-mocha.png";
 
   # nixpkgs pins hypr-dynamic-cursors at 2026-07-21, which predates hyprland
@@ -130,4 +138,11 @@ in
       enable = true;
       defaultApplications."inode/directory" = [ "yazi.desktop" ];
     };
+
+  home.activation.seedAmbxstWeather = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run mkdir -p "$HOME/.config/ambxst/config"
+    if [ ! -f "$HOME/.config/ambxst/config/weather.json" ]; then
+      run cp "${ambxstWeather}" "$HOME/.config/ambxst/config/weather.json"
+    fi
+  '';
 }
