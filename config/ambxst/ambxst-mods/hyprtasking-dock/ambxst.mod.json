@@ -1,0 +1,39 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Axenide/Ambxst/main/docs/mods/manifest.schema.json",
+  "manifestVersion": 1,
+  "id": "skabber.hyprtasking-dock",
+  "name": "Hyprtasking overview + hyprlock",
+  "version": "1.2.0",
+  "description": "Overview buttons toggle Hyprtasking; locking uses hyprlock (fingerprint) instead of the built-in password-only lockscreen",
+  "license": "MIT",
+  "author": "skabber",
+  "compatibility": {
+    "api": 1,
+    "ambxst": ">=1.3.12 <1.4.0"
+  },
+  "permissions": [
+    "Runs hyprctl eval to toggle the Hyprtasking overview"
+  ],
+  "operations": [
+    {
+      "type": "patch",
+      "source": "patches/dock-overview.patch"
+    },
+    {
+      "type": "patch",
+      "source": "patches/overview-button.patch"
+    },
+    {
+      "type": "patch",
+      "source": "patches/lockservice.patch"
+    },
+    {
+      "type": "patch",
+      "source": "patches/shortcuts-lock.patch"
+    },
+    {
+      "type": "patch",
+      "source": "patches/hide-pomodoro.patch"
+    }
+  ]
+}

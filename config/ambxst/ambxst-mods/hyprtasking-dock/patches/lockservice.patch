@@ -1,0 +1,16 @@
+--- a/modules/services/LockscreenService.qml
++++ b/modules/services/LockscreenService.qml
+@@ -10,11 +10,11 @@
+     id: root
+ 
+     function toggle() {
+-        GlobalStates.lockscreenVisible = !GlobalStates.lockscreenVisible;
++        lock();
+     }
+ 
+     function lock() {
+-        GlobalStates.lockscreenVisible = true;
++        Quickshell.execDetached(["hyprlock"]);
+     }
+ 
+     function unlock() {

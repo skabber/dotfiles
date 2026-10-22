@@ -9,13 +9,36 @@
 
 let
   # Ambxst's daemon owns ~/.config/ambxst/config/* at runtime (its settings
-  # GUI rewrites them via atomic rename), so weather is seeded once on
+  # GUI rewrites them via atomic rename), so they are seeded once on
   # activation instead of symlinked from the store — a store symlink would
   # be silently replaced on the first GUI edit and trip later switches.
-  ambxstWeather = (pkgs.formats.json { }).generate "ambxst-weather.json" {
-    location = "Denver";
-    unit = "F";
-  };
+  # Snapshots live in ../config/ambxst/seeds/<name>.json and mirror the
+  # ~/.config/ambxst/config/ filename; drop a new snapshot there to cover
+  # another file. Seeding is only-if-absent: GUI edits win afterwards,
+  # delete the live file + rebuild to re-seed.
+  ambxstSeeds =
+    let
+      seedsDir = ../config/ambxst/seeds;
+      json = pkgs.formats.json { };
+      snapshots = lib.filterAttrs (name: _: lib.hasSuffix ".json" name) (builtins.readDir seedsDir);
+    in
+    lib.mapAttrs'
+      (name: _: lib.nameValuePair name (json.generate "ambxst-${name}" (lib.importJSON (seedsDir + "/${name}"))))
+      snapshots;
+
+  # Local Ambxst mod source, symlinked into ~/.local/share/ambxst-mods —
+  # the path the shell's Mods panel installs/updates from. The daemon
+  # copies it into ~/.local/share/ambxst/mods/packages on install/update;
+  # never symlink into packages/ itself, it is daemon-owned state. After
+  # changing the mod here: Mods panel → Update, Rebuild, then `ambxst reload`.
+  ambxstModDir = ../config/ambxst/ambxst-mods/hyprtasking-dock;
+  ambxstModFiles =
+    let
+      top = lib.filterAttrs (_: type: type == "regular") (builtins.readDir ambxstModDir);
+      patches = builtins.readDir (ambxstModDir + "/patches");
+    in
+    lib.mapAttrs' (name: _: lib.nameValuePair "ambxst-mods/hyprtasking-dock/${name}" { source = ambxstModDir + "/${name}"; }) top
+    // lib.mapAttrs' (name: _: lib.nameValuePair "ambxst-mods/hyprtasking-dock/patches/${name}" { source = ambxstModDir + "/patches/${name}"; }) patches;
   wallpaper = "${pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha}/share/wallpapers/nineish-catppuccin-mocha/contents/images/nix-wallpaper-nineish-catppuccin-mocha.png";
 
   # nixpkgs pins hypr-dynamic-cursors at 2026-07-21, which predates hyprland
@@ -65,6 +88,9 @@ in
     "rofi/config.rasi".source = ../config/rofi/config.rasi;
     "networkmanager-dmenu/config.ini".source = ../config/networkmanager-dmenu/config.ini;
     "mako/config".source = ../config/mako/config;
+    # Static asset, never rewritten by the daemon; referenced by the
+    # launcherIcon key seeded from ../config/ambxst/seeds/bar.json
+    "ambxst/nix-snowflake.svg".source = ../config/ambxst/nix-snowflake.svg;
     "hypr/hyprpaper.conf".text = ''
       splash = false
       wallpaper {
@@ -139,10 +165,15 @@ in
       defaultApplications."inode/directory" = [ "yazi.desktop" ];
     };
 
-  home.activation.seedAmbxstWeather = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  # Mod source lands in ~/.local/share (dataFile), one symlink per file
+  xdg.dataFile = ambxstModFiles;
+
+  home.activation.seedAmbxst = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     run mkdir -p "$HOME/.config/ambxst/config"
-    if [ ! -f "$HOME/.config/ambxst/config/weather.json" ]; then
-      run cp "${ambxstWeather}" "$HOME/.config/ambxst/config/weather.json"
-    fi
+    ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: seed: ''
+      if [ ! -f "$HOME/.config/ambxst/config/${name}" ]; then
+        run cp "${seed}" "$HOME/.config/ambxst/config/${name}"
+      fi
+    '') ambxstSeeds)}
   '';
 }

@@ -1,0 +1,28 @@
+{
+    "availableOnFullscreen": true,
+    "barColor": [
+        [
+            "surface",
+            0
+        ]
+    ],
+    "containBar": false,
+    "enableFirefoxPlayer": false,
+    "frameEnabled": false,
+    "frameThickness": 8,
+    "hoverRegionHeight": 8,
+    "hoverToReveal": true,
+    "keepBarBorder": false,
+    "keepBarShadow": false,
+    "launcherIcon": "/home/jay/.config/ambxst/nix-snowflake.svg",
+    "launcherIconFullTint": false,
+    "launcherIconSize": 18,
+    "launcherIconTint": false,
+    "pillStyle": "default",
+    "pinnedOnStartup": true,
+    "position": "top",
+    "screenList": [
+    ],
+    "showPinButton": true,
+    "use12hFormat": false
+}

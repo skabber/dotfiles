@@ -1,0 +1,10 @@
+--- a/modules/bar/clock/Clock.qml
++++ b/modules/bar/clock/Clock.qml
+@@ -614,6 +614,7 @@
+             // Pomodoro Wrapper StyledRect
+             StyledRect {
+                 id: pomodoroWrapper
++                visible: false
+                 variant: "popup"
+                 radius: Styling.radius(8)
+                 enableShadow: false

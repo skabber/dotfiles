@@ -1,0 +1,20 @@
+--- a/modules/widgets/overview/OverviewButton.qml
++++ b/modules/widgets/overview/OverviewButton.qml
+@@ -1,4 +1,5 @@
+ import QtQuick
++import Quickshell
+ import qs.modules.globals
+ import qs.modules.services
+ import qs.config
+@@ -10,10 +11,6 @@
+     tooltipText: I18n.t("bar.tooltip.overview")
+ 
+     onToggle: function () {
+-        if (GlobalStates.overviewOpen) {
+-            Visibilities.setActiveModule("");
+-        } else {
+-            Visibilities.setActiveModule("overview");
+-        }
++        Quickshell.execDetached(["hyprctl", "eval", 'hl.plugin.hyprtasking.toggle("cursor")']);
+     }
+ }

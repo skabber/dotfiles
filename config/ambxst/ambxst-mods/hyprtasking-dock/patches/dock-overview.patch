@@ -1,0 +1,34 @@
+--- a/modules/dock/DockContent.qml
++++ b/modules/dock/DockContent.qml
+@@ -519,14 +519,7 @@
+                         }
+ 
+                         onClicked: {
+-                            if (AxctlService.compositorName === "niri") {
+-                                AxctlService.dispatch("overview toggle");
+-                                return;
+-                            }
+-                            let visibilities = Visibilities.getForScreen(root.screen.name);
+-                            if (visibilities) {
+-                                visibilities.overview = !visibilities.overview;
+-                            }
++                            Quickshell.execDetached(["hyprctl", "eval", 'hl.plugin.hyprtasking.toggle("cursor")']);
+                         }
+ 
+                         StyledToolTip {
+@@ -657,14 +650,7 @@
+                         }
+ 
+                         onClicked: {
+-                            if (AxctlService.compositorName === "niri") {
+-                                AxctlService.dispatch("overview toggle");
+-                                return;
+-                            }
+-                            let visibilities = Visibilities.getForScreen(root.screen.name);
+-                            if (visibilities) {
+-                                visibilities.overview = !visibilities.overview;
+-                            }
++                            Quickshell.execDetached(["hyprctl", "eval", 'hl.plugin.hyprtasking.toggle("cursor")']);
+                         }
+ 
+                         StyledToolTip {
