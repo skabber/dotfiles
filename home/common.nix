@@ -3,6 +3,7 @@
   config,
   pkgs,
   lib,
+  delta,
   ...
 }:
 
@@ -66,6 +67,7 @@
     slack
     discord
     obsidian
+    delta.packages.${pkgs.stdenv.hostPlatform.system}.delta
     flatpak
     appimage-run
     impression

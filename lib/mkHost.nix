@@ -19,6 +19,7 @@
   home-manager,
   system,
   ambxst,
+  delta,
 }:
 
 let
@@ -204,6 +205,7 @@ in
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.backupFileExtension = "backup";
+          home-manager.extraSpecialArgs = { inherit delta; };
           home-manager.users.jay = import "${root}/home/${hostname}.nix";
         }
       ] ++ extraModules;

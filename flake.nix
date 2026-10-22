@@ -35,6 +35,10 @@
     ambxst = {
       url = "github:Axenide/Ambxst";
     };
+    delta = {
+      url = "github:zed-industries/delta-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -48,6 +52,7 @@
       gtk-flash,
       pain,
       ambxst,
+      delta,
       ...
     }:
     let
@@ -58,7 +63,7 @@
       pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
 
       inherit (import ./lib/mkHost.nix {
-        inherit self nixpkgs nixpkgs-libreoffice home-manager system ambxst;
+        inherit self nixpkgs nixpkgs-libreoffice home-manager system ambxst delta;
       }) mkHost;
     in
     {
