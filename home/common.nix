@@ -50,6 +50,7 @@
     nsz
     awscli2
     codegraph
+    omp
 
     # Language servers
     vscode-langservers-extracted
