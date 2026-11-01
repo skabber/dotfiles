@@ -16,10 +16,12 @@
   self,
   nixpkgs,
   nixpkgs-libreoffice,
+  nixpkgs-calibre,
   home-manager,
   system,
   ambxst,
   delta,
+  grayboard,
 }:
 
 let
@@ -34,9 +36,17 @@ let
   # - dwarfs: 0.14.0 bundles 2023-era folly/fbthrift that no longer builds
   #   against current fmt/GCC (broken on hydra repeatedly since 2026-06,
   #  no upstream commits since). Drop when nixpkgs fixes it.
+  # - calibre: pinned to the previous lock rev (2026-10-12) — on current
+  #   unstable calibre's chain is unbuildable: pyopenjtalk-plus (piper-tts
+  #   dep) fails its tests under Cython 3.3 (fix dfb035a64942 not yet in a
+  #   channel rev), and speech-dispatcher 0.12.1 installs no python bindings
+  #   under python 3.14 (breaks calibre's speech TTS at runtime, not just its
+  #   tests). This rev ships calibre 9.15.0 — what the system already runs.
+  #   Drop when unstable builds calibre green again.
   pinnedPackagesOverlay = _final: _prev: {
     libreoffice = nixpkgs-libreoffice.legacyPackages.${system}.libreoffice;
     dwarfs = nixpkgs-libreoffice.legacyPackages.${system}.dwarfs;
+    calibre = nixpkgs-calibre.legacyPackages.${system}.calibre;
   };
 
   # paperless-ngx 3.1.3's test_consumer.py::TestConsumer::testNormalOperation
@@ -205,7 +215,7 @@ in
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.backupFileExtension = "backup";
-          home-manager.extraSpecialArgs = { inherit delta; };
+          home-manager.extraSpecialArgs = { inherit delta grayboard; };
           home-manager.users.jay = import "${root}/home/${hostname}.nix";
         }
       ] ++ extraModules;

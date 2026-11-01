@@ -13,6 +13,15 @@
     # which broke every host build, so verify a rev actually evaluates
     # before pinning unstable again.
     nixpkgs-libreoffice.url = "github:NixOS/nixpkgs/nixos-26.05";
+    # Pinned to the previous nixpkgs lock rev (the tree the running system was
+    # built from) so calibre substitutes from cache: on current unstable its
+    # chain is unbuildable — pyopenjtalk-plus (piper-tts dep) fails its test
+    # suite under Cython 3.3 (fixed in master dfb035a64942 but not yet in a
+    # channel rev), and speech-dispatcher 0.12.1 silently installs no python
+    # bindings under python 3.14, breaking calibre's test_speech_dispatcher
+    # and its speech-dispatcher TTS backend at runtime. Drop when unstable
+    # builds calibre green again.
+    nixpkgs-calibre.url = "github:NixOS/nixpkgs/698c6234852b85fc3ec2be1fc67eb0416eec0417";
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -50,6 +59,7 @@
       self,
       nixpkgs,
       nixpkgs-libreoffice,
+      nixpkgs-calibre,
       home-manager,
       kokoro-fastapi-nix,
       wallbag-rust,
@@ -68,7 +78,7 @@
       pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
 
       inherit (import ./lib/mkHost.nix {
-        inherit self nixpkgs nixpkgs-libreoffice home-manager system ambxst delta grayboard;
+        inherit self nixpkgs nixpkgs-libreoffice nixpkgs-calibre home-manager system ambxst delta grayboard;
       }) mkHost;
     in
     {
