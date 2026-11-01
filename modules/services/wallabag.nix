@@ -5,7 +5,7 @@ with lib;
 
 let
   cfg = config.wallabag;
-  php = pkgs.php82.withExtensions ({ enabled, all }: enabled ++ [ all.pdo_pgsql all.pdo_sqlite all.intl all.gd all.imagick ]);
+  php = pkgs.php83.withExtensions ({ enabled, all }: enabled ++ [ all.pdo_pgsql all.pdo_sqlite all.intl all.gd all.imagick ]);
   dataDir = "/var/lib/wallabag";
 
   dbDriver = if cfg.database.type == "sqlite" then "pdo_sqlite" else "pdo_pgsql";
