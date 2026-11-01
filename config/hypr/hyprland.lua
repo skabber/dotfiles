@@ -367,7 +367,7 @@ hl.bind(mainMod .. " + SHIFT + I",     hl.dsp.layout("fit_into_view"))    -- sna
 
 -- ── Window groups (tabbed windows) ────────────────────
 hl.bind(mainMod .. " + G",            hl.dsp.group.toggle())      -- tab/untab focused window
-hl.bind(mainMod .. " + CTRL + G",     hl.dsp.group.lock_active()) -- lock the active group
+hl.bind(mainMod .. " + CTRL + G",     hl.dsp.group.lock())        -- lock the active group
 hl.bind(mainMod .. " + CTRL + left",  hl.dsp.group.prev())        -- previous tab
 hl.bind(mainMod .. " + CTRL + right", hl.dsp.group.next())        -- next tab
 hl.bind(mainMod .. " + SHIFT + G",    hl.dsp.window.move({ out_of_group = true }))
