@@ -42,23 +42,31 @@ let
   wallpaper = "${pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha}/share/wallpapers/nineish-catppuccin-mocha/contents/images/nix-wallpaper-nineish-catppuccin-mocha.png";
 
   # nixpkgs pins hypr-dynamic-cursors at 2026-07-21, which predates hyprland
-  # 0.56.2's renderSoftwareCursorsFor(..., screencopy, forceRender) signature;
-  # the plugin then refuses to load ("unexpected function signature") and its
-  # config keys stay unknown. Backport of upstream fix 9778329 until the pin
-  # catches up: https://github.com/VirtCode/hypr-dynamic-cursors/pull/160
+  # 0.57-dev's render-context API (IPassElement methods and render helpers
+  # now take Render::CRenderContext&; the old plugin fails to compile as an
+  # abstract class). Pin upstream 2a8d0b7 ("fix: use new render contexts")
+  # until the nixpkgs pin catches up; it includes the older v0.56.2 fixes.
   hypr-dynamic-cursors = pkgs.hyprlandPlugins.hypr-dynamic-cursors.overrideAttrs (old: {
-    patches = (old.patches or [ ]) ++ [ ./patches/hypr-dynamic-cursors-v0.56.2.patch ];
+    version = "0-unstable-2026-10-05";
+    src = pkgs.fetchFromGitHub {
+      owner = "VirtCode";
+      repo = "hypr-dynamic-cursors";
+      rev = "2a8d0b735328d874a78ca93b2f201649f712a74a";
+      hash = "sha256-PSt/SRtemvsoGYNFJ7YLiXGxT8EJe3AhmGwt5Vt79aA=";
+    };
   });
 
-  # nixpkgs pins hyprtasking at a rev tracking hyprland main (post-0.56.2 ABI);
-  # the v0.56.2 pair is the plugin's own hyprpm.toml commit_pin
+  # nixpkgs pins hyprtasking at 2026-09-20 and upstream main is still on the
+  # pre-0.57 API (m_id/m_visible went private, workspace query changed);
+  # neither compiles against hyprland 0.57.0-dev. Pin PR #140 "Support
+  # Hyprland 0.57" (fork colonelpanic8) until it merges upstream.
   hyprtasking = pkgs.hyprlandPlugins.hyprtasking.overrideAttrs (old: {
-    version = "0-unstable-2026-05-04";
+    version = "0-unstable-2026-10-31-0.57";
     src = pkgs.fetchFromGitHub {
-      owner = "raybbian";
+      owner = "colonelpanic8";
       repo = "hyprtasking";
-      rev = "4d3c39511c3f38966abf1ec4393f5a7220ffb1a3";
-      hash = "sha256-3C5YdLaUx4LgmPyVyfYqHB24ZDsrfI87veA3eDQIofM=";
+      rev = "a3bd530ddad57c1bdd5c25fe465013d14d18553d";
+      hash = "sha256-KzxmA0lqTvZKq/AHdSu2juugkfXwLC6ywR4BeAfiIIg=";
     };
   });
 in
