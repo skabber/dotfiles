@@ -127,6 +127,23 @@
         "type": "github"
       }
     },
+    "grayboard": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793457278,
+        "narHash": "sha256-QaI4h17WSBPlk19U65ubdr8HAjUMmMjOyur4VA5J/K0=",
+        "path": "/home/jay/Projects/grayboard",
+        "type": "path"
+      },
+      "original": {
+        "path": "/home/jay/Projects/grayboard",
+        "type": "path"
+      }
+    },
     "gtk-flash": {
       "inputs": {
         "crane": "crane",
@@ -313,6 +330,7 @@
       "inputs": {
         "ambxst": "ambxst",
         "delta": "delta",
+        "grayboard": "grayboard",
         "gtk-flash": "gtk-flash",
         "home-manager": "home-manager",
         "kokoro-fastapi-nix": "kokoro-fastapi-nix",

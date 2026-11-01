@@ -39,6 +39,10 @@
       url = "github:zed-industries/delta-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    grayboard = {
+      url = "path:/home/jay/Projects/grayboard";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -53,6 +57,7 @@
       pain,
       ambxst,
       delta,
+      grayboard,
       ...
     }:
     let
@@ -63,7 +68,7 @@
       pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
 
       inherit (import ./lib/mkHost.nix {
-        inherit self nixpkgs nixpkgs-libreoffice home-manager system ambxst delta;
+        inherit self nixpkgs nixpkgs-libreoffice home-manager system ambxst delta grayboard;
       }) mkHost;
     in
     {

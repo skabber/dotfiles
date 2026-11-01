@@ -4,6 +4,7 @@
   pkgs,
   lib,
   delta,
+  grayboard,
   ...
 }:
 
@@ -82,6 +83,7 @@
     # Agent stuff
     agent-browser
     herdr
+    grayboard.packages.${pkgs.stdenv.hostPlatform.system}.default
     (pkgs.callPackage ../pkgs/ax.nix { })
     kubectl
     k9s
