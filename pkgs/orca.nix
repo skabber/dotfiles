@@ -13,10 +13,10 @@
   copyDesktopItems,
 }:
 let
-  version = "1.4.237";
+  version = "1.4.245";
   src = fetchurl {
     url = "https://github.com/stablyai/orca/releases/download/v${version}/orca-linux.AppImage";
-    hash = "sha256-waZj6I2nCh/prgIawagq2tK92ugl+dcWU57ufmnH7yk=";
+    hash = "sha256-uNwzG8ck3gTasysc79OWlUANoVpTAiBUuXaC7a0f+dg=";
   };
 
   bin = writeShellScriptBin "orca" ''
