@@ -123,7 +123,7 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStartPre = "${pkgs.bash}/bin/bash -c 'for i in $(seq 1 30); do tailscale status >/dev/null 2>&1 && exit 0; sleep 1; done; exit 1'";
+      ExecStartPre = "${pkgs.bash}/bin/bash -c 'for i in $(seq 1 90); do tailscale status >/dev/null 2>&1 && exit 0; sleep 1; done; exit 1'";
       ExecStart = "${pkgs.tailscale}/bin/tailscale serve --bg --https=8443 http://127.0.0.1:8181";
       ExecStop = "${pkgs.tailscale}/bin/tailscale serve --https=8443 off";
     };

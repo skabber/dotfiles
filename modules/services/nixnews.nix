@@ -125,7 +125,7 @@ in
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        ExecStartPre = "${pkgs.bash}/bin/bash -c 'for i in $(seq 1 30); do tailscale status >/dev/null 2>&1 && exit 0; sleep 1; done; exit 1'";
+        ExecStartPre = "${pkgs.bash}/bin/bash -c 'for i in $(seq 1 90); do tailscale status >/dev/null 2>&1 && exit 0; sleep 1; done; exit 1'";
         ExecStart = "${pkgs.bash}/bin/bash -c 'for i in $(seq 1 5); do ${pkgs.tailscale}/bin/tailscale serve --bg --https=${toString cfg.nginxPort} http://127.0.0.1:${toString cfg.nginxPort} && exit 0; sleep 2; done; exit 1'";
         ExecStop = "${pkgs.tailscale}/bin/tailscale serve --https=${toString cfg.nginxPort} off";
       };

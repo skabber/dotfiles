@@ -79,7 +79,7 @@ in
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        ExecStartPre = "${pkgs.bash}/bin/bash -c 'for i in $(seq 1 30); do tailscale status >/dev/null 2>&1 && exit 0; sleep 1; done; exit 1'";
+        ExecStartPre = "${pkgs.bash}/bin/bash -c 'for i in $(seq 1 90); do tailscale status >/dev/null 2>&1 && exit 0; sleep 1; done; exit 1'";
         # Retry: concurrent serve units racing one config write get an etag
         # mismatch ("Another client is changing the serve config").
         ExecStart = "${pkgs.bash}/bin/bash -c 'for i in $(seq 1 5); do ${pkgs.tailscale}/bin/tailscale serve --bg --https=${toString cfg.port} http://127.0.0.1:${toString cfg.port} && exit 0; sleep 2; done; exit 1'";
