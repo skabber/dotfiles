@@ -60,15 +60,14 @@
   # cache.nixos.org. Global overlays/config poison them transitively:
   # - rocmPackages: python package overrides leak into hipblaslt (nanobind)
   #   and tensile -> rocblas/hipblas/miopen, hours of Tensile compilation.
-  # - calibre: rocmSupport gives its piper-tts backend the ROCm onnxruntime
-  #   and locally patched torch.
+  # (calibre used to be pinned here for the same reason; since the 2026-10
+  # lock it comes from a separate rev-pinned input — see lib/mkHost.nix.)
   # (The python test-skip overrides that used to live here — patool, scipy,
   # python-gnupg, anyio, twisted — were dropped 2026-10-13: Hydra is green
   # on all of them, and scipy's flaky test is deselected upstream on py3.12.)
   nixpkgs.overlays = [
     (final: prev: {
       rocmPackages = (import prev.path { system = prev.stdenv.hostPlatform.system; }).rocmPackages;
-      calibre = (import prev.path { system = prev.stdenv.hostPlatform.system; }).calibre;
     })
     # python312 remains only as the interpreter for runtime venvs (moss's
     # vllm, freetoken's uv) — nothing consumes python312Packages anymore, so

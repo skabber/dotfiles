@@ -4,6 +4,7 @@
   pkgs,
   lib,
   delta,
+  grayboard,
   ...
 }:
 
@@ -50,6 +51,7 @@
     nsz
     awscli2
     codegraph
+    omp
 
     # Language servers
     vscode-langservers-extracted
@@ -80,6 +82,7 @@
     # Agent stuff
     agent-browser
     herdr
+    grayboard.packages.${pkgs.stdenv.hostPlatform.system}.default
     (pkgs.callPackage ../pkgs/ax.nix { })
     kubectl
     k9s
