@@ -71,7 +71,6 @@
     flatpak
     appimage-run
     impression
-    ladybird
 
     # Utilities (local packages)
     (pkgs.callPackage ../pkgs/proton-drive-cli.nix {})
