@@ -14,6 +14,7 @@
     ../../modules/services/wallabag.nix
     ../../modules/services/syncthing.nix
     ../../modules/services/moss-transcribe.nix
+    ../../modules/services/nemotron-diarize.nix
     ../../modules/services/wallabag-tts.nix
     ../../modules/services/defuddle.nix
     ../../modules/services/freetoken.nix
@@ -250,9 +251,21 @@
     extraEnvironment.FREETOKEN_MAMBA_SSM_DTYPE = "bfloat16";
   };
 
+  # Nemotron 3 Diarization + Nemotron 3.5 ASR: speaker-attributed
+  # transcription jobs API (same shape as the MOSS jobs API; transcribe=0
+  # gives diarization-only speaker turns). ~1.9 GB VRAM combined, lazy-loaded,
+  # co-resident with the moss engine; idle-unloads after 30 min. gpu-gateway
+  # (when re-enabled) fronts it as a sidecar — set serve=false then.
+  nemotron-diarize = {
+    enable = true;
+    enableTranscription = true;
+    serve = true;
+  };
+
   # Time-share the GPU between the two engines: moss is the preferred tenant,
   # freetoken runs on demand once moss is idle. Publishes both APIs on the
-  # tailnet under their original port numbers (7860 moss, 1919 freetoken).
+  # tailnet under their original port numbers (7860 moss, 1919 freetoken),
+  # plus the nemotron-diarize sidecar front under its port (7862).
   gpu-gateway.enable = false;
 
   service-panel = {
@@ -264,6 +277,8 @@
       "tailscale-serve-vikunja.service"
       "gpu-gateway.service"
       "moss-transcribe-web.service"
+      "nemotron-diarize.service"
+      "tailscale-serve-nemotron-diarize.service"
       "kokoro-fastapi.service"
       "docker-openhands.service"
       "tailscale-serve-openhands.service"

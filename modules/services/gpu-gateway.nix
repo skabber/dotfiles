@@ -1,5 +1,6 @@
 # gpu-gateway: single-GPU time-share scheduler between moss-transcribe
-# (preferred tenant) and freetoken on hosts where both share one card.
+# (preferred tenant) and freetoken on hosts where both share one card, plus
+# the nemotron-diarize sidecar (third tenant when enabled).
 #
 # The gateway is the only thing that starts/stops the two engines; it holds
 # freetoken requests and mutating moss requests in-process while the
@@ -8,6 +9,12 @@
 # published on the tailnet under the services' original public port numbers
 # via Tailscale Serve, so tailnet clients need no changes. Runs as root
 # (systemctl control), like service-panel.
+#
+# The nemotron-diarize sidecar is NOT time-shared: its model is ~0.6 GB of
+# VRAM and co-resides with the moss engine, so evicting engines for its
+# seconds-long jobs would be policy malpractice. The gateway fronts it with
+# a third port, starts it on demand when held, and stops it (after draining)
+# before freetoken starts so ft's memory-fit solver sees the full card.
 { config, pkgs, lib, ... }:
 
 with lib;
@@ -52,6 +59,24 @@ in
       type = types.port;
       default = 7871;
       description = "Loopback front port proxying the moss jobs API/web UI.";
+    };
+
+    diarFrontPort = mkOption {
+      type = types.port;
+      default = 7872;
+      description = "Loopback front port proxying the nemotron-diarize jobs API (sidecar; unused when nemotron-diarize is disabled).";
+    };
+
+    diarUnit = mkOption {
+      type = types.str;
+      default = "nemotron-diarize.service";
+      description = "systemd unit of the nemotron-diarize sidecar.";
+    };
+
+    diarDrainTimeoutSec = mkOption {
+      type = types.ints.positive;
+      default = 120;
+      description = "Max wait for in-flight diarize jobs before stopping the sidecar for a freetoken start (its jobs are seconds-long).";
     };
 
     ftUnit = mkOption {
@@ -149,6 +174,12 @@ in
         GW_MAX_HOLD_SEC = toString cfg.maxHoldSec;
         GW_HEALTH_TIMEOUT_SEC = toString cfg.healthTimeoutSec;
         GW_SWITCH_COOLDOWN_SEC = toString cfg.switchCooldownSec;
+        GW_DIAR_FRONT_PORT = toString cfg.diarFrontPort;
+        GW_DIAR_DRAIN_TIMEOUT_SEC = toString cfg.diarDrainTimeoutSec;
+      } // optionalAttrs config.nemotron-diarize.enable {
+        GW_DIAR_BACKEND = "http://127.0.0.1:${toString config.nemotron-diarize.port}";
+        GW_DIAR_HEALTH = "http://127.0.0.1:${toString config.nemotron-diarize.port}/api/runtime";
+        GW_DIAR_UNIT = cfg.diarUnit;
       };
       serviceConfig = {
         ExecStart = "${py}/bin/python ${./gpu-gateway.py}";
@@ -164,9 +195,15 @@ in
     systemd.services.tailscale-serve-gpu-gateway-moss =
       serveUnit "moss" config.moss-transcribe.port cfg.mossFrontPort;
 
+    systemd.services.tailscale-serve-gpu-gateway-diarize =
+      mkIf config.nemotron-diarize.enable
+      (serveUnit "diarize" config.nemotron-diarize.port cfg.diarFrontPort);
+
     networking.firewall.interfaces."tailscale0".allowedTCPPorts = [
       config.freetoken.port
       config.moss-transcribe.port
+    ] ++ optionals config.nemotron-diarize.enable [
+      config.nemotron-diarize.port
     ];
   };
 }

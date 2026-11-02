@@ -11,6 +11,7 @@
 #   - https://nixos.tail69fe1.ts.net:8000/    -> WhisperX transcription
 #   - https://nixos.tail69fe1.ts.net:8880/    -> Kokoro TTS
 #   - https://nixos.tail69fe1.ts.net:7860/    -> MOSS-Transcribe jobs API
+#   - https://nixos.tail69fe1.ts.net:7862/    -> Nemotron diarization jobs API
 #   - https://nixos.tail69fe1.ts.net:8090/    -> Gitea MCP
 
 # NOTE: Do NOT `tailscale serve reset` here — it wipes declarative serve rules
@@ -61,6 +62,11 @@ tailscale serve --bg --https=28981 http://127.0.0.1:28982
 # tailscale-serve-moss-transcribe.service; listed here so a reset never
 # leaves it missing)
 tailscale serve --bg --https=7860 http://127.0.0.1:7860
+
+# Port 7862 -> Nemotron diarization jobs API (also managed declaratively by
+# tailscale-serve-nemotron-diarize.service; listed here so a reset never
+# leaves it missing)
+tailscale serve --bg --https=7862 http://127.0.0.1:7862
 
 # Port 3003 -> Paperless-AI
 tailscale serve --bg --https=3003 http://127.0.0.1:3003

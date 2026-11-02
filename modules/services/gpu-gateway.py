@@ -1,19 +1,26 @@
 #!/usr/bin/env python3
 """gpu-gateway: single-GPU time-share scheduler + buffering reverse proxy.
 
-Two loopback front ports:
+Loopback front ports:
   - freetoken front: OpenAI/Anthropic API proxied to the ft server; inference
     requests are held in-process while the engine is down and released once
     healthy, while health probes (/, /health, /v1/models) fail fast and never
     count as demand.
   - moss front: the mtd-subtitle-web jobs API + web UI; mutating requests
     are held while the vLLM engine is down, GETs pass through.
+  - diar front: the nemotron-diarize jobs API, a co-resident sidecar (never
+    time-shared — its model is ~0.6 GB). Mutating requests are held while
+    the sidecar is down (the governor starts it on demand, only while MOSS
+    is resident); GETs fail fast while it is down.
 
 The governor keeps at most one engine resident (moss preferred), waits for
 VRAM release between engines, and drains in-flight work before switching:
 
   MOSS --(ft demand, moss idle, coalesced)--> FREETOKEN
   FREETOKEN --(moss demand, ft drained | drain timeout | ft idle)--> MOSS
+
+A FREETOKEN start first drains and stops the diarize sidecar so the engine's
+memory-fit solver sees the full card; returning to MOSS restarts it.
 
 Runs as root (systemctl control); loopback-only, published via Tailscale
 Serve. All knobs arrive as GW_* env vars from the NixOS module.
@@ -50,12 +57,17 @@ def env_float(name, default):
 
 FT_FRONT_PORT = int(env_float("GW_FT_FRONT_PORT", 7870))
 MOSS_FRONT_PORT = int(env_float("GW_MOSS_FRONT_PORT", 7871))
+DIAR_FRONT_PORT = int(env_float("GW_DIAR_FRONT_PORT", 7872))
 FT_BACKEND = os.environ.get("GW_FT_BACKEND", "http://127.0.0.1:1919")
 MOSS_BACKEND = os.environ.get("GW_MOSS_BACKEND", "http://127.0.0.1:7860")
 FT_HEALTH = os.environ.get("GW_FT_HEALTH", FT_BACKEND + "/v1/models")
 MOSS_HEALTH = os.environ.get("GW_MOSS_HEALTH", "http://127.0.0.1:8010/v1/models")
 FT_UNIT = os.environ.get("GW_FT_UNIT", "freetoken.service")
 MOSS_UNIT = os.environ.get("GW_MOSS_UNIT", "moss-transcribe.service")
+# Sidecar is optional: unset GW_DIAR_BACKEND disables the diar front.
+DIAR_BACKEND = os.environ.get("GW_DIAR_BACKEND") or None
+DIAR_HEALTH = os.environ.get("GW_DIAR_HEALTH", "http://127.0.0.1:7862/api/runtime")
+DIAR_UNIT = os.environ.get("GW_DIAR_UNIT", "nemotron-diarize.service")
 
 COALESCE = env_float("GW_COALESCE_SEC", 8)          # batch ft arrivals before switching
 FT_IDLE = env_float("GW_FT_IDLE_SEC", 300)          # hysteresis before returning home
@@ -68,6 +80,7 @@ COOLDOWN = env_float("GW_SWITCH_COOLDOWN_SEC", 60)  # min dwell between switches
 POLL = env_float("GW_POLL_SEC", 2)
 VRAM_FREE_MIB = env_float("GW_VRAM_FREE_MIB", 2000)
 VRAM_TIMEOUT = env_float("GW_VRAM_TIMEOUT_SEC", 90)
+DIAR_DRAIN = env_float("GW_DIAR_DRAIN_TIMEOUT_SEC", 120)
 SPOOL_THRESHOLD = 8 << 20
 
 UI_HTML_PATH = os.environ.get("GW_UI_HTML")
@@ -91,6 +104,11 @@ class GW:
     ft_streams = {}   # stream handle -> {start, last_active, upstream, kill}
     moss_held = 0     # mutating requests waiting for the engine
     moss_jobs = 0     # active jobs reported by the jobs API
+    diar_held = 0     # mutating diarize requests waiting for the sidecar
+    diar_jobs = 0     # active diarize jobs reported by the jobs API
+    diar_healthy = False
+    diar_unit_state = ""
+    diar_start_attempt = 0.0
     ft_demand_since = None
     want_moss_since = None
     ft_idle_since = None
@@ -205,6 +223,21 @@ async def stop_engine(unit):
     await wait_unit_inactive(unit, 150)
 
 
+async def drain_sidecar():
+    """Wait out in-flight diarize jobs (they are seconds-long), then stop the
+    sidecar so the engine about to start sees its VRAM as free."""
+    if not DIAR_BACKEND or not await unit_active(DIAR_UNIT):
+        return
+    deadline = time.monotonic() + DIAR_DRAIN
+    while time.monotonic() < deadline:
+        if await active_jobs(DIAR_BACKEND) == 0:
+            break
+        await asyncio.sleep(1)
+    else:
+        event("diarize drain timeout — stopping sidecar mid-job")
+    await stop_engine(DIAR_UNIT)
+
+
 async def transition(target):
     if gw.transitioning or gw.state == target:
         return False
@@ -213,6 +246,9 @@ async def transition(target):
     log.info("switching %s -> %s", origin, target)
     event(f"switching {origin} -> {target}")
     try:
+        diar_was_active = DIAR_BACKEND and await unit_active(DIAR_UNIT)
+        if target == "FREETOKEN":
+            await drain_sidecar()
         await stop_engine(MOSS_UNIT if origin == "MOSS" else FT_UNIT)
         await wait_vram()
         if target == "FREETOKEN":
@@ -234,6 +270,10 @@ async def transition(target):
         gw.switches += 1
         gw.ft_demand_since = gw.want_moss_since = gw.ft_idle_since = None
         gw.degraded = None
+        # Restore the sidecar the FT transition stopped (best-effort; a failed
+        # start just means the next held request re-demands it).
+        if target == "MOSS" and diar_was_active:
+            asyncio.ensure_future(start_engine(DIAR_UNIT, DIAR_HEALTH))
         log.info("now resident: %s", target)
         event(f"now resident: {target}")
         return True
@@ -295,11 +335,20 @@ async def gpu_stats():
 
 
 async def moss_active_jobs():
+    return await active_jobs(MOSS_BACKEND)
+
+
+async def active_jobs(backend):
+    """Count queued/running jobs on a jobs API (moss and diarize share the
+    shape; statuses are the union of both lifecycles)."""
     try:
-        r = await client.get(MOSS_BACKEND + "/api/jobs", timeout=5)
+        r = await client.get(backend + "/api/jobs", timeout=5)
         jobs = r.json().get("jobs", [])
         return sum(1 for j in jobs
-                   if j.get("status") in ("queued", "running", "rendering"))
+                   if j.get("status") in ("queued", "running", "rendering",
+                                           "decoding", "loading_model",
+                                           "diarizing", "transcribing",
+                                           "postprocessing"))
     except Exception:
         return 0
 
@@ -338,9 +387,25 @@ async def cycle():
     gw.moss_unit_state = await unit_state(MOSS_UNIT)
     gw.ft_unit_state = await unit_state(FT_UNIT)
     gw.gpu = await gpu_stats()
+    if DIAR_BACKEND:
+        gw.diar_healthy = await probe(DIAR_HEALTH)
+        gw.diar_unit_state = await unit_state(DIAR_UNIT)
+        gw.diar_jobs = await active_jobs(DIAR_BACKEND)
     if gw.transitioning:
         return
     now = time.monotonic()
+
+    if DIAR_BACKEND:
+        # Sidecar demand-start: held mutating requests while the unit is down.
+        # Only while MOSS is resident — starting it next to a running ft
+        # engine would eat the headroom ft's memory-fit solver reserved.
+        if (gw.diar_held > 0 and gw.state == "MOSS"
+                and not gw.diar_healthy and not gw.transitioning
+                and gw.diar_unit_state.split(" ", 1)[0] in ("inactive", "failed")
+                and now - gw.diar_start_attempt > 30):
+            gw.diar_start_attempt = now
+            event("diarize demand — starting sidecar")
+            asyncio.ensure_future(start_engine(DIAR_UNIT, DIAR_HEALTH))
 
     if gw.state == "MOSS":
         ft_demand = gw.ft_pending > 0
@@ -576,23 +641,31 @@ def status_payload():
         "moss": {"held": gw.moss_held, "jobs": gw.moss_jobs,
                  "healthy": gw.moss_healthy, "unit": MOSS_UNIT,
                  "unitState": gw.moss_unit_state},
+        "diar": {"configured": bool(DIAR_BACKEND), "held": gw.diar_held,
+                 "jobs": gw.diar_jobs, "healthy": gw.diar_healthy,
+                 "unit": DIAR_UNIT if DIAR_BACKEND else None,
+                 "unitState": gw.diar_unit_state},
         "gpu": gw.gpu,
         "events": EVENTS[-30:],
         "policy": {"coalesceSec": COALESCE, "ftIdleSec": FT_IDLE,
                    "drainTimeoutSec": DRAIN, "maxHoldSec": MAX_HOLD,
                    "ftStallSec": FT_STALL, "ftStallHardSec": FT_STALL_HARD,
+                   "diarDrainSec": DIAR_DRAIN,
                    "switchCooldownSec": COOLDOWN},
     }
 
 
 app_ft = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 app_moss = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+app_diar = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 
 @app_ft.get("/__gw")
 @app_ft.get("/__gw/")
 @app_moss.get("/__gw")
 @app_moss.get("/__gw/")
+@app_diar.get("/__gw")
+@app_diar.get("/__gw/")
 async def ui():
     if not UI_HTML_PATH:
         return PlainTextResponse("gpu-gateway: UI not configured", status_code=503)
@@ -605,6 +678,7 @@ async def ui():
 
 @app_ft.get("/__gw/status")
 @app_moss.get("/__gw/status")
+@app_diar.get("/__gw/status")
 async def status():
     return status_payload()
 
@@ -684,11 +758,44 @@ async def moss_proxy(request: Request, path: str):
     return await proxy_pass(request, MOSS_BACKEND, spool=spool)
 
 
+@app_diar.api_route("/{path:path}",
+                     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])
+async def diar_proxy(request: Request, path: str):
+    """Diarize sidecar front. Mutating requests (uploads, edits) are held
+    while the sidecar is down — the governor starts it on demand; GETs fail
+    fast so polls never count as demand."""
+    if not DIAR_BACKEND:
+        return JSONResponse(
+            status_code=503,
+            content={"error": "gpu-gateway: diarize sidecar not configured"})
+    spool = False
+    if request.method in MUTATING:
+        gw.diar_held += 1
+        try:
+            gate = lambda: gw.diar_healthy
+            spool = not gate()
+            if spool:
+                ok = await wait_until(gate, MAX_HOLD, request)
+                if not ok:
+                    return hold_timeout()
+        finally:
+            gw.diar_held -= 1
+    elif not gw.diar_healthy:
+        return JSONResponse(
+            status_code=503,
+            content={"error": "gpu-gateway: diarize sidecar down; "
+                              "non-mutating requests are not held"},
+            headers={"Retry-After": "60"})
+    return await proxy_pass(request, DIAR_BACKEND, spool=spool)
+
+
 async def main():
     servers = [
         uvicorn.Server(uvicorn.Config(app_ft, host="127.0.0.1", port=FT_FRONT_PORT,
                                       log_level="warning", access_log=False, lifespan="off")),
         uvicorn.Server(uvicorn.Config(app_moss, host="127.0.0.1", port=MOSS_FRONT_PORT,
+                                      log_level="warning", access_log=False, lifespan="off")),
+        uvicorn.Server(uvicorn.Config(app_diar, host="127.0.0.1", port=DIAR_FRONT_PORT,
                                       log_level="warning", access_log=False, lifespan="off")),
     ]
     tasks = [asyncio.create_task(s.serve(), name=f"uvicorn:{s.config.port}")

@@ -12,12 +12,13 @@
   .wrap { max-width: 980px; margin: 0 auto; }
   h1 { font-size: 16px; margin: 0 0 4px; color: #e6edf3; letter-spacing: .5px; }
   .sub { color: #768390; font-size: 12px; margin-bottom: 18px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
   .card { background: #161b22; border: 1px solid #21262d; border-radius: 8px; padding: 14px 16px; }
   .card h2 { font-size: 13px; margin: 0 0 10px; color: #e6edf3; display: flex; align-items: center; gap: 8px; }
   .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
   .badge.moss { background: #1f6f3f; color: #d8ffe3; }
   .badge.freetoken { background: #1f4b7a; color: #cfe6ff; }
+  .badge.diar { background: #4b2f7a; color: #e3d6ff; }
   .badge.off { background: #3d2b00; color: #ffd88a; }
   .badge.switching { background: #5a3a00; color: #ffe0a3; animation: pulse 1s infinite; }
   @keyframes pulse { 50% { opacity: .5; } }
@@ -40,7 +41,7 @@
 <body>
 <div class="wrap">
   <h1>gpu-gateway <span id="state" class="badge off">…</span></h1>
-  <div class="sub" id="headline">single-GPU scheduler — moss-transcribe ⇄ freetoken</div>
+  <div class="sub" id="headline">single-GPU scheduler — moss-transcribe ⇄ freetoken · nemotron-diarize sidecar</div>
 
   <div class="grid">
     <div class="card">
@@ -58,6 +59,15 @@
       <div class="row"><span class="k">queued requests</span><span class="num" id="ft-pending">—</span></div>
       <div class="row"><span class="k">in flight</span><span class="num" id="ft-inflight">—</span></div>
       <div class="row"><span class="k">oldest stream idle</span><span class="num" id="ft-idle">—</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Nemotron-Diarize <span id="diar-live" class="badge off"></span></h2>
+      <div class="row"><span class="k">sidecar</span><span class="num" id="diar-cfg">—</span></div>
+      <div class="row"><span class="k">systemd unit</span><span class="num" id="diar-unit">—</span></div>
+      <div class="row"><span class="k">health</span><span class="num" id="diar-health">—</span></div>
+      <div class="row"><span class="k">active jobs</span><span class="num" id="diar-jobs">—</span></div>
+      <div class="row"><span class="k">held uploads</span><span class="num" id="diar-held">—</span></div>
     </div>
 
     <div class="card wide">
@@ -128,6 +138,21 @@ async function refresh() {
     fi.className = "num" + (d.ft.stalledInflight > 0 ? " hot" : "");
   } else { fi.textContent = "—"; fi.className = "num"; }
 
+  const dr = d.diar || {configured: false};
+  if (dr.configured) {
+    badge($("diar-live"), dr.unitState || "—", dr.healthy ? "diar" : "off");
+    $("diar-cfg").textContent = "co-resident (~0.6 GB)";
+  } else {
+    badge($("diar-live"), "off", "off");
+    $("diar-cfg").textContent = "not configured";
+  }
+  $("diar-unit").textContent = dr.unitState || "—";
+  $("diar-health").textContent = yn(dr.healthy);
+  $("diar-jobs").textContent = dr.jobs;
+  $("diar-held").textContent = dr.held;
+  cls("diar-jobs", dr.jobs > 0);
+  cls("diar-held", dr.held > 0);
+
   const g = d.gpu;
   if (g) {
     $("gpu-bar").style.width = Math.min(100, 100 * g.memUsedMiB / g.memTotalMiB) + "%";
@@ -149,6 +174,7 @@ async function refresh() {
     "coalesce " + p.coalesceSec + "s · ft idle " + p.ftIdleSec + "s · " +
     "drain cap " + p.drainTimeoutSec + "s · hold cap " + p.maxHoldSec + "s · " +
     "stall " + p.ftStallSec + "s/hard " + p.ftStallHardSec + "s · " +
+    "diar drain " + p.diarDrainSec + "s · " +
     "cooldown " + p.switchCooldownSec + "s";
 }
 
