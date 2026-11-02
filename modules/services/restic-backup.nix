@@ -26,6 +26,7 @@ let
     dump /var/lib/wallabag/data/db/wallabag.sqlite ${staging}/wallabag.sqlite
     dump /var/lib/gitea/data/gitea.db ${staging}/gitea.sqlite3
     dump /var/lib/paperless/paperless.sqlite ${staging}/paperless.sqlite3
+    dump /var/lib/vikunja/vikunja.db ${staging}/vikunja.sqlite3
     if ${pkgs.mariadb}/bin/mariadb-admin ping >/dev/null 2>&1; then
       ${pkgs.mariadb}/bin/mariadb-dump --single-transaction romm > ${staging}/romm.sql
     fi
@@ -61,6 +62,7 @@ in
         "/var/lib/gitea"
         "/var/lib/paperless"
         "/var/lib/wallabag"
+        "/var/lib/vikunja"
         "/var/lib/romm"
         "/var/lib/roon-server"
         "/home/jay/.secrets"

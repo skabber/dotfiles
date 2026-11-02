@@ -29,6 +29,7 @@
     ../../modules/services/samba.nix
     ../../modules/services/flatpak.nix
     ../../modules/services/vaultwarden.nix
+    ../../modules/services/vikunja.nix
     ../../modules/services/openhands.nix
   ];
 
@@ -259,6 +260,8 @@
     units = [
       "vaultwarden.service"
       "tailscale-serve-vaultwarden.service"
+      "vikunja.service"
+      "tailscale-serve-vikunja.service"
       "gpu-gateway.service"
       "moss-transcribe-web.service"
       "kokoro-fastapi.service"
@@ -341,6 +344,12 @@
     domain = "nixos.tail69fe1.ts.net";
     adminTokenFile = "/home/jay/.secrets/vaultwarden.env";
     backupDir = "/var/backup/vaultwarden";
+  };
+
+  vikunja = {
+    enable = true;
+    domain = "nixos.tail69fe1.ts.net";
+    environmentFile = "/home/jay/.secrets/vikunja.env";
   };
 
   openhands = {
