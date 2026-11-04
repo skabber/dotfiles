@@ -71,7 +71,7 @@
     obsidian
     delta.packages.${pkgs.stdenv.hostPlatform.system}.delta
     flatpak
-    appimage-run
+    (appimage-run.override { extraPkgs = p: [ p.libgpg-error ]; })
     impression
 
     # Utilities (local packages)

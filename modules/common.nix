@@ -127,7 +127,7 @@
     gst_all_1.gst-plugins-ugly
 
     python3Packages.huggingface-hub
-    appimage-run
+    (appimage-run.override { extraPkgs = p: [ p.libgpg-error ]; })
   ];
 
   # GStreamer environment setup for NixOS
