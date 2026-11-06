@@ -78,6 +78,7 @@
     (pkgs.callPackage ../pkgs/proton-drive-cli.nix {})
     (pkgs.callPackage ../pkgs/hermes.nix { })
     (pkgs.callPackage ../pkgs/orca.nix { })
+    (pkgs.callPackage ../pkgs/eglantine.nix { })
 
     # Agent stuff
     agent-browser
