@@ -17,6 +17,7 @@
   nixpkgs,
   nixpkgs-libreoffice,
   nixpkgs-calibre,
+  nixpkgs-opencode,
   home-manager,
   system,
   ambxst,
@@ -43,11 +44,17 @@ let
   #   under python 3.14 (breaks calibre's speech TTS at runtime, not just its
   #   tests). This rev ships calibre 9.15.0 — what the system already runs.
   #   Drop when unstable builds calibre green again.
-  pinnedPackagesOverlay = _final: _prev: {
-    libreoffice = nixpkgs-libreoffice.legacyPackages.${system}.libreoffice;
-    dwarfs = nixpkgs-libreoffice.legacyPackages.${system}.dwarfs;
-    calibre = nixpkgs-calibre.legacyPackages.${system}.calibre;
-  };
+  pinnedPackagesOverlay =
+    final: _prev:
+    {
+      libreoffice = nixpkgs-libreoffice.legacyPackages.${system}.libreoffice;
+      dwarfs = nixpkgs-libreoffice.legacyPackages.${system}.dwarfs;
+      calibre = nixpkgs-calibre.legacyPackages.${system}.calibre;
+      # opencode: unstable 1d06008 pins a node_modules FOD hash the registry
+      # drifted past (see flake.nix) — evaluate the fixed package.nix from
+      # master c399e1b against the main tree so only opencode rebuilds.
+      opencode = final.callPackage (nixpkgs-opencode + "/pkgs/by-name/op/opencode/package.nix") { };
+    };
 
   # paperless-ngx 3.1.3's test_consumer.py::TestConsumer::testNormalOperation
   # counts files while the consume-dir watcher is live; under parallel test
