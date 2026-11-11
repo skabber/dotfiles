@@ -134,8 +134,8 @@
         ]
       },
       "locked": {
-        "lastModified": 1793457278,
-        "narHash": "sha256-QaI4h17WSBPlk19U65ubdr8HAjUMmMjOyur4VA5J/K0=",
+        "lastModified": 1793994745,
+        "narHash": "sha256-7npW+1NOoOEUt8UrT0v8YTjM2dIay8Y4IF94bYDRfKU=",
         "path": "/home/jay/Projects/grayboard",
         "type": "path"
       },
@@ -411,11 +411,11 @@
     "wallbag-rust": {
       "flake": false,
       "locked": {
-        "lastModified": 1775165153,
-        "narHash": "sha256-tOwzm2JsZbL0N/8/3k4bu3f4+wEu1vy4G1/NMuZO1Qo=",
+        "lastModified": 1794090815,
+        "narHash": "sha256-iJyQvlsEbhELjUSXUcuky30vHKwjP1daCX2LICRMdiE=",
         "ref": "refs/heads/main",
-        "rev": "3ddd6c93b8ec87aa038b9ea717f96cc14759778a",
-        "revCount": 11,
+        "rev": "6de48db3bc7d4a0780e63314abab3053d831e849",
+        "revCount": 13,
         "type": "git",
         "url": "https://nixos.tail69fe1.ts.net:3000/skabber/wallbag-rust.git"
       },

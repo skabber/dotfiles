@@ -175,7 +175,6 @@
 
   # Override kokoro-fastapi to use docker compose v2 (has buildx support)
   # The upstream Dockerfile uses --platform=$BUILDPLATFORM which requires buildx
-  systemd.services.kokoro-fastapi.wantedBy = lib.mkForce [ ];
   systemd.services.kokoro-fastapi.serviceConfig = let
     dataDir = "/var/lib/kokoro-fastapi";
     dockerDir = "${dataDir}/Kokoro-FastAPI/docker/gpu";
