@@ -8,7 +8,7 @@ with lib;
 
 let
   cfg = config.openhands;
-
+  xdgConfigDir = "${cfg.dataDir}/xdg-config";
   # The agent-canvas image exports LD_LIBRARY_PATH (/usr/lib:...), which
   # takes precedence over Nix RPATHs and makes every Nix binary load
   # Debian's libc and segfault. The launcher must use the image's /bin/sh
@@ -60,7 +60,7 @@ in
 
     image = mkOption {
       type = types.str;
-      default = "ghcr.io/openhands/agent-canvas:1.25.0";
+      default = "ghcr.io/openhands/agent-canvas:1.38.0";
       description = "Agent Canvas image tag.";
     };
 
@@ -91,6 +91,7 @@ in
       [
         "d ${cfg.dataDir} 0750 10001 10001 -"
         "d ${cfg.projectsDir} 0755 10001 10001 -"
+        "d ${xdgConfigDir} 0750 10001 10001 -"
       ]
       ++ optionals cfg.enableOpencode [
         "d ${cfg.dataDir}/opencode/config 0755 10001 10001 -"
@@ -108,7 +109,7 @@ in
       ] ++ optionals cfg.enableOpencode [
         "/nix/store:/nix/store:ro"
         "${opencodeLauncher}:/usr/local/bin/opencode:ro"
-        "${cfg.dataDir}/opencode/config:/home/openhands/.config/opencode"
+        "${cfg.dataDir}/opencode/config:/home/openhands/.openhands/xdg-config/opencode"
         "${cfg.dataDir}/opencode/data:/home/openhands/.local/share/opencode"
         "${cfg.dataDir}/opencode/state:/home/openhands/.local/state"
       ];
@@ -117,6 +118,7 @@ in
         # because the published port is loopback; Tailscale Serve (TLS +
         # tailnet ACLs) is the sole external path. The key is also readable
         # for API use via: docker exec openhands cat /home/openhands/.openhands/api-key.txt
+        XDG_CONFIG_HOME = "/home/openhands/.openhands/xdg-config";
         AGENT_CANVAS_ALLOW_LAN_SESSION_KEY = "true";
       } // cfg.extraEnvironment;
       environmentFiles = mkIf (cfg.environmentFile != null) [ cfg.environmentFile ];

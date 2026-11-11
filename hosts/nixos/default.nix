@@ -338,7 +338,7 @@
   romm = {
     enable = true;
     port = 8070;
-    image = "rommapp/romm:5.3.1";
+    image = "rommapp/romm:5.4.1";
     libraryPath = "/run/media/jay/Crucial X8";
     environmentFile = "/home/jay/.secrets/romm.env";
   };
