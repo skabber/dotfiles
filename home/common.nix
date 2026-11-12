@@ -46,12 +46,16 @@
     starship
     vim
     neovim
-    fresh-editor
     devenv
     nsz
     awscli2
     codegraph
-    omp
+    (omp.overrideAttrs (old: {
+      buildInputs = (old.buildInputs or [ ]) ++ [
+        oniguruma
+        zstd
+      ];
+    }))
 
     # Language servers
     vscode-langservers-extracted
