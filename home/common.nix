@@ -75,13 +75,14 @@
     obsidian
     delta.packages.${pkgs.stdenv.hostPlatform.system}.delta
     flatpak
-    appimage-run
+    (appimage-run.override { extraPkgs = p: [ p.libgpg-error ]; })
     impression
 
     # Utilities (local packages)
     (pkgs.callPackage ../pkgs/proton-drive-cli.nix {})
     (pkgs.callPackage ../pkgs/hermes.nix { })
     (pkgs.callPackage ../pkgs/orca.nix { })
+    (pkgs.callPackage ../pkgs/eglantine.nix { })
 
     # Agent stuff
     agent-browser

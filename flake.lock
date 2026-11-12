@@ -354,7 +354,8 @@
         "nixpkgs-calibre": "nixpkgs-calibre",
         "nixpkgs-libreoffice": "nixpkgs-libreoffice",
         "pain": "pain",
-        "wallbag-rust": "wallbag-rust"
+        "wallbag-rust": "wallbag-rust",
+        "nixpkgs-opencode": "nixpkgs-opencode"
       }
     },
     "rust-overlay": {
@@ -422,6 +423,22 @@
       "original": {
         "type": "git",
         "url": "https://nixos.tail69fe1.ts.net:3000/skabber/wallbag-rust.git"
+      }
+    },
+    "nixpkgs-opencode": {
+      "locked": {
+        "lastModified": 1793821670,
+        "narHash": "sha256-WlsILJeLh/YHQ3MtcxfELtD1k05WK9us508L76RlegE=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "c399e1b7fb90789e3e032784ef8ad98ba9907169",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "c399e1b7fb90789e3e032784ef8ad98ba9907169",
+        "type": "github"
       }
     }
   },

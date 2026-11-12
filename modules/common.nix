@@ -127,7 +127,7 @@
     gst_all_1.gst-plugins-ugly
 
     python3Packages.huggingface-hub
-    appimage-run
+    (appimage-run.override { extraPkgs = p: [ p.libgpg-error ]; })
   ];
 
   # GStreamer environment setup for NixOS
@@ -211,5 +211,26 @@
   programs.nix-ld.enable = true;
   programs.nix-ld.libraries = with pkgs; [
     openssl
+    # TotK decomp (~/ROMS/Switch/decomp): the setup AppImage compiles a
+    # dynamically linked `totk` whose bundled SDL3 hard-depends on the host
+    # X11/Wayland/Vulkan stack. The setup's "Preparing the shaders" step runs
+    # `totk` itself, which failed with `libdecor-0.so.0: cannot open shared
+    # object file` (exit 127) because nix-ld provided none of these. With them
+    # here, `totk` also runs bare (`./totk`) — no steam-run needed.
+    libdecor
+    alsa-lib
+    libpulseaudio
+    vulkan-loader
+    wayland
+    libxkbcommon
+    fribidi
+    libx11
+    libxext
+    libxcursor
+    libxi
+    libxfixes
+    libxrandr
+    libxscrnsaver
+    libxtst
   ];
 }

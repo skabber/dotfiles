@@ -22,6 +22,14 @@
     # and its speech-dispatcher TTS backend at runtime. Drop when unstable
     # builds calibre green again.
     nixpkgs-calibre.url = "github:NixOS/nixpkgs/698c6234852b85fc3ec2be1fc67eb0416eec0417";
+    # opencode 2.2.5's node_modules FOD hash went stale on unstable (1d06008):
+    # the npm/bun registry drifted from what was hashed at commit time, so every
+    # build fails with a hash mismatch. Master fixed the hash in c399e1b
+    # ("opencode: fix hash", 2026-11-04) but nixos-unstable hasn't advanced past
+    # the stale rev yet. lib/mkHost.nix callPackages the fixed package.nix
+    # against the main nixpkgs, so only opencode itself rebuilds. Drop this
+    # input + overlay once unstable contains c399e1b.
+    nixpkgs-opencode.url = "github:NixOS/nixpkgs/c399e1b7fb90789e3e032784ef8ad98ba9907169";
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -60,6 +68,7 @@
       nixpkgs,
       nixpkgs-libreoffice,
       nixpkgs-calibre,
+      nixpkgs-opencode,
       home-manager,
       kokoro-fastapi-nix,
       wallbag-rust,
@@ -78,7 +87,7 @@
       pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
 
       inherit (import ./lib/mkHost.nix {
-        inherit self nixpkgs nixpkgs-libreoffice nixpkgs-calibre home-manager system ambxst delta grayboard;
+        inherit self nixpkgs nixpkgs-libreoffice nixpkgs-calibre nixpkgs-opencode home-manager system ambxst delta grayboard;
       }) mkHost;
     in
     {
