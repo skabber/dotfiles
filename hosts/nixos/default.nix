@@ -58,6 +58,14 @@
   # Prevent GDM from suspending before user login
   services.displayManager.gdm.autoSuspend = false;
 
+  # Server host — suspend takes every service offline and resuming wedges
+  # the NVIDIA driver (Nov 17 Xid 13 postmortem). Mask the sleep targets so
+  # nothing (cosmic-idle, GNOME, logind) can suspend, hibernate, or hybrid-sleep.
+  systemd.targets.sleep.enable = false;
+  systemd.targets.suspend.enable = false;
+  systemd.targets.hibernate.enable = false;
+  systemd.targets.hybrid-sleep.enable = false;
+
   # Enable services
   sunshine.enable = false;
 
