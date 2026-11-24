@@ -176,7 +176,11 @@
 
   services.kokoro-fastapi = {
     enable = true;
-    useGpu = true;
+    # CPU mode: kokoro CUDA init/inference while the resident moss vLLM engine
+    # holds the GPU hard-locked the NVIDIA driver (Nov 23 crash-loop: no Xid,
+    # no panic, instant total freeze requiring hard boots every ~15 min when
+    # wallabag-tts's poll re-tried a stuck article).
+    useGpu = false;
     port = 8881;
     openFirewall = true;
   };
@@ -185,7 +189,7 @@
   # The upstream Dockerfile uses --platform=$BUILDPLATFORM which requires buildx
   systemd.services.kokoro-fastapi.serviceConfig = let
     dataDir = "/var/lib/kokoro-fastapi";
-    dockerDir = "${dataDir}/Kokoro-FastAPI/docker/gpu";
+    dockerDir = "${dataDir}/Kokoro-FastAPI/docker/cpu";
   in lib.mkForce {
     Type = "exec";
     User = "kokoro-fastapi";
