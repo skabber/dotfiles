@@ -134,14 +134,18 @@
         ]
       },
       "locked": {
-        "lastModified": 1793994745,
-        "narHash": "sha256-7npW+1NOoOEUt8UrT0v8YTjM2dIay8Y4IF94bYDRfKU=",
-        "path": "/home/jay/Projects/grayboard",
-        "type": "path"
+        "lastModified": 1795566068,
+        "narHash": "sha256-WxXMGTktUxa7dNQOIxen0am/F+b1zdJY0FzoaqpSGGM=",
+        "owner": "nolnoch",
+        "repo": "grayboard",
+        "rev": "4d23ebf5b08352a6c1ea02382bcb21656da7f809",
+        "type": "github"
       },
       "original": {
-        "path": "/home/jay/Projects/grayboard",
-        "type": "path"
+        "owner": "nolnoch",
+        "ref": "feat/nix-flake",
+        "repo": "grayboard",
+        "type": "github"
       }
     },
     "gtk-flash": {

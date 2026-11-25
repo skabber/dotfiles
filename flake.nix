@@ -57,7 +57,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     grayboard = {
-      url = "path:/home/jay/Projects/grayboard";
+      url = "github:nolnoch/grayboard/feat/nix-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
